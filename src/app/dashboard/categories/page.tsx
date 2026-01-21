@@ -1,0 +1,226 @@
+import { prisma } from "@/lib/prisma";
+import { getCategory } from "@/lib/utils";
+import Link from "next/link";
+
+export default async function CategoriesPage({ searchParams }: { searchParams: { tira?: string, cat?: string } }) {
+    const rawSearchParams = await Promise.resolve(searchParams);
+    const filterTira = rawSearchParams.tira || '';
+    const filterCat = rawSearchParams.cat || '';
+
+    const players = await prisma.player.findMany({
+        where: { active: true },
+        orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }]
+    });
+
+    const mappings = await (prisma as any).categoryMapping.findMany() as any;
+    const coaches = await (prisma as any).coach.findMany({ where: { active: true } }) as any[];
+    const categoriesList = ["Mosquitos", "Pre-Mini", "Mini", "U13", "U15", "U17", "U19", "Primera"];
+
+    // Initialize grouped object with all categories
+    const initialGrouped: Record<string, { Fem: any[], MascA: any[], MascB: any[], Mixed: any[] }> = {};
+    categoriesList.forEach(cat => {
+        initialGrouped[cat] = { Fem: [], MascA: [], MascB: [], Mixed: [] };
+    });
+
+    const grouped = players.reduce((acc, player) => {
+        const cat = getCategory(player, mappings);
+
+        // Helper to add player to a specific category structure
+        const addPlayerToCat = (category: string, p: any) => {
+            if (!acc[category]) acc[category] = { Fem: [], MascA: [], MascB: [], Mixed: [] };
+            const tiraStr = p.tira || '';
+            if (category === "Mosquitos") {
+                acc[category].Mixed.push(p);
+            } else if (tiraStr === 'Femenino') {
+                acc[category].Fem.push(p);
+            } else if (tiraStr.includes('B')) {
+                acc[category].MascB.push(p);
+            } else {
+                acc[category].MascA.push(p);
+            }
+        };
+
+        // Add to primary category
+        addPlayerToCat(cat, player);
+
+        // Special case: If playsPrimera and cat is not already Primera, add to Primera too
+        if ((player as any).playsPrimera && cat !== 'Primera') {
+            addPlayerToCat('Primera', player);
+        }
+
+        return acc;
+    }, initialGrouped);
+
+    const sortedKeys = categoriesList.filter(cat => {
+        if (filterCat && cat !== filterCat) return false;
+        return grouped[cat];
+    });
+
+    const getCoachFor = (category: string, tira: string) => {
+        return coaches.find(c => {
+            const cCat = (c.category || '').toLowerCase();
+            const cTira = (c.tira || '').toLowerCase();
+
+            // Normalize inputs
+            let targetTira = tira.toLowerCase();
+            if (targetTira === 'mixed') targetTira = 'mixto';
+
+            // Allow partial match for Tira (e.g. "Masculino A" should match "A")
+            // But since here we pass 'A', 'B', 'Femenino', 'Mixed', we can check direct inclusion
+            // Coach Tiras: "a", "b", "femenino", "mixto" (comma separated)
+
+            const catMatch = cCat.includes(category.toLowerCase());
+
+            // If category is Mosquitos, we might just look for Mosquitos coach, or check Mixto
+            if (category === "Mosquitos") {
+                return catMatch && (cTira.includes('mixto') || cTira.includes('mixed'));
+            }
+
+            return catMatch && cTira.split(',').map((t: string) => t.trim()).some((t: string) => t === targetTira);
+        });
+    };
+
+    return (
+        <div>
+            <div style={{ marginBottom: '2rem', background: 'rgba(23, 23, 23, 0.9)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', position: 'sticky', top: '1rem', zIndex: 20, backdropFilter: 'blur(8px)' }}>
+                <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem', color: 'var(--primary)' }}>Filtros Rapidos</h2>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+                    <div>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--secondary)', fontWeight: 'bold', textTransform: 'uppercase' }}>Por Tira</p>
+                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                            <Link href="/dashboard/categories" className={`btn ${!filterTira ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
+                            <Link href="/dashboard/categories?tira=A" className={`btn ${filterTira === 'A' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC A</Link>
+                            <Link href="/dashboard/categories?tira=B" className={`btn ${filterTira === 'B' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC B</Link>
+                            <Link href="/dashboard/categories?tira=Femenino" className={`btn ${filterTira === 'Femenino' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>FEMENINO</Link>
+                            <Link href="/dashboard/categories?tira=Mixed" className={`btn ${filterTira === 'Mixed' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MIXTO</Link>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--secondary)', fontWeight: 'bold', textTransform: 'uppercase' }}>Por Categoría</p>
+                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                            <Link href="/dashboard/categories" className={`btn ${!filterCat ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
+                            {categoriesList.map(c => (
+                                <Link key={c} href={`/dashboard/categories?cat=${c}`} className={`btn ${filterCat === c ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{c.toUpperCase()}</Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)', paddingLeft: '1rem', color: 'white' }}>Vistas por Categoría</h2>
+
+            <div style={{ display: 'grid', gap: '2rem' }}>
+                {sortedKeys.map(cat => (
+                    <div key={cat} className="card">
+                        <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+                            <h3 style={{ color: 'var(--primary)', margin: 0 }}>{cat}</h3>
+                        </div>
+
+                        {cat === "Mosquitos" ? (
+                            (!filterTira || filterTira === 'Mixed' || filterTira === 'Mixto') ? (
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <h4 style={{ margin: 0, color: '#6366f1' }}>Grupo Mixto <span style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>({grouped[cat].Mixed.length})</span></h4>
+                                            {getCoachFor(cat, 'Mixed') && (
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', marginTop: '0.2rem' }}>👔 {getCoachFor(cat, 'Mixed')?.name}</span>
+                                            )}
+                                        </div>
+                                        <Link href={`/dashboard/categories/${cat}/attendance`} className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}>
+                                            📝 Tomar Lista
+                                        </Link>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
+                                        {grouped[cat].Mixed.map((p: any) => (
+                                            <Link key={p.id} href={`/dashboard/players/${p.id}/edit`} className="card" style={{ padding: '0.5rem', fontSize: '0.9rem', border: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                                                {p.lastName}, {p.firstName}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                    {grouped[cat].Mixed.length === 0 && <p style={{ color: 'var(--secondary)', fontSize: '0.9rem' }}>Sin jugadores</p>}
+                                </div>
+                            ) : null
+                        ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: filterTira ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+                                {(!filterTira || filterTira === 'Femenino') && (
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <h4 style={{ margin: 0, color: '#db2777' }}>Femenino <span style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>({grouped[cat].Fem.length})</span></h4>
+                                                {getCoachFor(cat, 'Femenino') && (
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'Femenino')?.name}</span>
+                                                )}
+                                            </div>
+                                            <Link href={`/dashboard/categories/${cat}/attendance?tira=Femenino`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                                📝 Lista
+                                            </Link>
+                                        </div>
+                                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                                            {grouped[cat].Fem.map((p: any) => (
+                                                <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'white' }}>{p.lastName}, {p.firstName}</Link>
+                                                </li>
+                                            ))}
+                                            {grouped[cat].Fem.length === 0 && <li style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>-</li>}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {(!filterTira || filterTira === 'A') && (
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <h4 style={{ margin: 0, color: '#0369a1' }}>Masculino A <span style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>({grouped[cat].MascA.length})</span></h4>
+                                                {getCoachFor(cat, 'A') && (
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'A')?.name}</span>
+                                                )}
+                                            </div>
+                                            <Link href={`/dashboard/categories/${cat}/attendance?tira=A`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                                📝 Lista
+                                            </Link>
+                                        </div>
+                                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                                            {grouped[cat].MascA.map((p: any) => (
+                                                <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'white' }}>{p.lastName}, {p.firstName}</Link>
+                                                </li>
+                                            ))}
+                                            {grouped[cat].MascA.length === 0 && <li style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>-</li>}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {(!filterTira || filterTira === 'B') && (
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <h4 style={{ margin: 0, color: '#15803d' }}>Masculino B <span style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>({grouped[cat].MascB.length})</span></h4>
+                                                {getCoachFor(cat, 'B') && (
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'B')?.name}</span>
+                                                )}
+                                            </div>
+                                            <Link href={`/dashboard/categories/${cat}/attendance?tira=B`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                                📝 Lista
+                                            </Link>
+                                        </div>
+                                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                                            {grouped[cat].MascB.map((p: any) => (
+                                                <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'white' }}>{p.lastName}, {p.firstName}</Link>
+                                                </li>
+                                            ))}
+                                            {grouped[cat].MascB.length === 0 && <li style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>-</li>}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                ))}
+                {sortedKeys.length === 0 && <p style={{ color: 'white' }}>No hay jugadores activos.</p>}
+            </div>
+        </div>
+    );
+}
