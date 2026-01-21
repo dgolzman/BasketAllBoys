@@ -6,13 +6,32 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
+    const session = await auth();
+    if (session?.user?.id) {
+        await prisma.auditLog.create({
+            data: {
+                action,
+                entity,
+                entityId,
+                details: details ? JSON.stringify(details) : null,
+                userId: session.user.id,
+            },
+        });
+    }
+}
+
 const CoachSchema = z.object({
     name: z.string().min(1, "El nombre es obligatorio"),
     email: z.string().email("Email inválido").optional().or(z.literal("")),
     phone: z.string().optional(),
     tira: z.string().optional(),
     category: z.string().optional(),
+    role: z.string().optional(),
     active: z.boolean().optional(),
+    salary: z.coerce.number().optional(),
+    registrationDate: z.string().optional(),
+    withdrawalDate: z.string().optional(),
 });
 
 export async function createCoach(prevState: any, formData: FormData) {
@@ -25,7 +44,11 @@ export async function createCoach(prevState: any, formData: FormData) {
         phone: formData.get("phone"),
         tira: formData.getAll("tira").join(", "),
         category: formData.getAll("category").join(", "),
+        role: formData.get("role"),
         active: formData.get("active") === "on",
+        salary: formData.get("salary") || 0,
+        registrationDate: formData.get("registrationDate"),
+        withdrawalDate: formData.get("withdrawalDate"),
     };
 
     const validatedFields = CoachSchema.safeParse(rawData);
@@ -38,12 +61,20 @@ export async function createCoach(prevState: any, formData: FormData) {
     }
 
     try {
-        await (prisma as any).coach.create({
+        const data = validatedFields.data;
+        const coach = await (prisma as any).coach.create({
             data: {
-                ...validatedFields.data,
-                active: true // Default to active on create
+                ...data,
+                registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
+                withdrawalDate: data.withdrawalDate ? new Date(data.withdrawalDate) : null,
+                active: true,
+                salaryHistory: data.salary ? {
+                    create: { amount: data.salary }
+                } : undefined
             }
         });
+
+        await createAuditLog("CREATE", "Coach", coach.id, rawData);
     } catch (error: any) {
         return { message: "Error al crear entrenador: " + error.message };
     }
@@ -62,7 +93,11 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
         phone: formData.get("phone"),
         tira: formData.getAll("tira").join(", "),
         category: formData.getAll("category").join(", "),
+        role: formData.get("role"),
         active: formData.get("active") === "on",
+        salary: formData.get("salary") || 0,
+        registrationDate: formData.get("registrationDate"),
+        withdrawalDate: formData.get("withdrawalDate"),
     };
 
     const validatedFields = CoachSchema.safeParse(rawData);
@@ -75,10 +110,29 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
     }
 
     try {
+        const data = validatedFields.data;
+        const oldCoach = await (prisma as any).coach.findUnique({ where: { id } });
+
         await (prisma as any).coach.update({
             where: { id },
-            data: validatedFields.data
+            data: {
+                ...data,
+                registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
+                withdrawalDate: data.withdrawalDate ? new Date(data.withdrawalDate) : null,
+            }
         });
+
+        // Track salary history if changed
+        if (oldCoach && data.salary !== undefined && data.salary !== oldCoach.salary) {
+            await (prisma as any).salaryHistory.create({
+                data: {
+                    amount: data.salary,
+                    coachId: id
+                }
+            });
+        }
+
+        await createAuditLog("UPDATE", "Coach", id, rawData);
     } catch (error: any) {
         return { message: "Error al actualizar entrenador: " + error.message };
     }

@@ -18,6 +18,9 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
     const scholarshipFilter = typeof params?.scholarship === 'string' ? params.scholarship : '';
     const primeraFilter = typeof params?.primera === 'string' ? params.primera : '';
 
+    const sort = typeof params?.sort === 'string' ? params.sort : 'lastName';
+    const sortOrder = typeof params?.sortOrder === 'string' ? params.sortOrder : 'asc';
+
     const where: any = {};
 
     if (query) {
@@ -33,21 +36,19 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
     if (scholarshipFilter) where.scholarship = scholarshipFilter === 'true';
     if (primeraFilter) where.playsPrimera = primeraFilter === 'true';
 
+    const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } }) as any[];
+
     let players = await prisma.player.findMany({
         where,
-        orderBy: { lastName: 'asc' },
+        orderBy: { [sort]: sortOrder },
     });
 
     // Apply category filter in memory
     if (categoryFilter) {
-        players = players.filter(p => getCategory(p) === categoryFilter);
+        players = players.filter(p => getCategory(p, mappings) === categoryFilter);
     }
 
-    // Get unique categories for filter dropdown
-    const playersForCats = await prisma.player.findMany({
-        where: { active: true }
-    });
-    const availableCategories = Array.from(new Set(playersForCats.map(p => getCategory(p)))).sort();
+    const availableCategories = mappings.map(m => m.category);
 
     return (
         <div>
@@ -108,7 +109,14 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
                 </div>
             </div>
 
-            <PlayerList initialPlayers={players} role={role} />
+            <PlayerList
+                initialPlayers={players}
+                role={role}
+                categories={availableCategories}
+                mappings={mappings}
+                currentSort={sort}
+                currentOrder={sortOrder}
+            />
         </div>
     );
 }
