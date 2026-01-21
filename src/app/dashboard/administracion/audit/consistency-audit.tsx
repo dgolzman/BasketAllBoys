@@ -120,8 +120,8 @@ export default function ConsistencyAudit({ initialIssues }: { initialIssues: Aud
                                     </button>
                                 ) : (
                                     <button
-                                        className="btn btn-secondary"
-                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}
+                                        className="btn btn-primary"
+                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap', opacity: 1, visibility: 'visible' }}
                                         onClick={() => handleDismiss(issue.ruleId, issue.identifier)}
                                         disabled={loadingId === id}
                                     >

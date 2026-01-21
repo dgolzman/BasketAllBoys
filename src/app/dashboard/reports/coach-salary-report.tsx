@@ -34,7 +34,11 @@ export default function CoachSalaryReport({ coaches, year }: { coaches: any[], y
                 const history = coach.salaryHistory || [];
                 const effectiveRecord = history
                     .filter((h: any) => new Date(h.date) <= currentMonthEnd)
-                    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+                    .sort((a: any, b: any) => {
+                        const timeDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+                        if (timeDiff !== 0) return timeDiff;
+                        return b.id.localeCompare(a.id);
+                    })[0];
 
                 if (effectiveRecord) {
                     monthlySalaries[i] = effectiveRecord.amount;
