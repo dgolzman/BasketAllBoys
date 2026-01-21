@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { importData } from '@/lib/import-action';
+import PageGuide from '@/components/page-guide';
 
 // Define the state type matching server action return
 type State = {
@@ -24,6 +25,22 @@ export default function ImportPage() {
 
     return (
         <div>
+            <PageGuide>
+                <div>
+                    <strong>📥 Importación de Datos desde Excel</strong>
+                    <p style={{ margin: '0.5rem 0', opacity: 0.9 }}>
+                        El archivo debe tener <strong>dos hojas</strong>:
+                    </p>
+                    <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.9rem' }}>
+                        <li><strong>Hoja 1 - "Jugadores":</strong> Columnas: Apellido, Nombre, DNI, FechaNacimiento (DD/MM/AAAA), Tira, Teléfono, Email, Beca (Sí/No), Primera (Sí/No)</li>
+                        <li><strong>Hoja 2 - "Pagos":</strong> Columnas: DNI, Mes (formato MM/AAAA o nombre del mes), Monto</li>
+                    </ul>
+                    <p style={{ margin: '0.5rem 0 0 0', opacity: 0.7, fontSize: '0.85rem' }}>
+                        💡 Los jugadores existentes se actualizarán. Los nuevos se crearán automáticamente.
+                    </p>
+                </div>
+            </PageGuide>
+
             <h2 style={{ marginBottom: '1.5rem' }}>Importar Datos</h2>
 
             <div className="card">

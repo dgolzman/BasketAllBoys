@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { deleteAllPlayers } from "@/lib/actions";
 import DangerZone from "./danger-zone";
+import PageGuide from "@/components/page-guide";
 
 export default function AdministrationPage() {
     return (
         <div>
+            <PageGuide>
+                <div>
+                    <strong>⚙️ Panel de Administración</strong>
+                    <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                        Desde aquí puedes gestionar usuarios, configurar categorías, importar datos masivamente y realizar auditorías.
+                    </p>
+                </div>
+            </PageGuide>
+
             <h2 style={{ marginBottom: '2rem' }}>Panel de Administración</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>

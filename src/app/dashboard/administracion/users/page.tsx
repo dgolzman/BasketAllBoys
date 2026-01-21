@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { deleteUser } from "@/lib/user-actions";
 import { auth } from "@/auth";
 import DeleteUserButton from "./delete-user-button";
+import PageGuide from "@/components/page-guide";
 
 export default async function UsersPage() {
     const session = await auth();
@@ -15,6 +16,20 @@ export default async function UsersPage() {
 
     return (
         <div>
+            <PageGuide>
+                <div>
+                    <strong>👥 Gestión de Usuarios</strong>
+                    <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>
+                        Administra los accesos al sistema. Los roles disponibles son:
+                    </p>
+                    <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.9rem' }}>
+                        <li><strong>ADMIN:</strong> Acceso total (crear, editar, eliminar, administrar).</li>
+                        <li><strong>OPERADOR:</strong> Puede crear y editar jugadores y pagos.</li>
+                        <li><strong>VIEWER:</strong> Solo lectura (visualiza datos sin modificar).</li>
+                    </ul>
+                </div>
+            </PageGuide>
+
             <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
