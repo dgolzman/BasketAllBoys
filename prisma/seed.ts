@@ -1,32 +1,31 @@
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    const email = 'admin@allboys.com'; // Default admin
-    const password = await bcrypt.hash('AllBoys2026!', 10);
+    // Create admin user
+    const hashedPassword = await bcrypt.hash('admin123', 10);
 
-    const user = await prisma.user.upsert({
-        where: { email },
-        update: { password },
+    const admin = await prisma.user.upsert({
+        where: { email: 'admin@allboys.com' },
+        update: {},
         create: {
-            email,
-            name: 'Admin All Boys',
-            password,
+            email: 'admin@allboys.com',
+            name: 'Administrador',
+            password: hashedPassword,
             role: 'ADMIN',
         },
     });
 
-    console.log({ user });
+    console.log('✅ Admin user created:', admin.email);
 }
 
 main()
-    .then(async () => {
-        await prisma.$disconnect();
-    })
-    .catch(async (e) => {
+    .catch((e) => {
         console.error(e);
-        await prisma.$disconnect();
         process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
     });
