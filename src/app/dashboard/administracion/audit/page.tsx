@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import ConsistencyAudit from "./consistency-audit";
 import Link from "next/link";
+import PageGuide from "@/components/page-guide";
 
 export default async function AuditPage() {
     // 1. Fetch data for consistency audit
@@ -75,6 +76,24 @@ export default async function AuditPage() {
 
     return (
         <div>
+            <PageGuide>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <strong>🔍 Auditoría de Datos</strong>
+                        <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                            Detecta automáticamente posibles errores como DNIs duplicados o datos faltantes.
+                        </p>
+                    </div>
+                    <div>
+                        <strong>Acciones</strong>
+                        <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8 }}>
+                            <li><strong>Marcar como Conocido:</strong> Si un aviso es una excepción válida (ej. hermanos con mismo contacto), úsalo para ocultarlo de la lista.</li>
+                            <li><strong>Restaurar:</strong> Vuelve a mostrar avisos previamente ocultos.</li>
+                        </ul>
+                    </div>
+                </div>
+            </PageGuide>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h2 style={{ margin: 0 }}>Centro de Auditoría</h2>
                 <Link href="/dashboard/administracion" className="btn btn-secondary">← Volver</Link>

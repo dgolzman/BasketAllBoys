@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCategory } from "@/lib/utils";
 import Link from "next/link";
+import PageGuide from "@/components/page-guide";
 import ReportsTable from "./reports-table";
 import CoachSalaryReport from "./coach-salary-report";
 
@@ -21,6 +22,24 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
 
     return (
         <div>
+            <PageGuide>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <strong>📊 Centro de Informes</strong>
+                        <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                            Accede a reportes detallados sobre la actividad del club.
+                        </p>
+                    </div>
+                    <div>
+                        <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8 }}>
+                            <li><strong>Asistencia:</strong> Control de presentismo por categoría y fecha.</li>
+                            <li><strong>Sueldos:</strong> Proyección financiera basada en la fecha de alta de cada entrenador.
+                                Muestra datos históricos y proyecta costos hasta el mes próximo.</li>
+                        </ul>
+                    </div>
+                </div>
+            </PageGuide>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ margin: 0 }}>Informes y Reportes</h2>
             </div>
