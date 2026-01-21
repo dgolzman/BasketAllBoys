@@ -2,50 +2,58 @@
 
 import { useState } from 'react';
 
-interface SalaryRecord {
-    id: string;
-    amount: number;
-    date: Date;
-    month?: number; // derived from date if not stored
-    year?: number;
-    coachId: string;
-    coachName: string;
-}
-
-interface Props {
-    data: SalaryRecord[];
-    year: number;
-}
-
-export default function CoachSalaryReport({ data, year }: Props) {
+export default function CoachSalaryReport({ coaches, year }: { coaches: any[], year: number }) {
     const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-    // Pivot data: Coach -> [Month Vals]
-    const pivot = data.reduce((acc, record) => {
-        if (!acc[record.coachId]) {
-            acc[record.coachId] = {
-                name: record.coachName,
-                months: Array(12).fill(0),
-                total: 0
-            };
+    const reportData = coaches.map(coach => {
+        const monthlySalaries = Array(12).fill(0);
+        let total = 0;
+
+        // Use registration date or start of year if registration was earlier
+        const regDate = coach.registrationDate ? new Date(coach.registrationDate) : new Date(year, 0, 1);
+        const withdrawalDate = coach.withdrawalDate ? new Date(coach.withdrawalDate) : null;
+
+        for (let i = 0; i < 12; i++) {
+            const currentMonthStart = new Date(year, i, 1);
+            const currentMonthEnd = new Date(year, i + 1, 0);
+
+            // Check if coach was active during this month
+            // 1. Must be after registration (or same month)
+            // 2. Must be before withdrawal (or null)
+
+            // Logic:
+            // - If currently in a month BEFORE registration month, inactive.
+            // - If currently in a month AFTER withdrawal month, inactive.
+
+            const isAfterStart = regDate <= currentMonthEnd;
+            const isBeforeEnd = !withdrawalDate || withdrawalDate >= currentMonthStart;
+
+            if (isAfterStart && isBeforeEnd) {
+                // Find effective salary for this month
+                // Get the last history record where date <= Month End
+                const history = coach.salaryHistory || [];
+                const effectiveRecord = history
+                    .filter((h: any) => new Date(h.date) <= currentMonthEnd)
+                    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+
+                if (effectiveRecord) {
+                    monthlySalaries[i] = effectiveRecord.amount;
+                    total += effectiveRecord.amount;
+                }
+            }
         }
-        const date = new Date(record.date);
-        const monthIdx = date.getMonth(); // 0-11
-        // If the record has specific month/year fields we should use them, but schema had "date". 
-        // Schema also had "SalaryHistory" with just "date" and "amount". 
-        // Let's assume date determines the month paid.
 
-        acc[record.coachId].months[monthIdx] += record.amount;
-        acc[record.coachId].total += record.amount;
-        return acc;
-    }, {} as Record<string, { name: string, months: number[], total: number }>);
-
-    const sortedCoaches = Object.values(pivot).sort((a, b) => a.name.localeCompare(b.name));
+        return {
+            name: coach.name,
+            months: monthlySalaries,
+            total
+        };
+    }).sort((a, b) => a.name.localeCompare(b.name));
 
     // Calculate monthly totals
     const monthlyTotals = Array(12).fill(0);
     let grandTotal = 0;
-    sortedCoaches.forEach(c => {
+    reportData.forEach(c => {
         c.months.forEach((val, idx) => {
             monthlyTotals[idx] += val;
         });
@@ -65,7 +73,7 @@ export default function CoachSalaryReport({ data, year }: Props) {
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedCoaches.map((row, idx) => (
+                    {reportData.map((row, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
                             <td style={{ padding: '1rem', fontWeight: '500' }}>{row.name}</td>
                             {row.months.map((amount, mIdx) => (
@@ -91,7 +99,7 @@ export default function CoachSalaryReport({ data, year }: Props) {
                         </td>
                     </tr>
 
-                    {sortedCoaches.length === 0 && (
+                    {reportData.length === 0 && (
                         <tr>
                             <td colSpan={14} style={{ padding: '2rem', textAlign: 'center' }}>No hay registros de sueldos para este año.</td>
                         </tr>
