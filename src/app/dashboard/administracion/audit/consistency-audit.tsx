@@ -108,11 +108,11 @@ export default function ConsistencyAudit({ initialIssues }: { initialIssues: Aud
                                     </div>
                                 )}
                             </div>
-                            <div>
+                            <div style={{ marginLeft: '1rem', flexShrink: 0 }}>
                                 {issue.isDismissed ? (
                                     <button
                                         className="btn btn-secondary"
-                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}
                                         onClick={() => handleRestore(issue.ruleId, issue.identifier)}
                                         disabled={loadingId === id}
                                     >
@@ -121,7 +121,7 @@ export default function ConsistencyAudit({ initialIssues }: { initialIssues: Aud
                                 ) : (
                                     <button
                                         className="btn btn-secondary"
-                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', whiteSpace: 'nowrap' }}
                                         onClick={() => handleDismiss(issue.ruleId, issue.identifier)}
                                         disabled={loadingId === id}
                                     >
