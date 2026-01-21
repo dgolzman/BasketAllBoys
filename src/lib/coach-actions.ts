@@ -134,52 +134,33 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
             }
         });
 
-    }
-        });
-
-// Track salary history if changed
-if (oldCoach && data.salary !== undefined && data.salary !== oldCoach.salary) {
-    await (prisma as any).salaryHistory.create({
-        data: {
-            amount: data.salary,
-            coachId: id,
-            date: regDate || new Date()
+        // Track salary history if changed
+        if (oldCoach && data.salary !== undefined && data.salary !== oldCoach.salary) {
+            await (prisma as any).salaryHistory.create({
+                data: {
+                    amount: data.salary,
+                    coachId: id,
+                    date: regDate || new Date()
+                }
+            });
         }
-    });
-}
 
-// SPECIAL FIX: If registration date changed, update ALL salary history dates to match
-// This addresses user request to fix "January salary appearing for February coach"
-if (regDate && oldCoach?.registrationDate && regDate.getTime() !== new Date(oldCoach.registrationDate).getTime()) {
-    // Only update the first salary record or all? User implies initial salary is wrong.
-    // Let's update all records that match the old registration month/year or just all of them?
-    // Safest interpretation of "fix it": The salary history dates should align with when they started working.
-    // Simplistic approach: Update ALL salary history for this coach to the new start date if they only have one?
-    // Or better: Update the INITIAL salary history record (the one created at start).
-    // Since we don't track which one is 'initial' easily, let's just update ANY record that was exactly equal to the old registration date?
-    // Actually, the user problem is "Coach has salary in Jan but started Feb". This means the record date is Jan.
-    // We will update ALL salary history records for this coach to be at least the registration date.
+        // SPECIAL FIX: Force update ALL salary history dates to match registration date
+        // This addresses existing bad data where salary date < registration date (e.g. timezone errors)
+        if (regDate) {
+            await (prisma as any).salaryHistory.updateMany({
+                where: { coachId: id },
+                data: { date: regDate }
+            });
+        }
 
-    // Update all salary history records to the new registration date
-    await (prisma as any).salaryHistory.updateMany({
-        where: { coachId: id },
-        data: { date: regDate }
-    });
-} else if (regDate) {
-    // Even if date didn't change, force update to fix legacy bad data if user clicks save
-    await (prisma as any).salaryHistory.updateMany({
-        where: { coachId: id },
-        data: { date: regDate }
-    });
-}
-
-await createAuditLog("UPDATE", "Coach", id, rawData);
+        await createAuditLog("UPDATE", "Coach", id, rawData);
     } catch (error: any) {
-    return { message: "Error al actualizar entrenador: " + error.message };
-}
+        return { message: "Error al actualizar entrenador: " + error.message };
+    }
 
-revalidatePath("/dashboard/coaches");
-redirect("/dashboard/coaches");
+    revalidatePath("/dashboard/coaches");
+    redirect("/dashboard/coaches");
 }
 
 export async function deleteCoach(id: string) {
