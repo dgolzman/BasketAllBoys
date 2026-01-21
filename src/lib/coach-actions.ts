@@ -62,14 +62,22 @@ export async function createCoach(prevState: any, formData: FormData) {
 
     try {
         const data = validatedFields.data;
+
+        // Fix timezone issue by appending time, ensuring it falls on the correct day in local time
+        const regDate = data.registrationDate ? new Date(data.registrationDate + "T12:00:00") : null;
+        const widthDate = data.withdrawalDate ? new Date(data.withdrawalDate + "T12:00:00") : null;
+
         const coach = await (prisma as any).coach.create({
             data: {
                 ...data,
-                registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
-                withdrawalDate: data.withdrawalDate ? new Date(data.withdrawalDate) : null,
+                registrationDate: regDate,
+                withdrawalDate: widthDate,
                 active: true,
                 salaryHistory: data.salary ? {
-                    create: { amount: data.salary }
+                    create: {
+                        amount: data.salary,
+                        date: regDate || new Date()
+                    }
                 } : undefined
             }
         });
@@ -113,12 +121,16 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
         const data = validatedFields.data;
         const oldCoach = await (prisma as any).coach.findUnique({ where: { id } });
 
+        // Fix timezone issue
+        const regDate = data.registrationDate ? new Date(data.registrationDate + "T12:00:00") : null;
+        const widthDate = data.withdrawalDate ? new Date(data.withdrawalDate + "T12:00:00") : null;
+
         await (prisma as any).coach.update({
             where: { id },
             data: {
                 ...data,
-                registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
-                withdrawalDate: data.withdrawalDate ? new Date(data.withdrawalDate) : null,
+                registrationDate: regDate,
+                withdrawalDate: widthDate,
             }
         });
 
