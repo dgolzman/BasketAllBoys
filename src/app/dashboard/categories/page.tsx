@@ -53,6 +53,18 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
 
     const sortedKeys = categoriesList.filter(cat => {
         if (filterCat && cat !== filterCat) return false;
+
+        if (filterTira) {
+            const isMixedFilter = filterTira === 'Mixed' || filterTira === 'Mixto';
+            if (isMixedFilter) {
+                // Only Mosquitos has a Mixed view
+                return cat === 'Mosquitos';
+            } else {
+                // Mosquitos does not have A/B/Fem views, so hide it if filtering by those
+                if (cat === 'Mosquitos') return false;
+            }
+        }
+
         return grouped[cat];
     });
 
