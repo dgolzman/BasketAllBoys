@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCategory } from "@/lib/utils";
 import Link from "next/link";
+import PageGuide from "@/components/page-guide";
 
 export default async function CategoriesPage({ searchParams }: { searchParams: { tira?: string, cat?: string } }) {
     const rawSearchParams = await Promise.resolve(searchParams);
@@ -94,6 +95,25 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
 
     return (
         <div>
+            <PageGuide>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <strong>🏅 Organización Deportiva</strong>
+                        <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                            Visualiza y filtra los equipos por Tira (A, B, Femenino) o Categoría (U13, U15, etc.).
+                            El filtro "MIXTO" es exclusivo para las categorías iniciales como Mosquitos.
+                        </p>
+                    </div>
+                    <div>
+                        <strong>⚡ Accesos Rápidos</strong>
+                        <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8 }}>
+                            <li><strong>Tomar Lista:</strong> Registra la asistencia del día para el grupo seleccionado.</li>
+                            <li><strong>👔 Entrenador:</strong> Muestra quién está a cargo de cada equipo.</li>
+                        </ul>
+                    </div>
+                </div>
+            </PageGuide>
+
             <div style={{ marginBottom: '2rem', background: 'rgba(23, 23, 23, 0.9)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', position: 'sticky', top: '1rem', zIndex: 20, backdropFilter: 'blur(8px)' }}>
                 <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem', color: 'var(--primary)' }}>Filtros Rapidos</h2>
 

@@ -1,0 +1,481 @@
+{
+  "users": [
+    {
+      "id": "cmko60zgb0000wn4638esbtz0",
+      "name": "Administrador",
+      "email": "admin@allboys.com",
+      "password": "$2b$10$5.1buNK1FB5Srbv9wZ45mOP5oF.eVOApqZgE0ihfJUExLrm9uBrJe",
+      "role": "ADMIN",
+      "createdAt": "2026-01-21T15:16:08.699Z",
+      "updatedAt": "2026-01-21T15:16:08.699Z"
+    },
+    {
+      "id": "cmko839k30000btonfkstugo7",
+      "name": "Damian Golzman",
+      "email": "damian@golzman.com.ar",
+      "password": "$2b$10$sE9MSiuDdUCwv6g06/cw..lhMFcWwm4TZr6a3bphaDNxyRw1GP6Je",
+      "role": "VIEWER",
+      "createdAt": "2026-01-21T16:13:54.339Z",
+      "updatedAt": "2026-01-21T16:14:03.350Z"
+    }
+  ],
+  "players": [],
+  "attendance": [],
+  "payments": [],
+  "categoryMappings": [
+    {
+      "id": "cmko8cyg100016mgq4vbyk51o",
+      "category": "Mosquitos",
+      "minYear": 2018,
+      "maxYear": 2022,
+      "updatedAt": "2026-01-21T17:21:20.768Z"
+    },
+    {
+      "id": "cmko8cyg600026mgq49jp0zip",
+      "category": "Pre-Mini",
+      "minYear": 2016,
+      "maxYear": 2017,
+      "updatedAt": "2026-01-21T16:21:26.503Z"
+    },
+    {
+      "id": "cmko8cygb00036mgq34f1mj3e",
+      "category": "Mini",
+      "minYear": 2014,
+      "maxYear": 2015,
+      "updatedAt": "2026-01-21T16:21:26.507Z"
+    },
+    {
+      "id": "cmko8cygd00046mgqr4xw6wxx",
+      "category": "U13",
+      "minYear": 2013,
+      "maxYear": 2013,
+      "updatedAt": "2026-01-21T16:21:26.510Z"
+    },
+    {
+      "id": "cmko8cygg00056mgq2ceg0fmh",
+      "category": "U15",
+      "minYear": 2011,
+      "maxYear": 2012,
+      "updatedAt": "2026-01-21T16:21:26.512Z"
+    },
+    {
+      "id": "cmko8cygj00066mgqi6klf3wk",
+      "category": "U17",
+      "minYear": 2009,
+      "maxYear": 2010,
+      "updatedAt": "2026-01-21T16:21:26.516Z"
+    },
+    {
+      "id": "cmko8cygq00086mgqhtevt9pk",
+      "category": "Primera",
+      "minYear": 1990,
+      "maxYear": 2006,
+      "updatedAt": "2026-01-21T17:21:13.961Z"
+    },
+    {
+      "id": "cmkoaheh60002bton06hqjv33",
+      "category": "U21",
+      "minYear": 2007,
+      "maxYear": 2008,
+      "updatedAt": "2026-01-21T17:20:53.129Z"
+    },
+    {
+      "id": "cmkoai79w0005btonomea265a",
+      "category": "+35",
+      "minYear": 1970,
+      "maxYear": 1991,
+      "updatedAt": "2026-01-21T17:22:18.845Z"
+    },
+    {
+      "id": "cmkobxk5l00105974oll6ci9r",
+      "category": "Primera Flex",
+      "minYear": 1990,
+      "maxYear": 2006,
+      "updatedAt": "2026-01-21T18:03:42.079Z"
+    }
+  ],
+  "coaches": [
+    {
+      "id": "cmko83ybh0001btonsfr8dvhg",
+      "name": "Gabriel Escobar",
+      "phone": "+5491135047378",
+      "email": "",
+      "tira": "A",
+      "category": "U15, U17, Primera, U21",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 1432000,
+      "registrationDate": "2026-01-12T00:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T16:14:26.430Z",
+      "updatedAt": "2026-01-21T18:25:44.669Z"
+    },
+    {
+      "id": "cmkob0qh2000abton1i9k33m2",
+      "name": "Tahiel Dugnani",
+      "phone": "",
+      "email": "",
+      "tira": "A",
+      "category": "Pre-Mini, Mini, U13",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 400000,
+      "registrationDate": "2026-02-01T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T17:35:55.142Z",
+      "updatedAt": "2026-01-21T18:34:40.647Z"
+    },
+    {
+      "id": "cmkob10ty000bbtonxkl5i2a2",
+      "name": "Ivan Waszuk",
+      "phone": "",
+      "email": "",
+      "tira": "B, Mixto",
+      "category": "Mosquitos, Pre-Mini, Mini",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 300000,
+      "registrationDate": "2026-02-01T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T17:36:08.567Z",
+      "updatedAt": "2026-01-21T22:39:14.507Z"
+    },
+    {
+      "id": "cmkob1bk4000cbtonpjz9a35x",
+      "name": "Daniel Stifman",
+      "phone": "",
+      "email": "",
+      "tira": "B",
+      "category": "U13, U15, U17, U21",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 600000,
+      "registrationDate": "2026-02-01T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T17:36:22.468Z",
+      "updatedAt": "2026-01-21T18:34:00.214Z"
+    },
+    {
+      "id": "cmkob1zeb000dbtonlihp7bim",
+      "name": "Nahue Arteaga",
+      "phone": "",
+      "email": "",
+      "tira": "Femenino",
+      "category": "Pre-Mini, Mini, U13, U15",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 450000,
+      "registrationDate": "2026-02-01T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T17:36:53.363Z",
+      "updatedAt": "2026-01-21T18:34:27.000Z"
+    },
+    {
+      "id": "cmkob2bdf000ebtonnkj4xprv",
+      "name": "Jeronimo Ponce",
+      "phone": "",
+      "email": "",
+      "tira": "Femenino",
+      "category": "U17, Primera, U21, +35",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 450000,
+      "registrationDate": "2026-02-01T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T17:37:08.883Z",
+      "updatedAt": "2026-01-21T18:34:21.015Z"
+    },
+    {
+      "id": "cmkobw9ku000s5974pee602m1",
+      "name": "Nataniel Nuñez",
+      "phone": "",
+      "email": "",
+      "tira": "A, B, Femenino, Mixto",
+      "category": "Mosquitos, Pre-Mini, Mini, U13",
+      "role": "Monitor",
+      "active": true,
+      "salary": 100000,
+      "registrationDate": "2026-01-12T00:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T18:00:26.239Z",
+      "updatedAt": "2026-01-21T18:25:32.349Z"
+    },
+    {
+      "id": "cmkobx511000w5974r2mh6h3i",
+      "name": "Federico Amaro",
+      "phone": "",
+      "email": "",
+      "tira": "A, B, Femenino",
+      "category": "U13, U15, U17, Primera, U21",
+      "role": "Preparador Físico",
+      "active": true,
+      "salary": 376000,
+      "registrationDate": "2026-01-12T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T18:01:06.997Z",
+      "updatedAt": "2026-01-21T18:43:04.656Z"
+    },
+    {
+      "id": "cmkoc137g00125974qxmy3v2m",
+      "name": "Pablo Tavernise",
+      "phone": "",
+      "email": "",
+      "tira": "B",
+      "category": "Primera Flex",
+      "role": "Entrenador",
+      "active": true,
+      "salary": 200000,
+      "registrationDate": "2026-02-01T15:00:00.000Z",
+      "withdrawalDate": null,
+      "createdAt": "2026-01-21T18:04:11.260Z",
+      "updatedAt": "2026-01-21T18:34:35.732Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "cmkobrfck00015974jhc309f6",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"0\",\"registrationDate\":\"\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:56:40.436Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobrszr00035974h36rf78s",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"0\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:56:58.119Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobthia00075974ur3rh7er",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmko83ybh0001btonsfr8dvhg",
+      "details": "{\"name\":\"Gabriel Escobar\",\"email\":\"\",\"phone\":\"+5491135047378\",\"tira\":\"A\",\"category\":\"U15, U17, Primera, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"1432000\",\"registrationDate\":\"2024-01-15\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:58:16.546Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobtuj9000b5974jm1myr7q",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"600000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:58:33.430Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobufh3000f5974qvkq4pdr",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob10ty000bbtonxkl5i2a2",
+      "details": "{\"name\":\"Ivan Waszuk\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"Mosquitos, Pre-Mini, Mini\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"300000\",\"registrationDate\":\"2026-02-02\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:59:00.567Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobuwx1000j5974sdfhyvs6",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob2bdf000ebtonnkj4xprv",
+      "details": "{\"name\":\"Jeronimo Ponce\",\"email\":\"\",\"phone\":\"\",\"tira\":\"Femenino\",\"category\":\"U17, Primera, U21, +35\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"450000\",\"registrationDate\":\"2026-02-03\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:59:23.173Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobv8tw000n5974vaqpoyir",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1zeb000dbtonlihp7bim",
+      "details": "{\"name\":\"Nahue Arteaga\",\"email\":\"\",\"phone\":\"\",\"tira\":\"Femenino\",\"category\":\"Pre-Mini, Mini, U13, U15\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"450000\",\"registrationDate\":\"2026-02-02\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:59:38.613Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobvhc9000r5974cnk97uo7",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob0qh2000abton1i9k33m2",
+      "details": "{\"name\":\"Tahiel Dugnani\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A\",\"category\":\"Pre-Mini, Mini, U13\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"400000\",\"registrationDate\":\"2026-02-02\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T17:59:49.642Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobw9lb000v5974escui393",
+      "action": "CREATE",
+      "entity": "Coach",
+      "entityId": "cmkobw9ku000s5974pee602m1",
+      "details": "{\"name\":\"Nataniel Nuñez\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino, Mixto\",\"category\":\"Mosquitos, Pre-Mini, Mini, U13\",\"role\":\"Monitor\",\"active\":true,\"salary\":\"100000\",\"registrationDate\":\"2025-05-05\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:00:26.255Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkobx51c000z59743twt6rjg",
+      "action": "CREATE",
+      "entity": "Coach",
+      "entityId": "cmkobx511000w5974r2mh6h3i",
+      "details": "{\"name\":\"Federico Amaro\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino\",\"category\":\"U13, U15, U17, U21, Primera\",\"role\":\"Preparador Físico\",\"active\":true,\"salary\":\"650000\",\"registrationDate\":\"2025-01-13\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:01:07.008Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkoc137q00155974ktjyy3bd",
+      "action": "CREATE",
+      "entity": "Coach",
+      "entityId": "cmkoc137g00125974qxmy3v2m",
+      "details": "{\"name\":\"Pablo Tavernise\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"Primera Flex\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"200000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:04:11.270Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkocqj2j001959742z3jog1p",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkobx511000w5974r2mh6h3i",
+      "details": "{\"name\":\"Federico Amaro\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino\",\"category\":\"U13, U15, U17, Primera, U21\",\"role\":\"Preparador Físico\",\"active\":true,\"salary\":\"376000\",\"registrationDate\":\"2025-01-13\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:23:58.219Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkocrvjn001b59744c4ox7uf",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"600000\",\"registrationDate\":\"2026-02-02\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:25:01.043Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkocs39y001d59742n6ik4mh",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"600000\",\"registrationDate\":\"2026-02-02\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:25:11.062Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkocsjpq001f5974tgy7bkhm",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkobw9ku000s5974pee602m1",
+      "details": "{\"name\":\"Nataniel Nuñez\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino, Mixto\",\"category\":\"Mosquitos, Pre-Mini, Mini, U13\",\"role\":\"Monitor\",\"active\":true,\"salary\":\"100000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:25:32.366Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkocst7s001h5974mlui79c0",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmko83ybh0001btonsfr8dvhg",
+      "details": "{\"name\":\"Gabriel Escobar\",\"email\":\"\",\"phone\":\"+5491135047378\",\"tira\":\"A\",\"category\":\"U15, U17, Primera, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"1432000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:25:44.680Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkoct68b001j5974q8l60ox7",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkobx511000w5974r2mh6h3i",
+      "details": "{\"name\":\"Federico Amaro\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino\",\"category\":\"U13, U15, U17, Primera, U21\",\"role\":\"Preparador Físico\",\"active\":true,\"salary\":\"376000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:26:01.547Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkocz1sn00016uh4eggapqlq",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"600000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:30:35.735Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod2tl700036uh40fnzvty3",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob10ty000bbtonxkl5i2a2",
+      "details": "{\"name\":\"Ivan Waszuk\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"Mosquitos, Pre-Mini, Mini\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"300000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:33:31.724Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod3fky00056uh44kaoh7vi",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1bk4000cbtonpjz9a35x",
+      "details": "{\"name\":\"Daniel Stifman\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"U13, U15, U17, U21\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"600000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:34:00.226Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod3vmu00076uh4ioiy5bub",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob2bdf000ebtonnkj4xprv",
+      "details": "{\"name\":\"Jeronimo Ponce\",\"email\":\"\",\"phone\":\"\",\"tira\":\"Femenino\",\"category\":\"U17, Primera, U21, +35\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"450000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:34:21.030Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod409800096uh45elhub71",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob1zeb000dbtonlihp7bim",
+      "details": "{\"name\":\"Nahue Arteaga\",\"email\":\"\",\"phone\":\"\",\"tira\":\"Femenino\",\"category\":\"Pre-Mini, Mini, U13, U15\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"450000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:34:27.020Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod46zk000b6uh4fxlhsm68",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkoc137g00125974qxmy3v2m",
+      "details": "{\"name\":\"Pablo Tavernise\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B\",\"category\":\"Primera Flex\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"200000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:34:35.744Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod4as6000d6uh49nj04r47",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob0qh2000abton1i9k33m2",
+      "details": "{\"name\":\"Tahiel Dugnani\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A\",\"category\":\"Pre-Mini, Mini, U13\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"400000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:34:40.662Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkod53u2000f6uh43m2n1cfs",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkobx511000w5974r2mh6h3i",
+      "details": "{\"name\":\"Federico Amaro\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino\",\"category\":\"U13, U15, U17, Primera, U21\",\"role\":\"Preparador Físico\",\"active\":true,\"salary\":\"376000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:35:18.314Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkodf3oh000h6uh4s6ler6ry",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkobx511000w5974r2mh6h3i",
+      "details": "{\"name\":\"Federico Amaro\",\"email\":\"\",\"phone\":\"\",\"tira\":\"A, B, Femenino\",\"category\":\"U13, U15, U17, Primera, U21\",\"role\":\"Preparador Físico\",\"active\":true,\"salary\":\"376000\",\"registrationDate\":\"2026-01-12\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T18:43:04.674Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    },
+    {
+      "id": "cmkolut7e0001120rfgnjec37",
+      "action": "UPDATE",
+      "entity": "Coach",
+      "entityId": "cmkob10ty000bbtonxkl5i2a2",
+      "details": "{\"name\":\"Ivan Waszuk\",\"email\":\"\",\"phone\":\"\",\"tira\":\"B, Mixto\",\"category\":\"Mosquitos, Pre-Mini, Mini\",\"role\":\"Entrenador\",\"active\":true,\"salary\":\"300000\",\"registrationDate\":\"2026-02-01\",\"withdrawalDate\":\"\"}",
+      "timestamp": "2026-01-21T22:39:14.522Z",
+      "userId": "cmko60zgb0000wn4638esbtz0"
+    }
+  ],
+  "dismissedIssues": [],
+  "exportedAt": "2026-01-21T22:49:52.915Z"
+}

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { getCategory } from "@/lib/utils";
+import PageGuide from "@/components/page-guide";
 import PlayerList from "./player-list";
 import { auth } from "@/auth";
 
@@ -52,6 +53,25 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
 
     return (
         <div>
+            <PageGuide>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <strong>📋 Gestión General</strong>
+                        <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                            Aquí está el padrón completo. Usa el buscador para encontrar por nombre, apellido o DNI.
+                            El filtro "Estado" permite ver jugadores activos o bajas históricas.
+                        </p>
+                    </div>
+                    <div>
+                        <strong>🔍 Acciones</strong>
+                        <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8 }}>
+                            <li><strong>Editar:</strong> Modifica datos personales y de contacto.</li>
+                            <li><strong>Dar de Baja:</strong> Mueve al jugador a inactivos sin borrarlo del sistema.</li>
+                        </ul>
+                    </div>
+                </div>
+            </PageGuide>
+
             <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h2>Jugadores ({players.length})</h2>
