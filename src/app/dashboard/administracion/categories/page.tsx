@@ -83,7 +83,7 @@ export default function CategoryMappingPage() {
         }
     };
 
-    if (isLoading) return <div style={{ color: 'white', padding: '2rem' }}>Cargando configuraciones...</div>;
+    if (isLoading) return <div style={{ color: 'var(--foreground)', padding: '2rem' }}>Cargando configuraciones...</div>;
 
     return (
         <div>
@@ -113,7 +113,7 @@ export default function CategoryMappingPage() {
                 {mappings.map(m => (
                     <div key={m.category} className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', border: '1px solid var(--border)' }}>
                         <div style={{ flex: 1, minWidth: '150px' }}>
-                            <h3 style={{ margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h3 style={{ margin: 0, color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 {m.category}
                                 <button
                                     onClick={() => handleRename(m.category)}

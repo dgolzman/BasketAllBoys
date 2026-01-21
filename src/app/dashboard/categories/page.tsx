@@ -109,7 +109,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                 </div>
             </div>
 
-            <h2 style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)', paddingLeft: '1rem', color: 'white' }}>Vistas por Categoría</h2>
+            <h2 style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)', paddingLeft: '1rem', color: 'var(--foreground)' }}>Vistas por Categoría</h2>
 
             <div style={{ display: 'grid', gap: '2rem' }}>
                 {sortedKeys.map(cat => (
@@ -160,7 +160,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                         <ul style={{ listStyle: 'none', padding: 0 }}>
                                             {grouped[cat].Fem.map((p: any) => (
                                                 <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
-                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'white' }}>{p.lastName}, {p.firstName}</Link>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'var(--foreground)' }}>{p.lastName}, {p.firstName}</Link>
                                                 </li>
                                             ))}
                                             {grouped[cat].Fem.length === 0 && <li style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>-</li>}
@@ -184,7 +184,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                         <ul style={{ listStyle: 'none', padding: 0 }}>
                                             {grouped[cat].MascA.map((p: any) => (
                                                 <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
-                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'white' }}>{p.lastName}, {p.firstName}</Link>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'var(--foreground)' }}>{p.lastName}, {p.firstName}</Link>
                                                 </li>
                                             ))}
                                             {grouped[cat].MascA.length === 0 && <li style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>-</li>}
@@ -208,7 +208,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                         <ul style={{ listStyle: 'none', padding: 0 }}>
                                             {grouped[cat].MascB.map((p: any) => (
                                                 <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
-                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'white' }}>{p.lastName}, {p.firstName}</Link>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'var(--foreground)' }}>{p.lastName}, {p.firstName}</Link>
                                                 </li>
                                             ))}
                                             {grouped[cat].MascB.length === 0 && <li style={{ color: 'var(--secondary)', fontSize: '0.8rem' }}>-</li>}
@@ -219,7 +219,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                         )}
                     </div>
                 ))}
-                {sortedKeys.length === 0 && <p style={{ color: 'white' }}>No hay jugadores activos.</p>}
+                {sortedKeys.length === 0 && <p style={{ color: 'var(--foreground)' }}>No hay jugadores activos.</p>}
             </div>
         </div>
     );

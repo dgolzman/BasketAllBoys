@@ -84,7 +84,7 @@ export default async function AuditPage() {
 
             <div style={{ marginTop: '3rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '8px', height: '24px', background: 'var(--accent)', borderRadius: '4px' }}></div>
-                <h3 style={{ margin: 0, color: '#fff' }}>Registro de Actividad Reciente</h3>
+                <h3 style={{ margin: 0, color: 'var(--foreground)' }}>Registro de Actividad Reciente</h3>
             </div>
 
             <div className="card" style={{ overflowX: 'auto', padding: 0, border: '1px solid var(--border)' }}>

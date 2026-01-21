@@ -10,7 +10,7 @@
   --primary-foreground: #ffffff;
 
   --secondary: #e5e5e5;
-  --secondary-foreground: #404040;
+  --secondary-foreground: #525252;
 
   --accent: #d4d4d4;
   --accent-foreground: #171717;
@@ -34,7 +34,7 @@
   --primary-foreground: #000000;
 
   --secondary: #262626;
-  --secondary-foreground: #a3a3a3;
+  --secondary-foreground: #d4d4d4;
 
   --accent: #404040;
   --accent-foreground: #ffffff;
@@ -184,12 +184,13 @@ a {
   background: #525252;
 }
 
-/* Table overrides for dark mode */
+/* Table overrides for better readability */
 th {
-  color: var(--secondary-foreground);
+  color: var(--foreground);
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
+  opacity: 0.7;
 }
 
 td {
