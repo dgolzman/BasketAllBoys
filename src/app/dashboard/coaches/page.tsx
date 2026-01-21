@@ -2,8 +2,11 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import PageGuide from "@/components/page-guide";
 import CoachList from "./coach-list";
+import { auth } from "@/auth";
 
 export default async function CoachesPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
     const params = await Promise.resolve(searchParams);
     const sort = typeof params?.sort === 'string' ? params.sort : 'name';
     const sortOrder = typeof params?.sortOrder === 'string' ? params.sortOrder : 'asc';
@@ -28,12 +31,14 @@ export default async function CoachesPage({ searchParams }: { searchParams: { [k
 
             <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0 }}>Entrenadores ({coaches.length})</h2>
-                <Link href="/dashboard/coaches/create" className="btn btn-primary">
-                    + Nuevo Entrenador
-                </Link>
+                {(role === 'ADMIN' || role === 'OPERADOR') && (
+                    <Link href="/dashboard/coaches/create" className="btn btn-primary">
+                        + Nuevo Entrenador
+                    </Link>
+                )}
             </div>
 
-            <CoachList coaches={coaches} currentSort={sort} currentOrder={sortOrder} />
+            <CoachList coaches={coaches} currentSort={sort} currentOrder={sortOrder} role={role} />
         </div>
     );
 }
