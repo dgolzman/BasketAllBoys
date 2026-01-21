@@ -1,0 +1,224 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--background);
+}
+
+.sidebar {
+    width: 280px;
+    background: #000000;
+    /* Pure Black Sidebar */
+    border-right: 1px solid var(--border);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    position: relative;
+    /* Optional geometric accent */
+    background-image: linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111),
+        linear-gradient(45deg, #111 25%, transparent 25%, transparent 75%, #111 75%, #111);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+}
+
+.logoContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.logoImage {
+    width: 100px;
+    height: auto;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+}
+
+.logoText {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.navGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.navGroupTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 1.25rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.navGroupTitle:hover {
+    color: white;
+}
+
+.navItems {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, opacity 0.2s;
+}
+
+.navItemsCollapsed {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.navItemsExpanded {
+    max-height: 500px;
+    opacity: 1;
+}
+
+.navChevron {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.2s;
+    opacity: 0.5;
+}
+
+.navChevronRotated {
+    transform: rotate(180deg);
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1.25rem;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    opacity: 0.6;
+    font-weight: 500;
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: white;
+}
+
+.navLink:hover {
+    background: rgba(255, 255, 255, 0.05);
+    opacity: 1;
+    transform: translateX(5px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.activeLink {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.user {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    opacity: 0.8;
+}
+
+.userName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+}
+
+.userRole {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.logoutBtn {
+    background: none;
+    border: 1px solid var(--border);
+    color: #a3a3a3;
+    opacity: 0.8;
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    width: 100%;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.logoutBtn:hover {
+    background: rgba(255, 0, 0, 0.1);
+    border-color: rgba(255, 0, 0, 0.3);
+    color: #f87171;
+}
+
+/* Global utility classes for better contrast/visibility */
+:global(.btn-secondary) {
+    background: white !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+:global(.btn-secondary:hover) {
+    background: #f1f5f9 !important;
+}
+
+:global(input[type="date"]) {
+    color: #1e293b !important;
+}
+
+:global(.badge-inactive) {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    font-weight: 600 !important;
+}
+
+:global(.attendance-selected) {
+    color: #166534 !important;
+}
+
+:global(.attendance-unselected) {
+    color: #334155 !important;
+}
+
+.main {
+    flex: 1;
+    padding: 2rem;
+    background: var(--background);
+    /* Adding a mesh gradient or glow behind content could be nice */
+    position: relative;
+    overflow-y: auto;
+}

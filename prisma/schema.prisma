@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String?  // For credentials auth if needed, or omit for pure OAuth
+  role      String   @default("ADMIN")  // ADMIN, OPERADOR, or VIEWER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  auditLogs AuditLog[]
+}
+
+model Player {
+  id               String   @id @default(cuid())
+  firstName        String
+  lastName         String
+  dni              String   @unique
+  birthDate        DateTime
+  tira             String   // "Femenino", "Masculino A", "Masculino B"
+  active           Boolean  @default(true)
+  scholarship      Boolean  @default(false)
+  playsPrimera     Boolean  @default(false)  // Plays in Primera division
+
+  // Extras
+  email            String?
+  phone            String?
+  partnerNumber    String?
+  shirtNumber      Int?
+  contactName      String?
+  observations     String?
+  category         String?  // Manual category override
+  
+  // Dates
+  registrationDate DateTime?
+  withdrawalDate   DateTime?
+
+  // Relations
+  payments         Payment[]
+  attendance       Attendance[]
+  siblings         String?
+
+  createdAt        DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  date      DateTime @default(now())
+  present   Boolean  @default(false)
+  
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([playerId, date])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  amount    Float
+  month     Int
+  year      Int
+  date      DateTime @default(now())
+  playerId  String
+  
+  player    Player   @relation(fields: [playerId], references: [id])
+}
+
+model CategoryMapping {
+  id       String @id @default(cuid())
+  category String @unique // "Mosquitos", "Mini", etc.
+  minYear  Int
+  maxYear  Int
+  
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // CREATE, UPDATE, DELETE, CONFIG_CHANGE
+  entity    String   // Player, User, CategoryMapping, etc.
+  entityId  String
+  details   String?  // JSON string of changes
+  timestamp DateTime @default(now())
+  userId    String?
+  
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Coach {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  tira      String?   // "A", "B", "Femenino" or multiple comma separated
+  category  String?   // "Mini", "U13" or multiple comma separated
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model DismissedAuditIssue {
+  id         String   @id @default(cuid())
+  ruleId     String   // e.g., "duplicate-dni", "missing-birthdate"
+  identifier String   // e.g., Player ID or DNI
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([ruleId, identifier])
+}
