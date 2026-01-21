@@ -1,7 +1,6 @@
 'use client';
 
 import { deleteAllPlayers } from "@/lib/actions";
-import { cleanupAllDNIs } from "@/lib/admin-actions";
 import { useState } from "react";
 
 export default function DangerZone() {
@@ -14,35 +13,11 @@ export default function DangerZone() {
         }
     };
 
-    const handleCleanupDNIs = async () => {
-        if (confirm('¿Deseas limpiar todos los DNIs de la base de datos? Se quitarán puntos, guiones y espacios.')) {
-            setIsCleaning(true);
-            const res = await cleanupAllDNIs();
-            alert(res.message);
-            setIsCleaning(false);
-            window.location.reload();
-        }
-    };
+
 
     return (
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', border: '1px solid var(--border)' }}>
-            <div>
-                <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Herramientas de Mantenimiento</h3>
-                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>
-                    Utilidades para limpiar y organizar la base de datos.
-                </p>
-            </div>
-
-            <button
-                onClick={handleCleanupDNIs}
-                className="btn-secondary"
-                style={{ width: '100%', fontWeight: 700 }}
-                disabled={isCleaning}
-            >
-                {isCleaning ? 'Limpiando...' : '🧹 Limpiar Formato de DNIs'}
-            </button>
-
-            <div style={{ paddingTop: '1.5rem', borderTop: '1px solid #450a0a', marginTop: '1rem' }}>
+            <div style={{ paddingTop: '1.5rem', marginTop: '1rem' }}>
                 <h4 style={{ color: '#dc2626', marginBottom: '0.5rem', fontSize: '0.8rem' }}>Zona de Peligro</h4>
                 <button
                     onClick={handleDeleteAll}

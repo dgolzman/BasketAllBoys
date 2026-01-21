@@ -42,6 +42,16 @@ export default function CoachSalaryReport({ data, year }: Props) {
 
     const sortedCoaches = Object.values(pivot).sort((a, b) => a.name.localeCompare(b.name));
 
+    // Calculate monthly totals
+    const monthlyTotals = Array(12).fill(0);
+    let grandTotal = 0;
+    sortedCoaches.forEach(c => {
+        c.months.forEach((val, idx) => {
+            monthlyTotals[idx] += val;
+        });
+        grandTotal += c.total;
+    });
+
     return (
         <div className="card" style={{ padding: 0, overflowX: 'auto', border: '1px solid var(--border)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -68,6 +78,19 @@ export default function CoachSalaryReport({ data, year }: Props) {
                             </td>
                         </tr>
                     ))}
+                    {/* Totals Row */}
+                    <tr style={{ background: 'var(--secondary)', borderTop: '2px solid var(--border)', fontWeight: 'bold' }}>
+                        <td style={{ padding: '1rem' }}>TOTAL MENSUAL</td>
+                        {monthlyTotals.map((total, idx) => (
+                            <td key={idx} style={{ padding: '0.5rem', textAlign: 'center', fontSize: '0.9rem', color: total > 0 ? 'var(--accent)' : 'gray' }}>
+                                {total > 0 ? `$${total.toLocaleString()}` : '-'}
+                            </td>
+                        ))}
+                        <td style={{ padding: '1rem', textAlign: 'right', color: 'var(--accent)', fontSize: '1rem' }}>
+                            ${grandTotal.toLocaleString()}
+                        </td>
+                    </tr>
+
                     {sortedCoaches.length === 0 && (
                         <tr>
                             <td colSpan={14} style={{ padding: '2rem', textAlign: 'center' }}>No hay registros de sueldos para este año.</td>

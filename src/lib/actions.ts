@@ -11,10 +11,9 @@ const FormSchema = z.object({
     lastName: z.string().min(1, "Apellido es obligatorio"),
     dni: z.string()
         .min(1, "DNI es obligatorio")
-        .min(1, "DNI es obligatorio")
-        // Allow dots and numbers
+        .regex(/^\d+$/, "El DNI solo debe contener números (sin puntos ni espacios)")
         .min(7, "DNI demasiado corto")
-        .max(12, "DNI demasiado largo"),
+        .max(10, "DNI demasiado largo"),
     birthDate: z.string().min(1, "Fecha de nacimiento es obligatoria"),
     tira: z.string(), // "Femenino", "Masculino A", "Masculino B"
     scholarship: z.boolean().optional(),
@@ -37,7 +36,8 @@ const FormSchema = z.object({
 
 function sanitizeDNI(dni: any): string {
     if (!dni) return "11111111";
-    return String(dni).trim();
+    const sanitized = String(dni).replace(/\D/g, "");
+    return sanitized.length > 0 ? sanitized : "11111111";
 }
 
 async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
