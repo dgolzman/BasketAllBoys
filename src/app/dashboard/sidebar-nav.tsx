@@ -56,13 +56,13 @@ export default function SidebarNav({ role }: { role: string }) {
                     <span>🏀 Jugadores</span>
                 </Link>
                 <Link href="/dashboard/categories" className={`${styles.navLink} ${pathname.startsWith('/dashboard/categories') ? styles.activeLink : ''}`}>
-                    <span>🏀 Equipos</span>
+                    <span>🛡️ Equipos</span>
                 </Link>
                 <Link href="/dashboard/payments" className={`${styles.navLink} ${isActive('/dashboard/payments') ? styles.activeLink : ''}`}>
                     <span>💰 Pagos</span>
                 </Link>
                 <Link href="/dashboard/coaches" className={`${styles.navLink} ${isActive('/dashboard/coaches') ? styles.activeLink : ''}`}>
-                    <span>👔 Entrenadores</span>
+                    <span>🧢 Entrenadores</span>
                 </Link>
             </NavGroup>
 
@@ -74,11 +74,11 @@ export default function SidebarNav({ role }: { role: string }) {
             </NavGroup>
 
             {(isAdmin || isOperador) && (
-                <NavGroup title="Administración" defaultExpanded={false}>
-                    <Link href="/dashboard/administracion" className={`${styles.navLink} ${pathname === '/dashboard/administracion' ? styles.activeLink : ''}`}>
-                        <span>⚙️ Panel General</span>
+                <div style={{ marginTop: '1rem' }}>
+                    <Link href="/dashboard/administracion" className={`${styles.navLink} ${isActive('/dashboard/administracion') ? styles.activeLink : ''}`}>
+                        <span>⚙️ Administración</span>
                     </Link>
-                </NavGroup>
+                </div>
             )}
         </nav>
     );

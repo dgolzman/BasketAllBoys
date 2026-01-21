@@ -6,6 +6,7 @@ import { exportDatabase, importDatabase } from '@/lib/backup-actions';
 export default function BackupPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const handleExport = async () => {
         setLoading(true);
@@ -21,106 +22,150 @@ export default function BackupPage() {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            setMessage({ text: "Backup descargado con éxito", type: 'success' });
+            setMessage({ text: "✓ Backup descargado con éxito", type: 'success' });
         } catch (error: any) {
-            setMessage({ text: error.message, type: 'error' });
+            setMessage({ text: "⚠ Error: " + error.message, type: 'error' });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (file) {
+            setSelectedFile(file);
+            setMessage(null);
+        }
+    };
 
-        if (!confirm("⚠️ ¿ESTÁS SEGURO? Esta acción reemplazará TODOS los datos actuales con los del backup. Esta acción no se puede deshacer.")) {
-            e.target.value = '';
+    const handleRestore = async () => {
+        if (!selectedFile) return;
+
+        if (!confirm("⚠️ ¿ESTÁS COMPLETAMENTE SEGURO? \n\nEsta acción eliminará TODOS los datos actuales de la base de datos (jugadores, usuarios, sesiones, pagos) y los reemplazará por los del archivo de respaldo. No se puede deshacer.")) {
             return;
         }
 
         setLoading(true);
         setMessage(null);
         try {
-            const text = await file.text();
+            console.log("Iniciando restauración de archivo:", selectedFile.name);
+            const text = await selectedFile.text();
             const data = JSON.parse(text);
-            await importDatabase(data);
-            setMessage({ text: "Datos restaurados con éxito. Recarga la página.", type: 'success' });
-            // Optional: force reload
-            // window.location.reload();
+
+            const result = await importDatabase(data);
+            console.log("Resultado de restauración:", result);
+
+            setMessage({ text: "✅ Base de datos restaurada con éxito. La página se recargará en breve.", type: 'success' });
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } catch (error: any) {
-            setMessage({ text: "Error al importar: " + error.message, type: 'error' });
+            console.error("Error en restauración:", error);
+            setMessage({ text: "❌ Error crítico: " + error.message, type: 'error' });
         } finally {
             setLoading(false);
-            e.target.value = '';
+            setSelectedFile(null);
+            // reset input manually if needed via ref, but state management is usually enough
         }
     };
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '2rem' }}>
-                Respaldo de Seguridad (Backup)
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', paddingBottom: '6rem' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.25rem', marginBottom: '2rem', color: 'var(--foreground)' }}>
+                Resguardo de Datos (Backup)
             </h1>
 
-            <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <div>
-                    <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>📦 Exportar Datos</h2>
-                    <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-                        Descarga toda la información del club (jugadores, categorías, asistencias, pagos, etc.) en un archivo JSON.
-                        Es recomendable hacer esto semanalmente.
+            <div className="card" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '3rem', border: '2px solid var(--border)' }}>
+                {/* EXPORT SECTION */}
+                <section>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '1.5rem' }}>📤</span>
+                        <h2 style={{ fontSize: '1.5rem', margin: 0, color: 'var(--foreground)', fontWeight: 800 }}>Exportar Copia de Seguridad</h2>
+                    </div>
+                    <p style={{ color: 'var(--foreground)', marginBottom: '1.5rem', fontSize: '1.1rem', lineHeight: '1.5' }}>
+                        Genera un archivo con toda la información actual del club. Guarda este archivo en un lugar seguro (nube, pendrive).
                     </p>
                     <button
                         onClick={handleExport}
                         disabled={loading}
                         className="btn-primary"
-                        style={{ width: 'fit-content' }}
+                        style={{ padding: '1rem 2rem', fontSize: '1rem' }}
                     >
-                        {loading ? 'Procesando...' : 'Descargar Backup Completo'}
+                        {loading && !selectedFile ? 'Generando archivo...' : 'Descargar Backup (.json)'}
                     </button>
-                </div>
+                </section>
 
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
-                    <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#f87171' }}>⚠️ Restaurar Datos</h2>
-                    <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-                        Sube un archivo de backup previamente descargado para restaurar la base de datos.
-                        <br /><strong>IMPORTANTE: Se borrarán todos los datos actuales y se reemplazarán por los del archivo.</strong>
+                <div style={{ height: '2px', background: 'var(--border)', width: '100%' }} />
+
+                {/* IMPORT SECTION */}
+                <section>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '1.5rem' }}>📥</span>
+                        <h2 style={{ fontSize: '1.5rem', margin: 0, color: '#ef4444', fontWeight: 800 }}>Restaurar Base de Datos</h2>
+                    </div>
+                    <p style={{ color: 'var(--foreground)', marginBottom: '1.5rem', fontSize: '1.1rem', lineHeight: '1.5' }}>
+                        Utiliza esta opción **solo si necesitas recuperar datos perdidos**.
+                        Se borrará todo lo que existe actualmente en el sistema.
                     </p>
 
-                    <div style={{ position: 'relative' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <label className="label" style={{ fontWeight: 800, color: 'var(--foreground)' }}>SELECCIONAR ARCHIVO DE RESPALDO:</label>
                         <input
                             type="file"
                             accept=".json"
-                            onChange={handleImport}
+                            onChange={onFileChange}
                             disabled={loading}
                             style={{
-                                padding: '1rem',
-                                border: '2px dashed var(--border)',
+                                padding: '1.5rem',
+                                border: '3px dashed var(--border)',
                                 borderRadius: 'var(--radius)',
                                 width: '100%',
+                                background: 'var(--input)',
+                                color: 'var(--foreground)',
                                 cursor: loading ? 'not-allowed' : 'pointer'
                             }}
                         />
-                        {loading && (
+
+                        {selectedFile && (
                             <div style={{
-                                position: 'absolute',
-                                top: 0, left: 0, right: 0, bottom: 0,
-                                background: 'rgba(0,0,0,0.1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
+                                marginTop: '1rem',
+                                padding: '1.5rem',
+                                background: 'rgba(239, 68, 68, 0.05)',
+                                border: '1px solid #ef4444',
+                                borderRadius: 'var(--radius)'
                             }}>
-                                Restaurando...
+                                <p style={{ margin: '0 0 1rem 0', fontWeight: 700, color: 'var(--foreground)' }}>
+                                    Archivo seleccionado: <span style={{ color: '#ef4444' }}>{selectedFile.name}</span>
+                                </p>
+                                <button
+                                    onClick={handleRestore}
+                                    disabled={loading}
+                                    className="btn-primary"
+                                    style={{
+                                        width: '100%',
+                                        background: '#ef4444',
+                                        borderColor: '#b91c1c',
+                                        padding: '1rem'
+                                    }}
+                                >
+                                    {loading ? 'RESTAURANDO DATOS...' : '⚠ CONFIRMAR RESTAURACIÓN AHORA'}
+                                </button>
                             </div>
                         )}
                     </div>
-                </div>
+                </section>
 
+                {/* STATUS MESSAGE */}
                 {message && (
                     <div style={{
-                        padding: '1rem',
+                        padding: '1.5rem',
                         borderRadius: 'var(--radius)',
                         background: message.type === 'success' ? '#dcfce7' : '#fee2e2',
                         color: message.type === 'success' ? '#166534' : '#991b1b',
-                        fontWeight: 600,
+                        border: `2px solid ${message.type === 'success' ? '#22c55e' : '#ef4444'}`,
+                        fontWeight: 800,
+                        fontSize: '1.1rem',
                         textAlign: 'center'
                     }}>
                         {message.text}

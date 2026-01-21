@@ -5,8 +5,23 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { getCategory } from '@/lib/utils';
 import { bulkUpdatePlayers, bulkDeletePlayers } from '@/lib/bulk-actions';
+import SortableHeader from '@/components/sortable-header';
 
-export default function PlayerList({ initialPlayers, role }: { initialPlayers: any[], role: string }) {
+export default function PlayerList({
+    initialPlayers,
+    role,
+    categories,
+    mappings,
+    currentSort,
+    currentOrder
+}: {
+    initialPlayers: any[],
+    role: string,
+    categories: string[],
+    mappings: any[],
+    currentSort: string,
+    currentOrder: string
+}) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
     const [isUpdating, setIsUpdating] = useState(false);
@@ -111,7 +126,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                             disabled={isUpdating}
                         >
                             <option value="">Categoría...</option>
-                            {["Mosquitos", "Pre-Mini", "Mini", "U13", "U15", "U17", "U19", "Primera"].map(c => (
+                            {categories.map(c => (
                                 <option key={c} value={c}>{c}</option>
                             ))}
                         </select>
@@ -180,21 +195,21 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Jugador</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>DNI</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Categoría</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Primera</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Tira</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Socio / Camiseta</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Contacto</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Alta</th>
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Estado</th>
+                            <SortableHeader label="Jugador" value="lastName" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="DNI" value="dni" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Categoría" value="category" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Primera" value="playsPrimera" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Tira" value="tira" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Socio / Camiseta" value="partnerNumber" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Contacto" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Alta" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Estado" value="active" currentSort={currentSort} currentOrder={currentOrder} />
                             <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {players.map((player) => {
-                            const calculatedCat = getCategory(player);
+                            const calculatedCat = getCategory(player, mappings);
                             const isSelected = selectedIds.includes(player.id);
 
                             return (

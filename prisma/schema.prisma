@@ -102,15 +102,30 @@ model AuditLog {
 }
 
 model Coach {
+  id               String   @id @default(cuid())
+  name             String
+  phone            String?
+  email            String?
+  tira             String?   // "A", "B", "Femenino" or multiple comma separated
+  category         String?   // "Mini", "U13" or multiple comma separated
+  role             String?   // "Entrenador", "Monitor", "Asistente", "Preparador Físico"
+  active           Boolean   @default(true)
+  salary           Float     @default(0)
+  registrationDate DateTime?
+  withdrawalDate   DateTime?
+  
+  salaryHistory    SalaryHistory[]
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model SalaryHistory {
   id        String   @id @default(cuid())
-  name      String
-  phone     String?
-  email     String?
-  tira      String?   // "A", "B", "Femenino" or multiple comma separated
-  category  String?   // "Mini", "U13" or multiple comma separated
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  amount    Float
+  date      DateTime @default(now())
+  coachId   String
+  coach     Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
 }
 
 model DismissedAuditIssue {

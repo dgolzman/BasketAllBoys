@@ -24,11 +24,14 @@ export default async function EditPlayerPage({ params }: { params: Promise<{ id:
 
 
 
+    const mappings = await (prisma as any).categoryMapping.findMany();
+    const categories = mappings.map((m: any) => m.category);
+
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
             <h2 style={{ marginBottom: '1.5rem' }}>Editar Jugador: {player.firstName} {player.lastName}</h2>
             <div className="card">
-                <EditPlayerForm player={playerSerialized} />
+                <EditPlayerForm player={playerSerialized} categories={categories} />
             </div>
         </div>
     );

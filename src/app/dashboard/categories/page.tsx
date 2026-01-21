@@ -12,9 +12,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
         orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }]
     });
 
-    const mappings = await (prisma as any).categoryMapping.findMany() as any;
+    const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } }) as any[];
     const coaches = await (prisma as any).coach.findMany({ where: { active: true } }) as any[];
-    const categoriesList = ["Mosquitos", "Pre-Mini", "Mini", "U13", "U15", "U17", "U19", "Primera"];
+    const categoriesList = mappings.map(m => m.category);
 
     // Initialize grouped object with all categories
     const initialGrouped: Record<string, { Fem: any[], MascA: any[], MascB: any[], Mixed: any[] }> = {};

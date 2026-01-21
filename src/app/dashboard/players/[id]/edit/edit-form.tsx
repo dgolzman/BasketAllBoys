@@ -4,7 +4,7 @@ import { updatePlayer, type ActionState } from "@/lib/actions";
 import { useActionState, useState, useEffect } from "react";
 import SiblingSearch from "../../sibling-search";
 
-export default function EditPlayerForm({ player }: { player: any }) {
+export default function EditPlayerForm({ player, categories }: { player: any, categories: string[] }) {
     const updatePlayerWithId = updatePlayer.bind(null, player.id);
     const initialState: ActionState = { message: '', errors: undefined };
     const [state, formAction, isPending] = useActionState(updatePlayerWithId, initialState);
@@ -95,14 +95,9 @@ export default function EditPlayerForm({ player }: { player: any }) {
                     <label className="label">Categoría (Manual)</label>
                     <select name="category" className="input" defaultValue={player.category || ''}>
                         <option value="">Auto (por año)</option>
-                        <option value="Mosquitos">Mosquitos</option>
-                        <option value="Pre-Mini">Pre-Mini</option>
-                        <option value="Mini">Mini</option>
-                        <option value="U13">U13</option>
-                        <option value="U15">U15</option>
-                        <option value="U17">U17</option>
-                        <option value="U19">U19</option>
-                        <option value="Primera">Primera</option>
+                        {categories.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
                     </select>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', paddingTop: '1.5rem' }}>

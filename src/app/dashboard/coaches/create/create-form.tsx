@@ -9,10 +9,10 @@ const initialState = {
     errors: undefined,
 };
 
-const CATEGORIES = ["Mosquitos", "Pre-Mini", "Mini", "U13", "U15", "U17", "U19", "Primera"];
 const TIRAS = ["A", "B", "Femenino", "Mixto"];
+const ROLES = ["Entrenador", "Monitor", "Asistente", "Preparador Físico"];
 
-export default function CreateCoachForm() {
+export default function CreateCoachForm({ categories }: { categories: string[] }) {
     const [state, formAction, isPending] = useActionState(createCoach, initialState);
 
     return (
@@ -32,12 +32,37 @@ export default function CreateCoachForm() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                     <div>
                         <label className="label">Email</label>
-                        <input name="email" type="email" className="input" placeholder="Optional" />
+                        <input name="email" type="email" className="input" placeholder="Opcional" />
                         {state.errors?.email && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.email.join(', ')}</p>}
                     </div>
                     <div>
                         <label className="label">Teléfono</label>
-                        <input name="phone" type="text" className="input" placeholder="Optional" />
+                        <input name="phone" type="text" className="input" placeholder="Opcional" />
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                        <label className="label">Rol <span style={{ color: 'red' }}>*</span></label>
+                        <select name="role" className="input" required>
+                            <option value="">Seleccionar rol...</option>
+                            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="label">Sueldo ($)</label>
+                        <input name="salary" type="number" step="0.01" className="input" placeholder="0.00" />
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                        <label className="label">Fecha de Alta</label>
+                        <input name="registrationDate" type="date" className="input" />
+                    </div>
+                    <div>
+                        <label className="label">Fecha de Baja</label>
+                        <input name="withdrawalDate" type="date" className="input" />
                     </div>
                 </div>
 
@@ -56,7 +81,7 @@ export default function CreateCoachForm() {
                 <div style={{ marginBottom: '1.5rem' }}>
                     <label className="label" style={{ marginBottom: '0.5rem' }}>Asignación de Categorías</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                        {CATEGORIES.map(c => (
+                        {categories.map((c: string) => (
                             <label key={c} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--foreground)' }}>
                                 <input type="checkbox" name="category" value={c} style={{ accentColor: 'var(--primary)' }} />
                                 {c}

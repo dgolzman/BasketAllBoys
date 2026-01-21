@@ -11,5 +11,8 @@ export default async function EditCoachPage({ params }: { params: { id: string }
 
     if (!coach) notFound();
 
-    return <EditCoachForm coach={coach} />;
+    const mappings = await (prisma as any).categoryMapping.findMany();
+    const categories = mappings.map((m: any) => m.category);
+
+    return <EditCoachForm coach={coach} categories={categories} />;
 }

@@ -57,28 +57,50 @@ export async function renameCategoryMapping(oldName: string, newName: string) {
 
     // 1. Fetch old mapping to preserve dates
     const oldMapping = await (prisma as any).categoryMapping.findUnique({ where: { category: oldName } });
-    const minYear = oldMapping?.minYear || 0;
-    const maxYear = oldMapping?.maxYear || 0;
+    if (!oldMapping) return;
 
-    await prisma.$transaction([
-        (prisma as any).categoryMapping.create({
-            data: {
-                category: newName,
-                minYear: minYear,
-                maxYear: maxYear
-            }
-        }),
-        prisma.player.updateMany({
+    const minYear = oldMapping.minYear;
+    const maxYear = oldMapping.maxYear;
+
+    // 2. Fetch coaches that might have this category
+    const coaches = await (prisma as any).coach.findMany({
+        where: {
+            category: { contains: oldName }
+        }
+    });
+
+    await prisma.$transaction(async (tx) => {
+        // Create new mapping
+        await (tx as any).categoryMapping.create({
+            data: { category: newName, minYear, maxYear }
+        });
+
+        // Update players
+        await tx.player.updateMany({
             where: { category: oldName },
             data: { category: newName }
-        }),
-        (prisma as any).categoryMapping.delete({
+        });
+
+        // Update coaches (manual search/replace for comma-separated string)
+        for (const coach of coaches) {
+            const categories = coach.category.split(',').map((c: string) => c.trim());
+            const updatedCategories = categories.map((c: string) => c === oldName ? newName : c);
+            await (tx as any).coach.update({
+                where: { id: coach.id },
+                data: { category: updatedCategories.join(', ') }
+            });
+        }
+
+        // Delete old mapping
+        await (tx as any).categoryMapping.delete({
             where: { category: oldName }
-        })
-    ]);
+        });
+    });
 
     revalidatePath("/dashboard/administracion/categories");
     revalidatePath("/dashboard/players");
+    revalidatePath("/dashboard/coaches");
+    revalidatePath("/dashboard/categories");
 }
 
 export async function cleanupAllDNIs() {
