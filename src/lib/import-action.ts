@@ -20,215 +20,152 @@ export async function importData(prevState: any, formData: FormData) {
     const buffer = Buffer.from(arrayBuffer);
     const workbook = XLSX.read(buffer, { type: 'buffer' });
 
-    let stats = { players: 0, payments: 0, errors: 0 };
+    let stats = { players: 0, errors: 0 };
     let errorDetails: string[] = [];
 
     try {
-        // 1. Process Jugadores
+        // Process Jugadores sheet
         const playersSheet = workbook.Sheets['Jugadores'];
-        if (playersSheet) {
-            const playersData: any[] = XLSX.utils.sheet_to_json(playersSheet);
-            let rowIdx = 2;
+        if (!playersSheet) {
+            return { message: "Error: No se encontró la hoja 'Jugadores' en el archivo Excel." };
+        }
 
-            for (const row of playersData) {
-                // Validation: Must have firstName, lastName, dni, birthDate
-                const firstNameRaw = row['Nombre']?.toString().toUpperCase().trim();
-                const lastNameRaw = row['Apellido']?.toString().toUpperCase().trim();
-                const dni = row['DNI']?.toString().trim();
-                const birthDateRaw = row['Fecha de Nacimiento'];
+        const playersData: any[] = XLSX.utils.sheet_to_json(playersSheet);
+        let rowIdx = 2; // Excel row number (starting after header)
 
-                if (!firstNameRaw || !lastNameRaw || !dni || !birthDateRaw) {
-                    const missing = [];
-                    if (!firstNameRaw) missing.push("Nombre");
-                    if (!lastNameRaw) missing.push("Apellido");
-                    if (!dni) missing.push("DNI");
-                    if (!birthDateRaw) missing.push("Fecha Nacimiento");
+        for (const row of playersData) {
+            // Required fields validation
+            const nombre = row['Nombre']?.toString().trim().toUpperCase();
+            const apellido = row['Apellido']?.toString().trim().toUpperCase();
+            const dni = row['DNI']?.toString().trim();
+            const fechaNacimiento = row['FechaNacimiento'];
 
-                    const errorMsg = `Fila ${rowIdx}: Faltan campos obligatorios (${missing.join(', ')})`;
-                    errorDetails.push(errorMsg);
-                    stats.errors++;
+            if (!nombre || !apellido || !dni || !fechaNacimiento) {
+                const missing = [];
+                if (!nombre) missing.push("Nombre");
+                if (!apellido) missing.push("Apellido");
+                if (!dni) missing.push("DNI");
+                if (!fechaNacimiento) missing.push("FechaNacimiento");
 
-                    // Log to audit as FAILED_IMPORT
-                    if (session?.user?.id) {
-                        await prisma.auditLog.create({
-                            data: {
-                                action: 'FAILED_IMPORT',
-                                entity: 'Player',
-                                entityId: dni || 'UNKNOWN',
-                                details: JSON.stringify({ rowIdx, error: errorMsg, data: row }),
-                                userId: session.user.id
-                            }
-                        });
-                    }
+                const errorMsg = `Fila ${rowIdx}: Faltan campos obligatorios (${missing.join(', ')})`;
+                errorDetails.push(errorMsg);
+                stats.errors++;
 
-                    rowIdx++;
-                    continue;
-                }
-
-                const firstName = firstNameRaw;
-                const lastName = lastNameRaw;
-                const fullName = `${firstName} ${lastName}`;
-
-                try {
-                    const parseExcelDate = (val: any) => {
-                        if (!val) return null;
-                        if (typeof val === 'number') {
-                            return new Date(Math.round((val - 25569) * 86400 * 1000));
-                        }
-                        const d = new Date(val);
-                        if (!isNaN(d.getTime())) return d;
-                        return null;
-                    };
-
-                    const birthDate = parseExcelDate(row['Fecha de Nacimiento']) || new Date();
-                    const registrationDate = parseExcelDate(row['Fecha Alta']);
-                    const withdrawalDate = parseExcelDate(row['Fecha Baja']);
-
-                    // Active = No withdrawal date AND category is not "BAJA"
-                    const excelCategory = row['Categoria']?.toString().toUpperCase() || "";
-                    const scholarship = (row['Beca Actividad'] === 'SI' || row['Beca Actividad'] === 'Si');
-                    const active = !withdrawalDate && excelCategory !== "BAJA";
-                    const playsPrimera = excelCategory === "PRIMERA";
-
-                    // Map Tira
-                    let tira = "Masculino A"; // Default?
-                    const tiraRaw = row['Tira']?.toString().toUpperCase() || '';
-                    if (tiraRaw.includes('FEM')) tira = "Femenino";
-                    else if (tiraRaw.includes('B')) tira = "Masculino B";
-                    else if (tiraRaw.includes('A')) tira = "Masculino A";
-
-                    // Create/Update
-                    await prisma.player.upsert({
-                        where: { dni },
-                        update: {
-                            firstName,
-                            lastName,
-                            tira,
-                            birthDate,
-                            scholarship,
-                            playsPrimera,
-                            active,
-                            email: row['mail']?.toString().toLowerCase(),
-                            phone: row['Cel de Contacto']?.toString(),
-                            partnerNumber: row['N Socio']?.toString(),
-                            contactName: row['Persona de Contacto']?.toString().toUpperCase(),
-                            shirtNumber: parseInt(row['Num Camiseta']) || null,
-                            registrationDate,
-                            withdrawalDate,
-                            observations: row['Comentarios']?.toString().toUpperCase(),
-                        },
-                        create: {
-                            firstName,
-                            lastName,
-                            dni,
-                            birthDate,
-                            tira,
-                            scholarship,
-                            playsPrimera,
-                            active,
-                            email: row['mail']?.toString().toLowerCase(),
-                            phone: row['Cel de Contacto']?.toString(),
-                            partnerNumber: row['N Socio']?.toString(),
-                            contactName: row['Persona de Contacto']?.toString().toUpperCase(),
-                            shirtNumber: parseInt(row['Num Camiseta']) || null,
-                            registrationDate,
-                            withdrawalDate,
-                            observations: row['Comentarios']?.toString().toUpperCase(),
+                // Log failed import
+                if (session?.user?.id) {
+                    await prisma.auditLog.create({
+                        data: {
+                            action: 'FAILED_IMPORT',
+                            entity: 'Player',
+                            entityId: dni || 'UNKNOWN',
+                            details: JSON.stringify({ rowIdx, error: errorMsg }),
+                            userId: session.user.id
                         }
                     });
-                    stats.players++;
-                } catch (e: any) {
-                    console.error(e);
-                    stats.errors++;
-                    errorDetails.push(`Fila ${rowIdx} (${fullName}): ${e.message}`);
                 }
+
                 rowIdx++;
+                continue;
             }
-        }
 
-        // 2. Process Payments
-        for (const sheetName of workbook.SheetNames) {
-            if (sheetName.startsWith('Pagos')) {
-                const yearStr = sheetName.split(' ')[1];
-                const year = parseInt(yearStr);
-                if (isNaN(year)) continue;
-
-                const paymentsData: any[] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-                const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-                for (const row of paymentsData) {
-                    const playerName = row['Jugador'];
-                    // Need to match concatenated name?
-                    if (!playerName) continue;
-
-                    // Fuzzy match or assume format "FirstName LastName" or "LastName FirstName"? 
-                    // Usually Excel "Jugador" column matches "Nombre Completo". 
-                    // We split name in DB. We have to search.
-                    // This is tricky. Let's try to split space or findFirst.
-                    // Risk: "Juan Perez" vs "Perez Juan".
-
-                    // Attempt: Search by combining fields in generic contains OR exact match on DNI if available (not in payments).
-                    // Or try to reconstruct full name. The sheet likely has "Nombre Completo" format.
-
-                    // Simple approach: Iterate all players? Slow.
-                    // Better: `findFirst` where `firstName` + " " + `lastName` equals input? OR `lastName` + " " + `firstName`?
-                    // Prisma doesn't support calculated fields in where easily.
-
-                    // Let's rely on finding by loose match if possible, or skip payment import robustness for this specific complex step until verified.
-                    // User said "Update Import Logic". 
-                    // Actually, if we imported players with firstName/lastName, we can re-construct "Nombre Completo" if we assume the input in Payments is consistent.
-
-                    // Let's Try:
-                    const parts = playerName.toString().split(' ');
-                    // If simple "First Last":
-                    let player = await prisma.player.findFirst({
-                        where: {
-                            AND: [
-                                { firstName: { contains: parts[0] } },
-                                { lastName: { contains: parts[parts.length - 1] } }
-                            ]
-                        }
-                    });
-
-                    if (player) {
-                        for (let i = 0; i < months.length; i++) {
-                            const monthName = months[i];
-                            let val = row[monthName];
-
-                            if (val) {
-                                const existing = await prisma.payment.findFirst({
-                                    where: {
-                                        playerId: player.id,
-                                        month: i + 1,
-                                        year: year
-                                    }
-                                });
-
-                                if (!existing) {
-                                    await prisma.payment.create({
-                                        data: {
-                                            playerId: player.id,
-                                            amount: 0,
-                                            month: i + 1,
-                                            year: year,
-                                            date: new Date()
-                                        }
-                                    });
-                                    stats.payments++;
-                                }
-                            }
-                        }
+            try {
+                // Parse Excel date (handles both Excel serial numbers and date strings)
+                const parseExcelDate = (val: any) => {
+                    if (!val) return null;
+                    if (typeof val === 'number') {
+                        // Excel serial date
+                        return new Date(Math.round((val - 25569) * 86400 * 1000));
                     }
+                    const d = new Date(val);
+                    if (!isNaN(d.getTime())) return d;
+                    return null;
+                };
+
+                const birthDate = parseExcelDate(fechaNacimiento);
+                if (!birthDate) {
+                    throw new Error("Fecha de nacimiento inválida");
                 }
+
+                // Optional fields
+                const tiraRaw = row['Tira']?.toString().trim() || 'Masculino A';
+                let tira = 'Masculino A';
+                if (tiraRaw.toLowerCase().includes('femenino')) tira = 'Femenino';
+                else if (tiraRaw.toLowerCase().includes('mosquitos')) tira = 'Mosquitos';
+                else if (tiraRaw.toLowerCase().includes('b')) tira = 'Masculino B';
+                else if (tiraRaw.toLowerCase().includes('a')) tira = 'Masculino A';
+
+                const email = row['Email']?.toString().trim().toLowerCase() || null;
+                const telefono = row['Telefono']?.toString().trim() || null;
+                const personaContacto = row['PersonaContacto']?.toString().trim().toUpperCase() || null;
+                const numeroSocio = row['NumeroSocio']?.toString().trim() || null;
+                const numeroCamiseta = row['NumeroCamiseta'] ? parseInt(row['NumeroCamiseta'].toString()) : null;
+                const fechaAlta = parseExcelDate(row['FechaAlta']) || new Date();
+                const observaciones = row['Observaciones']?.toString().trim().toUpperCase() || null;
+
+                // Boolean fields
+                const becaRaw = row['Beca']?.toString().trim().toUpperCase();
+                const scholarship = becaRaw === 'SI' || becaRaw === 'SÍ' || becaRaw === 'S';
+
+                const primeraRaw = row['Primera']?.toString().trim().toUpperCase();
+                const playsPrimera = primeraRaw === 'SI' || primeraRaw === 'SÍ' || primeraRaw === 'S';
+
+                const activoRaw = row['Activo']?.toString().trim().toUpperCase();
+                const active = activoRaw === 'NO' || activoRaw === 'N' ? false : true; // Default to true
+
+                // Upsert player
+                await prisma.player.upsert({
+                    where: { dni },
+                    update: {
+                        firstName: nombre,
+                        lastName: apellido,
+                        birthDate,
+                        tira,
+                        email,
+                        phone: telefono,
+                        contactName: personaContacto,
+                        partnerNumber: numeroSocio,
+                        shirtNumber: numeroCamiseta,
+                        registrationDate: fechaAlta,
+                        observations: observaciones,
+                        scholarship,
+                        playsPrimera,
+                        active
+                    },
+                    create: {
+                        dni,
+                        firstName: nombre,
+                        lastName: apellido,
+                        birthDate,
+                        tira,
+                        email,
+                        phone: telefono,
+                        contactName: personaContacto,
+                        partnerNumber: numeroSocio,
+                        shirtNumber: numeroCamiseta,
+                        registrationDate: fechaAlta,
+                        observations: observaciones,
+                        scholarship,
+                        playsPrimera,
+                        active
+                    }
+                });
+
+                stats.players++;
+            } catch (e: any) {
+                console.error(e);
+                stats.errors++;
+                errorDetails.push(`Fila ${rowIdx} (${apellido}, ${nombre}): ${e.message}`);
             }
+
+            rowIdx++;
         }
 
-        // Audit Log
+        // Audit log for successful import
         if (session?.user?.id) {
             await prisma.auditLog.create({
                 data: {
                     action: 'IMPORT',
-                    entity: 'Player/Payment',
+                    entity: 'Player',
                     entityId: 'BATCH',
                     details: JSON.stringify({ stats, errorCount: stats.errors }),
                     userId: session.user.id
@@ -242,13 +179,12 @@ export async function importData(prevState: any, formData: FormData) {
     }
 
     revalidatePath('/dashboard/players');
-    revalidatePath('/dashboard/payments');
 
     if (stats.errors > 0) {
         return {
-            message: `Importación con errores parciales.`,
+            message: `Importación completada con ${stats.errors} error(es).`,
             stats,
-            errorDetails: errorDetails.slice(0, 20)
+            errorDetails: errorDetails.slice(0, 20) // Limit to first 20 errors
         };
     }
 
