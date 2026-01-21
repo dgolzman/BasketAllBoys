@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getCategoryMappings, updateCategoryMapping, renameCategoryMapping, deleteCategoryMapping } from '@/lib/admin-actions';
+import PageGuide from '@/components/page-guide';
 
 export default function CategoryMappingPage() {
     const [mappings, setMappings] = useState<any[]>([]);
@@ -106,6 +107,19 @@ export default function CategoryMappingPage() {
 
     return (
         <div style={{ paddingBottom: '4rem' }}>
+            <PageGuide>
+                <div>
+                    <strong>🗂️ Mapeo de Categorías</strong>
+                    <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>
+                        Define los rangos de años de nacimiento para cada categoría (ej. U13, U15, Primera).
+                        El sistema clasificará automáticamente a los jugadores según su fecha de nacimiento.
+                    </p>
+                    <p style={{ margin: '0.5rem 0 0 0', opacity: 0.7, fontSize: '0.85rem' }}>
+                        💡 Puedes agregar, renombrar o eliminar categorías según las necesidades del club.
+                    </p>
+                </div>
+            </PageGuide>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '2rem', flexWrap: 'wrap' }}>
                 <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.75rem' }}>Gestión de Categorías</h2>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
