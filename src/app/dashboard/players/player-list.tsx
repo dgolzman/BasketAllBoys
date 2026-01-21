@@ -75,7 +75,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                     zIndex: 100,
                     border: '1px solid #404040',
                     animation: 'slideUp 0.3s ease-out',
-                    color: 'white'
+                    color: 'var(--foreground)'
                 }}>
                     <div style={{ fontWeight: 'bold' }}>
                         {selectedIds.length} <span style={{ color: '#888', fontWeight: 'normal' }}>jugadores</span>
@@ -118,7 +118,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
 
                         <button
                             className="btn btn-secondary"
-                            style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#262626', color: 'white' }}
+                            style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#262626', color: 'var(--foreground)' }}
                             onClick={() => {
                                 const obs = prompt("Ingrese observaciones para todos los seleccionados:");
                                 if (obs !== null) handleBulkUpdate({ observations: obs });
@@ -151,7 +151,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                         {isAdmin && (
                             <button
                                 className="btn"
-                                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#dc2626', color: 'white', border: 'none' }}
+                                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#dc2626', color: 'var(--foreground)', border: 'none' }}
                                 onClick={handleBulkDelete}
                                 disabled={isUpdating}
                             >
@@ -213,11 +213,11 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                                         />
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <div style={{ fontWeight: 'bold', color: 'white' }}>{player.lastName}, {player.firstName}</div>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--foreground)' }}>{player.lastName}, {player.firstName}</div>
                                     </td>
                                     <td style={{ padding: '1rem', fontSize: '0.9rem', color: '#ccc' }}>{player.dni}</td>
-                                    <td style={{ padding: '1rem', fontWeight: 600, color: 'white' }}>{calculatedCat}</td>
-                                    <td style={{ padding: '1rem', textAlign: 'center', color: 'white' }}>{player.playsPrimera ? '✅' : '-'}</td>
+                                    <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--foreground)' }}>{calculatedCat}</td>
+                                    <td style={{ padding: '1rem', textAlign: 'center', color: 'var(--foreground)' }}>{player.playsPrimera ? '✅' : '-'}</td>
                                     <td style={{ padding: '1rem' }}>
                                         <span style={{
                                             fontSize: '0.75rem',

@@ -21,7 +21,7 @@ export default function CreatePlayerPage() {
                     <div style={{ padding: '1.25rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <input type="checkbox" name="active" id="active" defaultChecked style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.75rem' }} />
-                            <label htmlFor="active" style={{ cursor: 'pointer', fontWeight: 'bold', color: '#fff', fontSize: '1rem' }}>
+                            <label htmlFor="active" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--foreground)', fontSize: '1rem' }}>
                                 Jugador Activo / Dado de Baja
                             </label>
                         </div>

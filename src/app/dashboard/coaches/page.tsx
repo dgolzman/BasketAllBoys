@@ -36,7 +36,7 @@ export default async function CoachesPage() {
                                     {coach.phone && <div style={{ color: 'var(--secondary)', marginTop: '0.25rem' }}>📱 {coach.phone}</div>}
                                 </td>
                                 <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                                    <div style={{ marginBottom: '0.25rem', color: '#fff' }}>
+                                    <div style={{ marginBottom: '0.25rem', color: 'var(--foreground)' }}>
                                         <strong>Tiras:</strong> {coach.tira || '-'}
                                     </div>
                                     <div style={{ color: 'var(--secondary)' }}>

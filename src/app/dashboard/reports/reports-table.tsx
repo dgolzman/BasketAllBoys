@@ -66,7 +66,7 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                                     onClick={() => toggleRow(key)}
                                 >
                                     <td style={{ padding: '1rem' }}>
-                                        <div style={{ fontWeight: 'bold', color: '#fff', textTransform: 'capitalize' }}>{dateLabel}</div>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--foreground)', textTransform: 'capitalize' }}>{dateLabel}</div>
                                         {subLabel && <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'capitalize' }}>{subLabel}</div>}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
@@ -76,13 +76,13 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                                             {row.coachName && <span style={{ color: '#ccc', opacity: 0.8 }}>• 👔 {row.coachName}</span>}
                                         </div>
                                     </td>
-                                    <td style={{ padding: '1rem', color: '#fff' }}>{row.presentCount} / {row.totalCount}</td>
+                                    <td style={{ padding: '1rem', color: 'var(--foreground)' }}>{row.presentCount} / {row.totalCount}</td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                             <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden', minWidth: '80px' }}>
                                                 <div style={{ width: `${(row.presentCount / row.totalCount) * 100}%`, height: '100%', background: 'var(--accent)' }} />
                                             </div>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fff' }}>{Math.round((row.presentCount / row.totalCount) * 100)}%</span>
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--foreground)' }}>{Math.round((row.presentCount / row.totalCount) * 100)}%</span>
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem', textAlign: 'right' }}>
@@ -99,7 +99,7 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
                                                     {row.presentPlayers.length > 0 ? (
                                                         row.presentPlayers.sort().map((name, idx) => (
-                                                            <div key={idx} style={{ fontSize: '0.85rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            <div key={idx} style={{ fontSize: '0.85rem', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                                 <span style={{ color: 'var(--accent)' }}>✓</span> {name}
                                                             </div>
                                                         ))
