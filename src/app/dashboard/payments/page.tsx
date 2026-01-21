@@ -77,7 +77,7 @@ export default async function PaymentsPage() {
                                 <tr key={item.player.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '1rem' }}>
                                         <div>{item.player.name}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>{item.player.phone || 'Sin teléfono'}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>{item.player.phone || 'Sin teléfono'}</div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>{item.category} - Tira {item.player.tira}</td>
                                     <td style={{ padding: '1rem' }}>

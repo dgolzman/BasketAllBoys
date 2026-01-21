@@ -65,7 +65,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                     bottom: '2rem',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: '#171717',
+                    background: 'var(--secondary)',
                     padding: '1.25rem 2.5rem',
                     borderRadius: '16px',
                     boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
@@ -73,18 +73,18 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                     alignItems: 'center',
                     gap: '1.5rem',
                     zIndex: 100,
-                    border: '1px solid #404040',
+                    border: '1px solid var(--border)',
                     animation: 'slideUp 0.3s ease-out',
                     color: 'var(--foreground)'
                 }}>
                     <div style={{ fontWeight: 'bold' }}>
-                        {selectedIds.length} <span style={{ color: '#888', fontWeight: 'normal' }}>jugadores</span>
+                        {selectedIds.length} <span style={{ color: 'var(--foreground)', fontWeight: 'normal' }}>jugadores</span>
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                         <select
                             className="input"
-                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: '#262626', border: '1px solid #444', height: '36px' }}
+                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: 'var(--input)', border: '1px solid var(--border)', height: '36px' }}
                             onChange={(e) => {
                                 if (e.target.value) {
                                     handleBulkUpdate({ tira: e.target.value });
@@ -101,7 +101,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
 
                         <select
                             className="input"
-                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: '#262626', border: '1px solid #444', height: '36px' }}
+                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: 'var(--input)', border: '1px solid var(--border)', height: '36px' }}
                             onChange={(e) => {
                                 if (e.target.value) {
                                     handleBulkUpdate({ category: e.target.value });
@@ -118,7 +118,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
 
                         <button
                             className="btn btn-secondary"
-                            style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#262626', color: 'var(--foreground)' }}
+                            style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: 'var(--secondary)', color: 'var(--foreground)' }}
                             onClick={() => {
                                 const obs = prompt("Ingrese observaciones para todos los seleccionados:");
                                 if (obs !== null) handleBulkUpdate({ observations: obs });
@@ -128,7 +128,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                             📝 Obs
                         </button>
 
-                        <div style={{ width: '1px', height: '24px', background: '#444', margin: '0 0.5rem' }} />
+                        <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 0.5rem' }} />
 
                         <button
                             className="btn btn-secondary"
@@ -161,7 +161,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                     </div>
 
                     <button
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#888' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--foreground)' }}
                         onClick={() => setSelectedIds([])}
                     >
                         ✕
@@ -171,25 +171,25 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
 
             <div className="card" style={{ overflowX: 'auto', maxHeight: 'calc(100vh - 250px)', overflowY: 'auto', padding: 0 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '1300px' }}>
-                    <thead style={{ position: 'sticky', top: 0, background: '#171717', zIndex: 10 }}>
+                    <thead style={{ position: 'sticky', top: 0, background: 'var(--secondary)', zIndex: 10 }}>
                         <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                            <th style={{ padding: '1rem', width: '40px', color: '#888' }}>
+                            <th style={{ padding: '1rem', width: '40px', color: 'var(--foreground)' }}>
                                 <input
                                     type="checkbox"
                                     checked={selectedIds.length === players.length && players.length > 0}
                                     onChange={toggleSelectAll}
                                 />
                             </th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Jugador</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>DNI</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Categoría</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Primera</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Tira</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Socio / Camiseta</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Contacto</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Alta</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Estado</th>
-                            <th style={{ padding: '1rem', color: '#888' }}>Acciones</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Jugador</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>DNI</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Categoría</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Primera</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Tira</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Socio / Camiseta</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Contacto</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Alta</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Estado</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -215,7 +215,7 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ fontWeight: 'bold', color: 'var(--foreground)' }}>{player.lastName}, {player.firstName}</div>
                                     </td>
-                                    <td style={{ padding: '1rem', fontSize: '0.9rem', color: '#ccc' }}>{player.dni}</td>
+                                    <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>{player.dni}</td>
                                     <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--foreground)' }}>{calculatedCat}</td>
                                     <td style={{ padding: '1rem', textAlign: 'center', color: 'var(--foreground)' }}>{player.playsPrimera ? '✅' : '-'}</td>
                                     <td style={{ padding: '1rem' }}>
@@ -223,24 +223,24 @@ export default function PlayerList({ initialPlayers, role }: { initialPlayers: a
                                             fontSize: '0.75rem',
                                             padding: '0.2rem 0.5rem',
                                             borderRadius: '4px',
-                                            background: '#262626',
+                                            background: 'var(--secondary)',
                                             border: '1px solid var(--border)',
-                                            color: '#d4d4d4'
+                                            color: 'var(--foreground)'
                                         }}>
                                             {player.tira}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '1rem', fontSize: '0.9rem', color: '#aaa' }}>
+                                    <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>
                                         <div>S: {player.partnerNumber || '-'}</div>
                                         <div>C: {player.shirtNumber || '-'}</div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <div style={{ fontSize: '0.8rem', color: '#aaa' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>
                                             {player.phone && <div>📞 {player.phone}</div>}
                                             {player.email && <div style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={player.email}>✉️ {player.email}</div>}
                                         </div>
                                     </td>
-                                    <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#aaa' }}>
+                                    <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--foreground)' }}>
                                         {player.registrationDate ? format(new Date(player.registrationDate), 'dd/MM/yyyy') : '-'}
                                     </td>
                                     <td style={{ padding: '1rem' }}>

@@ -28,15 +28,15 @@ export default function DangerZone() {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', border: '1px solid var(--border)' }}>
             <div>
                 <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Herramientas de Mantenimiento</h3>
-                <p style={{ color: 'var(--secondary)', fontSize: '0.9rem' }}>
+                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>
                     Utilidades para limpiar y organizar la base de datos.
                 </p>
             </div>
 
             <button
                 onClick={handleCleanupDNIs}
-                className="btn btn-secondary"
-                style={{ width: '100%', borderColor: 'var(--primary)', color: 'white' }}
+                className="btn-secondary"
+                style={{ width: '100%', fontWeight: 700 }}
                 disabled={isCleaning}
             >
                 {isCleaning ? 'Limpiando...' : '🧹 Limpiar Formato de DNIs'}

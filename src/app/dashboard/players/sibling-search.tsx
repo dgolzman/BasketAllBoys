@@ -89,7 +89,7 @@ export default function SiblingSearch({ initialValue = '', onSelect }: { initial
     return (
         <div ref={wrapperRef} style={{ position: 'relative' }}>
             <div style={{ minHeight: '40px', padding: '0.5rem', border: '1px solid var(--border)', borderRadius: '4px', background: 'rgba(255,255,255,0.02)', marginBottom: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                {selectedSiblings.length === 0 && <span style={{ color: 'var(--secondary)', fontSize: '0.85rem' }}>Ningún hermano seleccionado</span>}
+                {selectedSiblings.length === 0 && <span style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>Ningún hermano seleccionado</span>}
                 {selectedSiblings.map((s, idx) => (
                     <div key={s.id || idx} style={{ background: 'var(--accent)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {s.name}
@@ -121,7 +121,7 @@ export default function SiblingSearch({ initialValue = '', onSelect }: { initial
                     left: 0,
                     right: 0,
                     zIndex: 100,
-                    background: '#1a1a1a',
+                    background: 'var(--secondary)',
                     border: '1px solid var(--border)',
                     borderRadius: '4px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.5)',
@@ -138,12 +138,12 @@ export default function SiblingSearch({ initialValue = '', onSelect }: { initial
                             style={{
                                 padding: '0.5rem 1rem',
                                 cursor: 'pointer',
-                                borderBottom: '1px solid #333',
+                                borderBottom: '1px solid var(--border)',
                                 fontSize: '0.85rem'
                             }}
                             className="search-item"
                         >
-                            <strong>{p.lastName}, {p.firstName}</strong> <span style={{ color: 'var(--secondary)', fontSize: '0.75rem' }}>(DNI: {p.dni})</span>
+                            <strong>{p.lastName}, {p.firstName}</strong> <span style={{ color: 'var(--foreground)', fontSize: '0.75rem' }}>(DNI: {p.dni})</span>
                         </li>
                     ))}
                 </ul>

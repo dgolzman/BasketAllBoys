@@ -69,7 +69,8 @@
     justify-content: space-between;
     font-size: 0.7rem;
     font-weight: 700;
-    color: #888;
+    color: #ffffff;
+
     letter-spacing: 0.1em;
     padding: 0.5rem 1.25rem;
     margin-bottom: 0.25rem;
@@ -105,7 +106,8 @@
     width: 12px;
     height: 12px;
     transition: transform 0.2s;
-    opacity: 0.5;
+    opacity: 0.9;
+
 }
 
 .navChevronRotated {
@@ -118,7 +120,8 @@
     padding: 0.875rem 1.25rem;
     border-radius: var(--radius);
     transition: all 0.2s ease;
-    opacity: 0.6;
+    opacity: 1;
+
     font-weight: 500;
     border: 1px solid transparent;
     text-decoration: none;
@@ -147,7 +150,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    opacity: 0.8;
+    opacity: 1;
+
 }
 
 .userName {
@@ -168,7 +172,8 @@
     background: none;
     border: 1px solid var(--border);
     color: #a3a3a3;
-    opacity: 0.8;
+    opacity: 1;
+
     cursor: pointer;
     padding: 0.5rem;
     font-size: 0.75rem;

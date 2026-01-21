@@ -56,7 +56,7 @@ export default async function UsersPage() {
                                         {user.role}
                                     </span>
                                 </td>
-                                <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                                <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--foreground)' }}>
                                     {format(user.createdAt, 'dd/MM/yy HH:mm')}
                                 </td>
                                 <td style={{ padding: '1rem' }}>
@@ -73,7 +73,7 @@ export default async function UsersPage() {
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--secondary)' }}>
+                                <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--foreground)' }}>
                                     No hay usuarios registrados.
                                 </td>
                             </tr>

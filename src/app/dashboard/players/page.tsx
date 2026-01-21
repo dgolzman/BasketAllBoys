@@ -60,7 +60,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
                 </div>
 
                 {/* Filters */}
-                <div className="card" style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', background: '#f8fafc' }}>
+                <div className="card" style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', background: 'var(--secondary)' }}>
                     <form style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
                         <div style={{ flex: 1, minWidth: '180px' }}>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Buscar</label>

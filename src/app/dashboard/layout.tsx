@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./dashboard.module.css";
 import SidebarNav from "./sidebar-nav";
+import TopNav from "./top-nav";
 
 export default async function DashboardLayout({
     children,
@@ -12,10 +13,6 @@ export default async function DashboardLayout({
 }) {
     const session = await auth();
     const role = session?.user?.role || 'VIEWER';
-
-    const isAdmin = role === 'ADMIN';
-    const isOperador = role === 'OPERADOR';
-    const canManageAttendance = isAdmin || isOperador;
 
     return (
         <div className={styles.layout}>
@@ -32,8 +29,6 @@ export default async function DashboardLayout({
                 </div>
                 <SidebarNav role={role} />
                 <div className={styles.user}>
-                    <div className={styles.userName}>{session?.user?.name}</div>
-                    <div className={styles.userRole} style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.5rem' }}>{role}</div>
                     <form
                         action={async () => {
                             "use server";
@@ -44,7 +39,10 @@ export default async function DashboardLayout({
                     </form>
                 </div>
             </aside>
-            <main className={styles.main}>{children}</main>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+                <TopNav userName={session?.user?.name} role={role} />
+                <main className={styles.main}>{children}</main>
+            </div>
         </div>
     );
 }

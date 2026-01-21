@@ -45,7 +45,7 @@ export default function CreateCoachForm() {
                     <label className="label" style={{ marginBottom: '0.5rem' }}>Asignación de Tiras</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                         {TIRAS.map(t => (
-                            <label key={t} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#ccc' }}>
+                            <label key={t} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--foreground)' }}>
                                 <input type="checkbox" name="tira" value={t} style={{ accentColor: 'var(--primary)' }} />
                                 {t}
                             </label>
@@ -57,7 +57,7 @@ export default function CreateCoachForm() {
                     <label className="label" style={{ marginBottom: '0.5rem' }}>Asignación de Categorías</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                         {CATEGORIES.map(c => (
-                            <label key={c} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#ccc' }}>
+                            <label key={c} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--foreground)' }}>
                                 <input type="checkbox" name="category" value={c} style={{ accentColor: 'var(--primary)' }} />
                                 {c}
                             </label>

@@ -80,13 +80,6 @@ export default function SidebarNav({ role }: { role: string }) {
                     </Link>
                 </NavGroup>
             )}
-
-            <div style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--secondary-foreground)', textTransform: 'uppercase', fontWeight: 600 }}>Tema</span>
-                    <ThemeToggle />
-                </div>
-            </div>
         </nav>
     );
 }

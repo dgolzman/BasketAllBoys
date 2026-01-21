@@ -22,14 +22,14 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
     };
 
     return (
-        <div className="card" style={{ overflowX: 'auto', padding: 0, background: '#111', border: '1px solid #333' }}>
+        <div className="card" style={{ overflowX: 'auto', padding: 0, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
-                    <tr style={{ background: '#222', borderBottom: '1px solid #444' }}>
-                        <th style={{ padding: '1rem', color: '#aaa', fontSize: '0.85rem' }}>PERIODO</th>
-                        <th style={{ padding: '1rem', color: '#aaa', fontSize: '0.85rem' }}>EQUIPO / CATEGORIA</th>
-                        <th style={{ padding: '1rem', color: '#aaa', fontSize: '0.85rem' }}>PRESENTES</th>
-                        <th style={{ padding: '1rem', color: '#aaa', fontSize: '0.85rem' }}>ASISTENCIA</th>
+                    <tr style={{ background: 'var(--secondary)', borderBottom: '1px solid var(--border)' }}>
+                        <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.85rem' }}>PERIODO</th>
+                        <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.85rem' }}>EQUIPO / CATEGORIA</th>
+                        <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.85rem' }}>PRESENTES</th>
+                        <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.85rem' }}>ASISTENCIA</th>
                         <th style={{ padding: '1rem' }}></th>
                     </tr>
                 </thead>
@@ -67,13 +67,13 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                                 >
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ fontWeight: 'bold', color: 'var(--foreground)', textTransform: 'capitalize' }}>{dateLabel}</div>
-                                        {subLabel && <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'capitalize' }}>{subLabel}</div>}
+                                        {subLabel && <div style={{ fontSize: '0.75rem', color: 'var(--foreground)', textTransform: 'capitalize' }}>{subLabel}</div>}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ fontWeight: '600', color: 'var(--primary)' }}>{row.category}</div>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                             {row.tira}
-                                            {row.coachName && <span style={{ color: '#ccc', opacity: 0.8 }}>• 👔 {row.coachName}</span>}
+                                            {row.coachName && <span style={{ color: 'var(--foreground)', opacity: 0.8 }}>• 👔 {row.coachName}</span>}
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem', color: 'var(--foreground)' }}>{row.presentCount} / {row.totalCount}</td>
@@ -86,14 +86,14 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                        <span style={{ fontSize: '1.2rem', color: '#888' }}>{isExpanded ? '▴' : '▾'}</span>
+                                        <span style={{ fontSize: '1.2rem', color: 'var(--foreground)' }}>{isExpanded ? '▴' : '▾'}</span>
                                     </td>
                                 </tr>
                                 {isExpanded && (
-                                    <tr style={{ background: '#1a1a1a' }}>
+                                    <tr style={{ background: 'var(--secondary)' }}>
                                         <td colSpan={5} style={{ padding: '1rem' }}>
-                                            <div style={{ background: '#000', padding: '1.25rem', borderRadius: '8px', border: '1px solid #333' }}>
-                                                <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            <div style={{ background: 'var(--background)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                                <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                                     Jugadores Presentes ({row.presentCount}):
                                                 </h4>
                                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
@@ -104,7 +104,7 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <div style={{ color: '#666', fontSize: '0.85rem' }}>Nadie marcó asistencia.</div>
+                                                        <div style={{ color: 'var(--foreground)', fontSize: '0.85rem' }}>Nadie marcó asistencia.</div>
                                                     )}
                                                 </div>
                                             </div>
@@ -116,7 +116,7 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
                     })}
                     {data.length === 0 && (
                         <tr>
-                            <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--secondary)' }}>
+                            <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--foreground)' }}>
                                 No hay datos de asistencia para los filtros seleccionados.
                             </td>
                         </tr>
