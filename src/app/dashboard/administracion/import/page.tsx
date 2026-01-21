@@ -27,7 +27,7 @@ export default function ImportPage() {
             <h2 style={{ marginBottom: '1.5rem' }}>Importar Datos</h2>
 
             <div className="card">
-                <p style={{ marginBottom: '1rem', color: 'var(--secondary)' }}>
+                <p style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>
                     Suba el archivo Excel "Jugadores y Pagos.xlsx". El sistema actualizará la lista de jugadores y registrará los pagos.
                 </p>
 

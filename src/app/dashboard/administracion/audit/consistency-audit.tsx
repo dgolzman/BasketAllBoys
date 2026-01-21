@@ -95,9 +95,9 @@ export default function ConsistencyAudit({ initialIssues }: { initialIssues: Aud
                                         {issue.ruleId.split(':').pop()}
                                     </span>
                                     <strong style={{ fontSize: '0.95rem' }}>{issue.description}</strong>
-                                    {issue.isDismissed && <span style={{ fontSize: '0.75rem', color: 'var(--secondary)' }}>(Conocido)</span>}
+                                    {issue.isDismissed && <span style={{ fontSize: '0.75rem', color: 'var(--foreground)' }}>(Conocido)</span>}
                                 </div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--secondary)' }}>{issue.details}</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--foreground)' }}>{issue.details}</div>
                                 {issue.affectedPlayers && issue.affectedPlayers.length > 0 && (
                                     <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                         {issue.affectedPlayers.map(p => (
@@ -133,7 +133,7 @@ export default function ConsistencyAudit({ initialIssues }: { initialIssues: Aud
                     );
                 })}
                 {visibleIssues.length === 0 && (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
+                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--foreground)' }}>
                         No hay inconsistencias reportadas.
                     </div>
                 )}

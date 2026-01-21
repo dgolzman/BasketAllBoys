@@ -91,11 +91,11 @@ export default async function AuditPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.03)' }}>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.8rem' }}>FECHA / HORA</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.8rem' }}>USUARIO</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.8rem' }}>ACCIÓN</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.8rem' }}>JUGADOR / ENTIDAD</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)', fontSize: '0.8rem' }}>DETALLES</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.8rem' }}>FECHA / HORA</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.8rem' }}>USUARIO</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.8rem' }}>ACCIÓN</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.8rem' }}>JUGADOR / ENTIDAD</th>
+                            <th style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.8rem' }}>DETALLES</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,7 +106,7 @@ export default async function AuditPage() {
 
                             return (
                                 <tr key={log.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
-                                    <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                                    <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--foreground)' }}>
                                         {format(log.timestamp, 'dd/MM HH:mm')}
                                     </td>
                                     <td style={{ padding: '1rem', fontSize: '0.85rem', fontWeight: '500' }}>
@@ -132,14 +132,14 @@ export default async function AuditPage() {
                                                     {player.lastName}, {player.firstName}
                                                 </Link>
                                             ) : (
-                                                <span style={{ color: 'var(--secondary)' }}>Jugador Eliminado <span style={{ fontSize: '0.65rem' }}>({log.entityId.substring(0, 6)})</span></span>
+                                                <span style={{ color: 'var(--foreground)' }}>Jugador Eliminado <span style={{ fontSize: '0.65rem' }}>({log.entityId.substring(0, 6)})</span></span>
                                             )
                                         ) : (
                                             <span>{log.entity}</span>
                                         )}
                                     </td>
                                     <td style={{ padding: '1rem', fontSize: '0.8rem', maxWidth: '300px' }}>
-                                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--secondary)' }}>
+                                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--foreground)' }}>
                                             {log.details || '-'}
                                         </div>
                                     </td>
@@ -148,7 +148,7 @@ export default async function AuditPage() {
                         })}
                         {logs.length === 0 && (
                             <tr>
-                                <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--secondary)' }}>No hay actividad registrada aún.</td>
+                                <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--foreground)' }}>No hay actividad registrada aún.</td>
                             </tr>
                         )}
                     </tbody>

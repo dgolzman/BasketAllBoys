@@ -19,6 +19,28 @@ async function main() {
     });
 
     console.log('✅ Admin user created:', admin.email);
+
+    // Default Category Mappings for 2026
+    const categories = [
+        { category: "Mosquitos", minYear: 2018, maxYear: 2030 },
+        { category: "Pre-Mini", minYear: 2016, maxYear: 2017 },
+        { category: "Mini", minYear: 2014, maxYear: 2015 },
+        { category: "U13", minYear: 2013, maxYear: 2013 },
+        { category: "U15", minYear: 2011, maxYear: 2012 },
+        { category: "U17", minYear: 2009, maxYear: 2010 },
+        { category: "U19", minYear: 2007, maxYear: 2008 },
+        { category: "Primera", minYear: 1950, maxYear: 2006 },
+    ];
+
+    for (const cat of categories) {
+        await (prisma as any).categoryMapping.upsert({
+            where: { category: cat.category },
+            update: cat,
+            create: cat,
+        });
+    }
+
+    console.log('✅ Category mappings restored.');
 }
 
 main()

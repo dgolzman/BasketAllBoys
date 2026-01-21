@@ -6,15 +6,27 @@ import { revalidatePath } from "next/cache";
 
 export async function updateCategoryMapping(category: string, minYear: number, maxYear: number) {
     const session = await auth();
-    if (session?.user?.role !== 'ADMIN') throw new Error("Unauthorized");
+    console.log(`[AdminAction] updateCategoryMapping: ${category} (${minYear}-${maxYear}) - User: ${session?.user?.email}, Role: ${session?.user?.role}`);
 
-    await (prisma as any).categoryMapping.upsert({
-        where: { category },
-        update: { minYear, maxYear },
-        create: { category, minYear, maxYear }
-    });
+    if (session?.user?.role !== 'ADMIN') {
+        console.error("[AdminAction] Unauthorized write attempt");
+        throw new Error("No autorizado");
+    }
+
+    try {
+        await (prisma as any).categoryMapping.upsert({
+            where: { category },
+            update: { minYear, maxYear },
+            create: { category, minYear, maxYear }
+        });
+        console.log(`[AdminAction] Successfully updated ${category}`);
+    } catch (e) {
+        console.error(`[AdminAction] Prisma error updating ${category}:`, e);
+        throw e;
+    }
 
     revalidatePath("/dashboard/administracion/categories");
+    revalidatePath("/dashboard/categories");
 }
 
 export async function getCategoryMappings() {

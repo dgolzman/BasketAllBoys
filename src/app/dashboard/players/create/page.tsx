@@ -25,7 +25,7 @@ export default function CreatePlayerPage() {
                                 Jugador Activo / Dado de Baja
                             </label>
                         </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--secondary)', marginLeft: '2rem', marginTop: '0.25rem' }}>Desmarca para marcar como inactivo.</p>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--foreground)', marginLeft: '2rem', marginTop: '0.25rem' }}>Desmarca para marcar como inactivo.</p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
@@ -45,7 +45,7 @@ export default function CreatePlayerPage() {
                         <div>
                             <label className="label">DNI <span style={{ color: 'red' }}>*</span></label>
                             <input name="dni" type="text" className="input" required placeholder="Solo números" />
-                            <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>Sin puntos, guiones ni espacios. Ej: 40123456</p>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.25rem' }}>Sin puntos, guiones ni espacios. Ej: 40123456</p>
                             {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                         </div>
                         <div>
@@ -105,7 +105,7 @@ export default function CreatePlayerPage() {
                         <div>
                             <label className="label">Teléfono / WhatsApp</label>
                             <input name="phone" type="tel" className="input" placeholder="+54 9 11 ..." />
-                            <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>Formato: +54911...</p>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.25rem' }}>Formato: +54911...</p>
                             {state.errors?.phone && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.phone.join(', ')}</p>}
                         </div>
                         <div>
@@ -116,7 +116,7 @@ export default function CreatePlayerPage() {
 
                     <div style={{ marginBottom: '1rem' }}>
                         <label className="label">Hermanos</label>
-                        <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginBottom: '0.5rem' }}>Filtra hermanos existentes para vincularlos automáticamente.</p>
+                        <p style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginBottom: '0.5rem' }}>Filtra hermanos existentes para vincularlos automáticamente.</p>
                         <SiblingSearch />
                     </div>
 

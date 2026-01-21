@@ -52,7 +52,7 @@ export default function LoginPage() {
 
                 <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>O TAMBIÉN</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>O TAMBIÉN</span>
                     <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
                 </div>
 

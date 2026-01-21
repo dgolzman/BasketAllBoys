@@ -8,25 +8,41 @@ export default function CategoryMappingPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [newCatName, setNewCatName] = useState('');
+    const [mounted, setMounted] = useState(false);
+
+    // Inline rename state
+    const [renamingCategory, setRenamingCategory] = useState<string | null>(null);
+    const [tempRenamedName, setTempRenamedName] = useState('');
 
     useEffect(() => {
+        setMounted(true);
         load();
     }, []);
 
     async function load() {
         setIsLoading(true);
-        const data = await getCategoryMappings();
-        setMappings(data);
-        setIsLoading(false);
+        try {
+            const data = await getCategoryMappings();
+            setMappings(data.map((m: any) => ({ ...m })));
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
-    const handleSave = async (category: string, minYear: number, maxYear: number) => {
-        if (!confirm(`¿Confirmar cambios de rango para "${category}"?`)) return;
+    const handleInputChange = (category: string, field: 'minYear' | 'maxYear', value: string) => {
+        setMappings(prev => prev.map(m =>
+            m.category === category ? { ...m, [field]: parseInt(value) || 0 } : m
+        ));
+    };
+
+    const handleSave = async (m: any) => {
         setIsSaving(true);
         try {
-            await updateCategoryMapping(category, minYear, maxYear);
-            alert(`Configuración de ${category} guardada.`);
-            load();
+            await updateCategoryMapping(m.category, m.minYear, m.maxYear);
+            alert(`Configuración de ${m.category} guardada.`);
+            await load();
         } catch (error) {
             alert('Error al guardar.');
         } finally {
@@ -34,17 +50,22 @@ export default function CategoryMappingPage() {
         }
     };
 
-    const handleRename = async (oldName: string) => {
-        const newName = prompt(`Renombrar categoría "${oldName}" a:`, oldName);
-        if (!newName || newName === oldName) return;
+    const startRename = (cat: any) => {
+        setRenamingCategory(cat.category);
+        setTempRenamedName(cat.category);
+    };
 
-        if (!confirm(`¿Estás seguro de renombrar "${oldName}" a "${newName}"?`)) return;
+    const handleRenameSubmit = async (oldName: string) => {
+        if (!tempRenamedName || tempRenamedName === oldName) {
+            setRenamingCategory(null);
+            return;
+        }
 
         setIsSaving(true);
         try {
-            await renameCategoryMapping(oldName, newName);
-            alert(`Categoría renombrada a ${newName}.`);
-            load();
+            await renameCategoryMapping(oldName, tempRenamedName);
+            setRenamingCategory(null);
+            await load();
         } catch (error) {
             alert('Error al renombrar.');
         } finally {
@@ -53,13 +74,12 @@ export default function CategoryMappingPage() {
     };
 
     const handleDelete = async (category: string) => {
-        if (!confirm(`¿Estás seguro de eliminar la categoría "${category}"? No eliminará a los jugadores, pero perderán su mapeo automático.`)) return;
+        if (!confirm(`¿Eliminar categoría "${category}"?`)) return;
 
         setIsSaving(true);
         try {
             await deleteCategoryMapping(category);
-            alert(`Categoría ${category} eliminada.`);
-            load();
+            await load();
         } catch (error) {
             alert('Error al eliminar.');
         } finally {
@@ -69,13 +89,11 @@ export default function CategoryMappingPage() {
 
     const handleAdd = async () => {
         if (!newCatName) return;
-        if (!confirm(`¿Crear nueva categoría "${newCatName}"?`)) return;
-
         setIsSaving(true);
         try {
             await updateCategoryMapping(newCatName, 2010, 2011);
             setNewCatName('');
-            load();
+            await load();
         } catch (error) {
             alert('Error al agregar.');
         } finally {
@@ -83,91 +101,122 @@ export default function CategoryMappingPage() {
         }
     };
 
-    if (isLoading) return <div style={{ color: 'var(--foreground)', padding: '2rem' }}>Cargando configuraciones...</div>;
+    if (!mounted) return null;
+    if (isLoading) return <div style={{ color: 'var(--foreground)', padding: '2rem', fontWeight: 700 }}>Cargando configuraciones...</div>;
 
     return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2 style={{ margin: 0 }}>Gestión de Categorías</h2>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ paddingBottom: '4rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '2rem', flexWrap: 'wrap' }}>
+                <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.75rem' }}>Gestión de Categorías</h2>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <input
                         type="text"
                         className="input"
                         placeholder="Nueva categoría..."
-                        style={{ width: '200px', marginTop: 0 }}
+                        style={{ width: '220px', margin: 0 }}
                         value={newCatName}
                         onChange={(e) => setNewCatName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                     />
-                    <button className="btn btn-primary" onClick={handleAdd} disabled={isSaving || !newCatName}>
-                        + Agregar
+                    <button
+                        className="btn-primary"
+                        style={{ padding: '0.75rem 1.5rem', borderRadius: 'var(--radius)' }}
+                        onClick={handleAdd}
+                        disabled={isSaving || !newCatName}
+                    >
+                        {isSaving ? '...' : '+ Agregar'}
                     </button>
                 </div>
             </div>
 
-            <p style={{ color: 'var(--secondary)', marginBottom: '2rem' }}>
-                Define los años de nacimiento que corresponden a cada categoría.
-                Renombrar una categoría actualizará automáticamente a todos los jugadores asociados.
+            <p style={{ color: 'var(--foreground)', marginBottom: '2rem', fontWeight: 600, fontSize: '1rem', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem' }}>
+                Define los años de nacimiento para cada categoría. El sistema clasificará a los jugadores automáticamente según su fecha de nacimiento.
             </p>
 
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
-                {mappings.map(m => (
-                    <div key={m.category} className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', border: '1px solid var(--border)' }}>
-                        <div style={{ flex: 1, minWidth: '150px' }}>
-                            <h3 style={{ margin: 0, color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                {m.category}
+            <div style={{ display: 'grid', gap: '1rem' }}>
+                {mappings.map(m => {
+                    const isRenaming = renamingCategory === m.category;
+                    return (
+                        <div key={m.category} className="card" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '1.5rem',
+                            flexWrap: 'wrap',
+                            border: '2px solid var(--border)',
+                            padding: '1.5rem',
+                            background: 'var(--card-bg)'
+                        }}>
+                            <div style={{ flex: 1, minWidth: '220px' }}>
+                                {isRenaming ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            className="input"
+                                            value={tempRenamedName}
+                                            onChange={(e) => setTempRenamedName(e.target.value)}
+                                            style={{ margin: 0, width: '150px' }}
+                                        />
+                                        <button className="btn-primary" onClick={() => handleRenameSubmit(m.category)}>OK</button>
+                                        <button className="btn-secondary" onClick={() => setRenamingCategory(null)}>X</button>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <h3 style={{ margin: 0, color: 'var(--foreground)', fontSize: '1.25rem', fontWeight: 800 }}>
+                                            {m.category}
+                                        </h3>
+                                        <button
+                                            onClick={() => startRename(m)}
+                                            style={{ background: 'var(--secondary)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', padding: '0.25rem 0.5rem' }}
+                                        >
+                                            ✏️
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <label className="label" style={{ margin: 0, fontWeight: 800 }}>DESDE</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        style={{ width: '80px', margin: 0, fontWeight: 800, textAlign: 'center' }}
+                                        value={m.minYear}
+                                        onChange={(e) => handleInputChange(m.category, 'minYear', e.target.value)}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <label className="label" style={{ margin: 0, fontWeight: 800 }}>HASTA</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        style={{ width: '80px', margin: 0, fontWeight: 800, textAlign: 'center' }}
+                                        value={m.maxYear}
+                                        onChange={(e) => handleInputChange(m.category, 'maxYear', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.75rem', marginLeft: 'auto' }}>
                                 <button
-                                    onClick={() => handleRename(m.category)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', opacity: 0.5 }}
-                                    title="Renombrar"
+                                    className="btn-primary"
+                                    style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', minWidth: '100px' }}
+                                    onClick={() => handleSave(m)}
+                                    disabled={isSaving}
                                 >
-                                    ✏️
+                                    {isSaving ? '...' : 'Guardar'}
                                 </button>
-                            </h3>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <label className="label" style={{ margin: 0 }}>Desde</label>
-                                <input
-                                    type="number"
-                                    className="input"
-                                    style={{ width: '80px', marginTop: 0 }}
-                                    defaultValue={m.minYear}
-                                    onBlur={(e) => m.minYear = parseInt(e.target.value)}
-                                />
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <label className="label" style={{ margin: 0 }}>Hasta</label>
-                                <input
-                                    type="number"
-                                    className="input"
-                                    style={{ width: '80px', marginTop: 0 }}
-                                    defaultValue={m.maxYear}
-                                    onBlur={(e) => m.maxYear = parseInt(e.target.value)}
-                                />
+                                <button
+                                    className="btn-secondary"
+                                    style={{ padding: '0.6rem 1.25rem', fontSize: '0.9rem', color: '#ef4444', borderWidth: '2px' }}
+                                    onClick={() => handleDelete(m.category)}
+                                    disabled={isSaving}
+                                >
+                                    Eliminar
+                                </button>
                             </div>
                         </div>
-
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                className="btn btn-primary"
-                                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
-                                onClick={() => handleSave(m.category, m.minYear, m.maxYear)}
-                                disabled={isSaving}
-                            >
-                                Guardar
-                            </button>
-                            <button
-                                className="btn"
-                                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: '#450a0a', color: '#fca5a5', border: 'none' }}
-                                onClick={() => handleDelete(m.category)}
-                                disabled={isSaving}
-                            >
-                                Eliminar
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
