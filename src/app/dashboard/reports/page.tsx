@@ -178,24 +178,28 @@ async function SalaryView({ year }: { year: number }) {
     const startOfYear = new Date(year, 0, 1);
     const endOfYear = new Date(year, 11, 31);
 
-    const history = await (prisma as any).salaryHistory.findMany({
+    // Fetch all active coaches (or those active during the year)
+    // We need to fetch ALL salary history to determine the salary at the start of the year
+    const coaches = await (prisma as any).coach.findMany({
         where: {
-            date: {
-                gte: startOfYear,
-                lte: endOfYear
-            }
+            OR: [
+                { active: true },
+                { withdrawalDate: { gte: startOfYear } }
+            ]
         },
         include: {
-            coach: true
+            salaryHistory: {
+                orderBy: { date: 'asc' }
+            }
         }
     });
 
-    const data = history.map((h: any) => ({
-        id: h.id,
-        amount: h.amount,
-        date: h.date,
-        coachId: h.coachId,
-        coachName: h.coach?.name || 'Unknown'
+    const data = coaches.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        registrationDate: c.registrationDate,
+        withdrawalDate: c.withdrawalDate,
+        salaryHistory: c.salaryHistory
     }));
 
     return (
@@ -214,7 +218,7 @@ async function SalaryView({ year }: { year: number }) {
                     <button type="submit" className="btn btn-primary" style={{ height: '38px' }}>Ver Reporte</button>
                 </form>
             </div>
-            <CoachSalaryReport data={data} year={year} />
+            <CoachSalaryReport coaches={data} year={year} />
         </div>
     );
 }
