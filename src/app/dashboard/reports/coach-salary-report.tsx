@@ -79,10 +79,10 @@ export default function CoachSalaryReport({ data, year }: Props) {
                         </tr>
                     ))}
                     {/* Totals Row */}
-                    <tr style={{ background: 'var(--secondary)', borderTop: '2px solid var(--border)', fontWeight: 'bold' }}>
-                        <td style={{ padding: '1rem' }}>TOTAL MENSUAL</td>
+                    <tr style={{ background: 'var(--secondary)', borderTop: '2px solid var(--primary)', fontWeight: 'bold' }}>
+                        <td style={{ padding: '1rem', color: 'var(--foreground)' }}>TOTAL MENSUAL</td>
                         {monthlyTotals.map((total, idx) => (
-                            <td key={idx} style={{ padding: '0.5rem', textAlign: 'center', fontSize: '0.9rem', color: total > 0 ? 'var(--accent)' : 'gray' }}>
+                            <td key={idx} style={{ padding: '0.5rem', textAlign: 'center', fontSize: '0.9rem', color: total > 0 ? 'var(--accent)' : 'var(--foreground)', opacity: total > 0 ? 1 : 0.3 }}>
                                 {total > 0 ? `$${total.toLocaleString()}` : '-'}
                             </td>
                         ))}
