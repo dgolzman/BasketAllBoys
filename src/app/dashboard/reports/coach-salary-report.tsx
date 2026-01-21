@@ -79,14 +79,14 @@ export default function CoachSalaryReport({ data, year }: Props) {
                         </tr>
                     ))}
                     {/* Totals Row */}
-                    <tr style={{ background: 'var(--secondary)', borderTop: '2px solid var(--primary)', fontWeight: 'bold' }}>
-                        <td style={{ padding: '1rem', color: 'var(--foreground)' }}>TOTAL MENSUAL</td>
+                    <tr style={{ background: '#1c1c1c', borderTop: '2px solid #eab308' }}>
+                        <td style={{ padding: '1rem', color: '#ffffff', fontWeight: 800, fontSize: '0.9rem' }}>TOTAL MENSUAL</td>
                         {monthlyTotals.map((total, idx) => (
-                            <td key={idx} style={{ padding: '0.5rem', textAlign: 'center', fontSize: '0.9rem', color: total > 0 ? 'var(--accent)' : 'var(--foreground)', opacity: total > 0 ? 1 : 0.3 }}>
+                            <td key={idx} style={{ padding: '0.5rem', textAlign: 'center', fontSize: '0.9rem', color: total > 0 ? '#fbbf24' : '#525252', fontWeight: total > 0 ? 700 : 400 }}>
                                 {total > 0 ? `$${total.toLocaleString()}` : '-'}
                             </td>
                         ))}
-                        <td style={{ padding: '1rem', textAlign: 'right', color: 'var(--accent)', fontSize: '1rem' }}>
+                        <td style={{ padding: '1rem', textAlign: 'right', color: '#fbbf24', fontSize: '1rem', fontWeight: 800 }}>
                             ${grandTotal.toLocaleString()}
                         </td>
                     </tr>
