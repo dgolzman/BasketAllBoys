@@ -28,7 +28,12 @@ export default function CoachSalaryReport({ coaches, year }: { coaches: any[], y
             const isAfterStart = regDate <= currentMonthEnd;
             const isBeforeEnd = !withdrawalDate || withdrawalDate >= currentMonthStart;
 
-            if (isAfterStart && isBeforeEnd) {
+            // Project only up to next month relative to current actual date
+            const today = new Date();
+            const projectLimit = new Date(today.getFullYear(), today.getMonth() + 2, 0); // End of next month
+            const isWithinProjectionLimit = currentMonthStart <= projectLimit;
+
+            if (isAfterStart && isBeforeEnd && isWithinProjectionLimit) {
                 // Find effective salary for this month
                 // Get the last history record where date <= Month End
                 const history = coach.salaryHistory || [];
