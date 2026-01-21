@@ -9,7 +9,6 @@ type State = {
     message: string;
     stats?: {
         players: number;
-        payments: number;
         errors: number;
     } | null;
     errorDetails?: string[];
@@ -28,15 +27,40 @@ export default function ImportPage() {
             <PageGuide>
                 <div>
                     <strong>📥 Importación de Datos desde Excel</strong>
-                    <p style={{ margin: '0.5rem 0', opacity: 0.9 }}>
-                        El archivo debe tener <strong>dos hojas</strong>:
+
+                    <p style={{ margin: '0.5rem 0', opacity: 0.9, fontSize: '0.95rem' }}>
+                        <strong>Formato del archivo:</strong> Excel (.xlsx o .xls) con una hoja llamada <strong>"Jugadores"</strong>
                     </p>
-                    <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.9rem' }}>
-                        <li><strong>Hoja 1 - "Jugadores":</strong> Columnas: Apellido, Nombre, DNI, FechaNacimiento (DD/MM/AAAA), Tira, Teléfono, Email, Beca (Sí/No), Primera (Sí/No)</li>
-                        <li><strong>Hoja 2 - "Pagos":</strong> Columnas: DNI, Mes (formato MM/AAAA o nombre del mes), Monto</li>
+
+                    <p style={{ margin: '0.5rem 0 0.25rem 0', opacity: 0.9, fontSize: '0.9rem' }}>
+                        <strong>Columnas requeridas (obligatorias):</strong>
+                    </p>
+                    <ul style={{ margin: '0 0 0.5rem 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.85rem', lineHeight: '1.6' }}>
+                        <li><strong>Nombre:</strong> Texto (ej: JUAN)</li>
+                        <li><strong>Apellido:</strong> Texto (ej: PEREZ)</li>
+                        <li><strong>DNI:</strong> Solo números, sin puntos ni espacios (ej: 40123456)</li>
+                        <li><strong>FechaNacimiento:</strong> Formato fecha DD/MM/AAAA o AAAA-MM-DD</li>
                     </ul>
+
+                    <p style={{ margin: '0.5rem 0 0.25rem 0', opacity: 0.9, fontSize: '0.9rem' }}>
+                        <strong>Columnas opcionales:</strong>
+                    </p>
+                    <ul style={{ margin: '0 0 0.5rem 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.85rem', lineHeight: '1.6' }}>
+                        <li><strong>Tira:</strong> "Masculino A", "Masculino B", "Femenino" o "Mosquitos" (default: Masculino A)</li>
+                        <li><strong>Email:</strong> Correo electrónico</li>
+                        <li><strong>Telefono:</strong> Número de contacto</li>
+                        <li><strong>PersonaContacto:</strong> Nombre del padre/madre/tutor</li>
+                        <li><strong>NumeroSocio:</strong> Número de socio del club</li>
+                        <li><strong>NumeroCamiseta:</strong> Número entero</li>
+                        <li><strong>FechaAlta:</strong> Fecha de ingreso al club (formato fecha)</li>
+                        <li><strong>Beca:</strong> "SI" o "NO" (indica si es becado)</li>
+                        <li><strong>Primera:</strong> "SI" o "NO" (juega en Primera División)</li>
+                        <li><strong>Activo:</strong> "SI" o "NO" (default: SI si no se especifica)</li>
+                        <li><strong>Observaciones:</strong> Texto libre (comentarios, apto médico, etc.)</li>
+                    </ul>
+
                     <p style={{ margin: '0.5rem 0 0 0', opacity: 0.7, fontSize: '0.85rem' }}>
-                        💡 Los jugadores existentes se actualizarán. Los nuevos se crearán automáticamente.
+                        💡 <strong>Importante:</strong> Si un jugador con el mismo DNI ya existe, se actualizarán sus datos. Los nuevos se crearán automáticamente.
                     </p>
                 </div>
             </PageGuide>
@@ -65,7 +89,6 @@ export default function ImportPage() {
                         {state.stats && (
                             <ul style={{ marginTop: '0.5rem', marginLeft: '1.5rem', listStyle: 'disc', color: '#14532d' }}>
                                 <li>Jugadores procesados: {state.stats.players}</li>
-                                <li>Pagos registrados: {state.stats.payments}</li>
                                 {state.stats.errors > 0 && <li style={{ color: '#991b1b' }}>Errores: {state.stats.errors}</li>}
                             </ul>
                         )}
