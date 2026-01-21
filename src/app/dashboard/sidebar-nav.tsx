@@ -69,7 +69,7 @@ export default function SidebarNav({ role }: { role: string }) {
 
             <NavGroup title="Informes">
                 <Link href="/dashboard/reports" className={`${styles.navLink} ${isActive('/dashboard/reports') ? styles.activeLink : ''}`}>
-                    <span>📊 Asistencia</span>
+                    <span>📊 Informes</span>
                 </Link>
             </NavGroup>
 
