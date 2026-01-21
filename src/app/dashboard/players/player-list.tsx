@@ -26,7 +26,7 @@ export default function PlayerList({
     const [players, setPlayers] = useState(initialPlayers);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const isAdmin = role === 'ADMIN';
+    const canEdit = role === 'ADMIN' || role === 'OPERADOR';
 
     const toggleSelectAll = () => {
         if (selectedIds.length === players.length) {
@@ -58,7 +58,7 @@ export default function PlayerList({
     };
 
     const handleBulkDelete = async () => {
-        if (!selectedIds.length || !isAdmin) return;
+        if (!selectedIds.length || !canEdit) return;
         if (!confirm(`⚠️ PELIGRO: ¿Estás seguro de ELIMINAR permanentemente a ${selectedIds.length} jugadores?`)) return;
 
         setIsUpdating(true);
@@ -163,7 +163,7 @@ export default function PlayerList({
                             Inactivar
                         </button>
 
-                        {isAdmin && (
+                        {canEdit && (
                             <button
                                 className="btn"
                                 style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#dc2626', color: 'var(--foreground)', border: 'none' }}

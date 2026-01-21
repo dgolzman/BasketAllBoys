@@ -4,7 +4,9 @@ import Link from "next/link";
 import SortableHeader from '@/components/sortable-header';
 import DeleteCoachButton from "./delete-coach-button";
 
-export default function CoachList({ coaches, currentSort, currentOrder }: { coaches: any[], currentSort: string, currentOrder: string }) {
+export default function CoachList({ coaches, currentSort, currentOrder, role }: { coaches: any[], currentSort: string, currentOrder: string, role: string }) {
+    const canEdit = role === 'ADMIN' || role === 'OPERADOR';
+
     return (
         <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -55,12 +57,14 @@ export default function CoachList({ coaches, currentSort, currentOrder }: { coac
                                 </span>
                             </td>
                             <td style={{ padding: '1rem' }}>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <Link href={`/dashboard/coaches/${coach.id}/edit`} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
-                                        Editar
-                                    </Link>
-                                    <DeleteCoachButton id={coach.id} />
-                                </div>
+                                {canEdit && (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <Link href={`/dashboard/coaches/${coach.id}/edit`} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
+                                            Editar
+                                        </Link>
+                                        <DeleteCoachButton id={coach.id} />
+                                    </div>
+                                )}
                             </td>
                         </tr>
                     ))}

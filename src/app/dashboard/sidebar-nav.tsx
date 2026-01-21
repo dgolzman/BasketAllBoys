@@ -73,7 +73,7 @@ export default function SidebarNav({ role }: { role: string }) {
                 </Link>
             </NavGroup>
 
-            {(isAdmin || isOperador) && (
+            {isAdmin && (
                 <div style={{ marginTop: '1rem' }}>
                     <Link href="/dashboard/administracion" className={`${styles.navLink} ${isActive('/dashboard/administracion') ? styles.activeLink : ''}`}>
                         <span>⚙️ Administración</span>

@@ -2,8 +2,18 @@ import Link from "next/link";
 import { deleteAllPlayers } from "@/lib/actions";
 import DangerZone from "./danger-zone";
 import PageGuide from "@/components/page-guide";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function AdministrationPage() {
+export default async function AdministrationPage() {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+
+    // Only ADMIN can access Administration
+    if (role !== 'ADMIN') {
+        redirect('/dashboard');
+    }
+
     return (
         <div>
             <PageGuide>
