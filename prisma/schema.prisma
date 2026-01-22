@@ -31,6 +31,7 @@ model Player {
   tira             String   // "Femenino", "Masculino A", "Masculino B"
   status           String   @default("ACTIVO") // "ACTIVO", "INACTIVO", "REVISAR"
   scholarship      Boolean  @default(false)
+  federated        Boolean  @default(false)
   playsPrimera     Boolean  @default(false)  // Plays in Primera division
 
   // Extras

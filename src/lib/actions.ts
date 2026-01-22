@@ -64,7 +64,10 @@ export async function createPlayer(prevState: any, formData: FormData) {
     }
 
     const scholarship = formData.get("scholarship") === "on";
+    const federated = formData.get("federated") === "on";
     const playsPrimera = formData.get("playsPrimera") === "on";
+    const shirtNumberRaw = formData.get("shirtNumber");
+    const shirtNumber = (shirtNumberRaw && shirtNumberRaw !== "") ? parseInt(shirtNumberRaw.toString()) : null;
 
     const rawData = {
         firstName: formData.get("firstName"),
@@ -73,13 +76,14 @@ export async function createPlayer(prevState: any, formData: FormData) {
         birthDate: formData.get("birthDate"),
         tira: formData.get("tira"),
         scholarship: scholarship,
+        federated: federated,
         playsPrimera: playsPrimera,
         email: formData.get("email"),
         phone: formData.get("phone"),
         // Extras
         partnerNumber: formData.get("partnerNumber"),
         contactName: formData.get("contactName"),
-        shirtNumber: formData.get("shirtNumber"),
+        shirtNumber: shirtNumber,
         observations: formData.get("observations"),
         registrationDate: formData.get("registrationDate"),
         status: formData.get("status") || "ACTIVO",
@@ -99,6 +103,15 @@ export async function createPlayer(prevState: any, formData: FormData) {
 
     const data = validatedFields.data;
 
+    // Shirt Number Validation (0-99, optional, adjacent categories)
+    if (shirtNumber !== null) {
+        if (shirtNumber < 0 || shirtNumber > 99) {
+            return { message: "El número de camiseta debe estar entre 0 y 99.", errors: { shirtNumber: ["Rango inválido"] } };
+        }
+        const shirtError = await validateShirtNumber(null, shirtNumber, data.tira, data.birthDate, data.category);
+        if (shirtError) return { message: shirtError, errors: { shirtNumber: [shirtError] } };
+    }
+
     try {
         const playerName = `${data.lastName.toUpperCase()}, ${data.firstName.toUpperCase()}`;
         const player = await prisma.player.create({
@@ -109,6 +122,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 birthDate: new Date(data.birthDate), // Ensure valid date
                 tira: data.tira,
                 scholarship: scholarship,
+                federated: federated,
                 playsPrimera: playsPrimera,
                 email: data.email || null,
                 phone: data.phone || null,
@@ -166,7 +180,10 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
     }
 
     const scholarship = formData.get("scholarship") === "on";
+    const federated = formData.get("federated") === "on";
     const playsPrimera = formData.get("playsPrimera") === "on";
+    const shirtNumberRaw = formData.get("shirtNumber");
+    const shirtNumber = (shirtNumberRaw && shirtNumberRaw !== "") ? parseInt(shirtNumberRaw.toString()) : null;
 
     const rawData = {
         firstName: formData.get("firstName"),
@@ -175,12 +192,13 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
         birthDate: formData.get("birthDate"),
         tira: formData.get("tira"),
         scholarship: scholarship,
+        federated: federated,
         playsPrimera: playsPrimera,
         email: formData.get("email"),
         phone: formData.get("phone"),
         partnerNumber: formData.get("partnerNumber"),
         contactName: formData.get("contactName"),
-        shirtNumber: formData.get("shirtNumber"),
+        shirtNumber: shirtNumber,
         observations: formData.get("observations"),
         registrationDate: formData.get("registrationDate"),
         withdrawalDate: formData.get("withdrawalDate"),
@@ -196,6 +214,15 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
         return isNaN(date.getTime()) ? null : date;
     };
 
+    // Shirt Number Validation
+    if (shirtNumber !== null) {
+        if (shirtNumber < 0 || shirtNumber > 99) {
+            return { message: "El número de camiseta debe estar entre 0 y 99.", errors: { shirtNumber: ["Rango inválido"] } };
+        }
+        const shirtError = await validateShirtNumber(id, shirtNumber, rawData.tira as string, rawData.birthDate as string, rawData.category as string);
+        if (shirtError) return { message: shirtError, errors: { shirtNumber: [shirtError] } };
+    }
+
     try {
         const playerName = `${(rawData.lastName as string).toUpperCase()}, ${(rawData.firstName as string).toUpperCase()}`;
 
@@ -209,12 +236,13 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 birthDate: new Date(rawData.birthDate as string),
                 tira: rawData.tira as string,
                 scholarship: scholarship,
+                federated: federated,
                 playsPrimera: playsPrimera,
                 email: (rawData.email as string) || null,
                 phone: (rawData.phone as string) || null,
                 partnerNumber: (rawData.partnerNumber as string) || null,
                 contactName: rawData.contactName ? (rawData.contactName as string).toUpperCase() : null,
-                shirtNumber: rawData.shirtNumber ? parseInt(rawData.shirtNumber as string) : null,
+                shirtNumber: shirtNumber,
                 observations: rawData.observations ? (rawData.observations as string).toUpperCase() : null,
                 registrationDate: parseDate(rawData.registrationDate),
                 withdrawalDate: parseDate(rawData.withdrawalDate),
@@ -365,9 +393,56 @@ export async function deletePlayer(id: string) {
         await createAuditLog("DELETE", "Player", id, { name: `${player.lastName}, ${player.firstName}` });
 
         revalidatePath("/dashboard/players");
-        return { message: "Jugador eliminado correctamente." };
+        redirect("/dashboard/players");
     } catch (error: any) {
+        if (error.message === 'NEXT_REDIRECT') throw error;
         console.error("Delete Player Error:", error);
         return { message: "Error al eliminar jugador: " + error.message };
     }
 }
+
+async function validateShirtNumber(playerId: string | null, shirtNumber: number, tira: string, birthDate: string, manualCategory?: string) {
+    const { getCategory } = await import("@/lib/utils");
+
+    // 1. Get all category mappings and sort by minYear (youngest to oldest)
+    const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } });
+
+    // 2. Identify the player's category
+    const currentCategory = getCategory({ birthDate, category: manualCategory }, mappings);
+
+    // 3. Find adjacent categories
+    // mappings are already sorted by minYear desc (youngest to oldest)
+    // Actually minYear: desc means 2018, 2016, 2014... (youngest first)
+    // Let's reverse find index
+    const sortedCats = mappings.map((m: any) => m.category);
+    const currIdx = sortedCats.indexOf(currentCategory);
+
+    const targetCategories = [currentCategory];
+    if (currIdx > 0) targetCategories.push(sortedCats[currIdx - 1]); // younger
+    if (currIdx !== -1 && currIdx < sortedCats.length - 1) targetCategories.push(sortedCats[currIdx + 1]); // older
+
+    // 4. Check for conflicts
+    const conflict = await prisma.player.findFirst({
+        where: {
+            id: { not: playerId || undefined },
+            tira: tira,
+            shirtNumber: shirtNumber,
+            OR: [
+                { category: { in: targetCategories } }, // Manual match
+                { category: null } // Need to check if their dynamic category matches any target
+            ]
+        }
+    });
+
+    if (conflict) {
+        // If conflict.category is null, we must calculate its dynamic category
+        if (!conflict.category) {
+            const dynamicCat = getCategory(conflict, mappings);
+            if (!targetCategories.includes(dynamicCat)) return null;
+        }
+        return `El número #${shirtNumber} ya está en uso en ${tira} para la categoría ${currentCategory} o adyacentes.`;
+    }
+
+    return null;
+}
+
