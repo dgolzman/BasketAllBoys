@@ -1,13 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { auth } from "@/auth";
-import { signOut } from "@/auth";
-import Link from "next/link";
-import Image from "next/image";
 import styles from "./dashboard.module.css";
 import SidebarNav from "./sidebar-nav";
 import TopNav from "./top-nav";
+import { handleSignOut } from "./actions";
 
 export default function DashboardLayoutClient({
     children,
@@ -56,12 +53,7 @@ export default function DashboardLayoutClient({
                 </div>
                 <SidebarNav role={role} />
                 <div className={styles.user}>
-                    <form
-                        action={async () => {
-                            "use server";
-                            await signOut();
-                        }}
-                    >
+                    <form action={handleSignOut}>
                         <button className={styles.logoutBtn}>Cerrar Sesión</button>
                     </form>
                 </div>
