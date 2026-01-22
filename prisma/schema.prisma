@@ -29,7 +29,7 @@ model Player {
   dni              String   @unique
   birthDate        DateTime
   tira             String   // "Femenino", "Masculino A", "Masculino B"
-  active           Boolean  @default(true)
+  status           String   @default("ACTIVO") // "ACTIVO", "INACTIVO", "REVISAR"
   scholarship      Boolean  @default(false)
   playsPrimera     Boolean  @default(false)  // Plays in Primera division
 
@@ -53,7 +53,6 @@ model Player {
 
   createdAt        DateTime @default(now())
   updatedAt DateTime @updatedAt
-  needsReview      Boolean  @default(false)
 }
 
 model Attendance {
@@ -110,7 +109,7 @@ model Coach {
   tira             String?   // "A", "B", "Femenino" or multiple comma separated
   category         String?   // "Mini", "U13" or multiple comma separated
   role             String?   // "Entrenador", "Monitor", "Asistente", "Preparador Físico"
-  active           Boolean   @default(true)
+  status           String    @default("ACTIVO") // "ACTIVO", "INACTIVO", "REVISAR"
   salary           Float     @default(0)
   registrationDate DateTime?
   withdrawalDate   DateTime?

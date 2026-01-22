@@ -18,14 +18,22 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
 
             <div className="card">
                 <form action={formAction}>
-                    <div style={{ padding: '1.25rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <input type="checkbox" name="active" id="active" defaultChecked style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.75rem' }} />
-                            <label htmlFor="active" style={{ cursor: 'pointer', fontWeight: 'bold', color: 'var(--foreground)', fontSize: '1rem' }}>
-                                Jugador Activo / Dado de Baja
-                            </label>
-                        </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--foreground)', marginLeft: '2rem', marginTop: '0.25rem' }}>Desmarca para marcar como inactivo.</p>
+                    <div style={{ padding: '1.25rem', background: 'var(--secondary)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
+                        <label className="label" style={{ color: '#fff' }}>Estado Inicial</label>
+                        <select
+                            name="status"
+                            className="input"
+                            defaultValue="ACTIVO"
+                            style={{ background: '#064e3b', color: '#fff', fontWeight: 'bold' }}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                e.target.style.background = val === 'ACTIVO' ? '#064e3b' : val === 'REVISAR' ? '#78350f' : '#450a0a';
+                            }}
+                        >
+                            <option value="ACTIVO">ACTIVO (En listas y reportes)</option>
+                            <option value="INACTIVO">INACTIVO (Dado de baja)</option>
+                            <option value="REVISAR">REVISAR (Datos incompletos/pendientes)</option>
+                        </select>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>

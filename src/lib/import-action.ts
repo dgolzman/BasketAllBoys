@@ -24,17 +24,15 @@ export async function importData(prevState: any, formData: FormData) {
     let errorDetails: string[] = [];
 
     try {
-        // Process Jugadores sheet
         const playersSheet = workbook.Sheets['Jugadores'];
         if (!playersSheet) {
             return { message: "Error: No se encontró la hoja 'Jugadores' en el archivo Excel." };
         }
 
         const playersData: any[] = XLSX.utils.sheet_to_json(playersSheet);
-        let rowIdx = 2; // Excel row number (starting after header)
+        let rowIdx = 2;
 
         for (const row of playersData) {
-            // Required fields validation - allow placeholders
             const nombre = row['Nombre']?.toString().trim().toUpperCase();
             const apellido = row['Apellido']?.toString().trim().toUpperCase();
             let dni = row['DNI']?.toString().trim() || '0';
@@ -44,45 +42,27 @@ export async function importData(prevState: any, formData: FormData) {
                 const missing = [];
                 if (!nombre) missing.push("Nombre");
                 if (!apellido) missing.push("Apellido");
-
-                const errorMsg = `Fila ${rowIdx}: Faltan campos obligatorios (${missing.join(', ')})`;
-                errorDetails.push(errorMsg);
                 stats.errors++;
-
-                // Log failed import
-                if (session?.user?.id) {
-                    await prisma.auditLog.create({
-                        data: {
-                            action: 'FAILED_IMPORT',
-                            entity: 'Player',
-                            entityId: dni || 'UNKNOWN',
-                            details: JSON.stringify({ rowIdx, error: errorMsg }),
-                            userId: session.user.id
-                        }
-                    });
-                }
-
+                errorDetails.push(`Fila ${rowIdx}: Faltan campos básicos (${missing.join(', ')})`);
                 rowIdx++;
                 continue;
             }
 
-            let flagNeedsReview = false;
+            let autoReview = false;
 
-            // Handle placeholder DNI
+            // DNI Placeholder handling
             if (dni === '0' || !dni) {
                 dni = `TEMP-${Date.now()}-${rowIdx}`;
-                flagNeedsReview = true;
+                autoReview = true;
             }
 
             try {
-                // Parse Excel date (handles both Excel serial numbers and date strings)
                 const parseExcelDate = (val: any) => {
                     if (!val) return null;
                     const strVal = val.toString().trim();
                     if (strVal === '00/00/0000' || strVal === '0/0/0' || strVal === '0') return null;
 
                     if (typeof val === 'number') {
-                        // Excel serial date
                         return new Date(Math.round((val - 25569) * 86400 * 1000));
                     }
                     const d = new Date(val);
@@ -91,118 +71,68 @@ export async function importData(prevState: any, formData: FormData) {
                 };
 
                 const birthDate = parseExcelDate(fechaNacimiento);
-                if (!birthDate) {
-                    flagNeedsReview = true;
-                }
+                if (!birthDate) autoReview = true;
 
-                // Optional fields
+                // Status Logic
+                let status = 'ACTIVO';
+                const excelStatus = row['Estado']?.toString().trim().toUpperCase();
+                const excelReview = row['Revisar']?.toString().trim().toUpperCase();
+
+                if (excelStatus === 'INACTIVO' || excelStatus === 'NO') status = 'INACTIVO';
+                if (excelReview === 'SI' || excelReview === 'SÍ' || excelReview === 'S' || autoReview) status = 'REVISAR';
+
                 const tiraRaw = row['Tira']?.toString().trim() || 'Masculino A';
                 let tira = 'Masculino A';
                 if (tiraRaw.toLowerCase().includes('femenino')) tira = 'Femenino';
                 else if (tiraRaw.toLowerCase().includes('mosquitos')) tira = 'Mosquitos';
                 else if (tiraRaw.toLowerCase().includes('b')) tira = 'Masculino B';
-                else if (tiraRaw.toLowerCase().includes('a')) tira = 'Masculino A';
 
                 const email = row['Email']?.toString().trim().toLowerCase() || null;
-                const telefono = row['Telefono']?.toString().trim() || null;
-                const personaContacto = row['PersonaContacto']?.toString().trim().toUpperCase() || null;
-                const numeroSocio = row['NumeroSocio']?.toString().trim() || null;
-                const numeroCamiseta = row['NumeroCamiseta'] ? parseInt(row['NumeroCamiseta'].toString()) : null;
-                const fechaAlta = parseExcelDate(row['FechaAlta']) || new Date();
-                const observaciones = row['Observaciones']?.toString().trim().toUpperCase() || null;
+                const phone = row['Telefono']?.toString().trim() || null;
+                const contactName = row['PersonaContacto']?.toString().trim().toUpperCase() || null;
+                const partnerNumber = row['NumeroSocio']?.toString().trim() || null;
+                const shirtNumber = row['NumeroCamiseta'] ? parseInt(row['NumeroCamiseta'].toString()) : null;
+                const registrationDate = parseExcelDate(row['FechaAlta']) || new Date();
+                const observations = row['Observaciones']?.toString().trim().toUpperCase() || null;
 
-                // Boolean fields
-                const becaRaw = row['Beca']?.toString().trim().toUpperCase();
-                const scholarship = becaRaw === 'SI' || becaRaw === 'SÍ' || becaRaw === 'S';
+                const scholarship = row['Beca']?.toString().trim().toUpperCase() === 'SI';
+                const playsPrimera = row['Primera']?.toString().trim().toUpperCase() === 'SI';
 
-                const primeraRaw = row['Primera']?.toString().trim().toUpperCase();
-                const playsPrimera = primeraRaw === 'SI' || primeraRaw === 'SÍ' || primeraRaw === 'S';
-
-                const activoRaw = row['Activo']?.toString().trim().toUpperCase();
-                const active = activoRaw === 'NO' || activoRaw === 'N' ? false : true; // Default to true
-
-                const revisarRaw = row['Revisar']?.toString().trim().toUpperCase();
-                const explicitNeedsReview = revisarRaw === 'SI' || revisarRaw === 'SÍ' || revisarRaw === 'S';
-
-                const finalNeedsReview = flagNeedsReview || explicitNeedsReview;
-
-                // Upsert player
                 await (prisma.player as any).upsert({
                     where: { dni },
                     update: {
-                        firstName: nombre,
-                        lastName: apellido,
-                        birthDate: birthDate || new Date(0), // Placeholder for null
-                        tira,
-                        email,
-                        phone: telefono,
-                        contactName: personaContacto,
-                        partnerNumber: numeroSocio,
-                        shirtNumber: numeroCamiseta,
-                        registrationDate: fechaAlta,
-                        observations: observaciones,
-                        scholarship,
-                        playsPrimera,
-                        active,
-                        needsReview: finalNeedsReview
+                        firstName: nombre, lastName: apellido, birthDate: birthDate || new Date(0),
+                        tira, status, scholarship, playsPrimera, email, phone,
+                        contactName, partnerNumber, shirtNumber, registrationDate, observations
                     },
                     create: {
-                        dni,
-                        firstName: nombre,
-                        lastName: apellido,
-                        birthDate: birthDate || new Date(0),
-                        tira,
-                        email,
-                        phone: telefono,
-                        contactName: personaContacto,
-                        partnerNumber: numeroSocio,
-                        shirtNumber: numeroCamiseta,
-                        registrationDate: fechaAlta,
-                        observations: observaciones,
-                        scholarship,
-                        playsPrimera,
-                        active,
-                        needsReview: finalNeedsReview
+                        dni, firstName: nombre, lastName: apellido, birthDate: birthDate || new Date(0),
+                        tira, status, scholarship, playsPrimera, email, phone,
+                        contactName, partnerNumber, shirtNumber, registrationDate, observations
                     }
                 });
 
                 stats.players++;
             } catch (e: any) {
-                console.error(e);
                 stats.errors++;
-                errorDetails.push(`Fila ${rowIdx} (${apellido}, ${nombre}): ${e.message}`);
+                errorDetails.push(`Fila ${rowIdx} (${apellido}): ${e.message}`);
             }
-
             rowIdx++;
         }
 
-        // Audit log for successful import
         if (session?.user?.id) {
             await prisma.auditLog.create({
                 data: {
-                    action: 'IMPORT',
-                    entity: 'Player',
-                    entityId: 'BATCH',
+                    action: 'IMPORT', entity: 'Player', entityId: 'BATCH',
                     details: JSON.stringify({ stats, errorCount: stats.errors }),
                     userId: session.user.id
                 }
             });
         }
-
     } catch (error: any) {
-        console.error(error);
         return { message: "Error crítico: " + error.message };
     }
 
     revalidatePath('/dashboard/players');
-
-    if (stats.errors > 0) {
-        return {
-            message: `Importación completada con ${stats.errors} error(es).`,
-            stats,
-            errorDetails: errorDetails.slice(0, 20) // Limit to first 20 errors
-        };
-    }
-
-    return { message: "Importación completada con éxito.", stats };
+    return { message: stats.errors > 0 ? `Importación con ${stats.errors} errores.` : "Éxito.", stats, errorDetails };
 }

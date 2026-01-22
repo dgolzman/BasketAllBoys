@@ -16,17 +16,16 @@ export default function EditCoachForm({ coach, categories }: { coach: any, categ
     const updateCoachWithId = updateCoach.bind(null, coach.id);
     const [state, formAction, isPending] = useActionState(updateCoachWithId, initialState);
 
-    const [isActive, setIsActive] = useState(coach.active);
+    const [status, setStatus] = useState(coach.status || 'ACTIVO');
     const [withdrawalDate, setWithdrawalDate] = useState(coach.withdrawalDate ? new Date(coach.withdrawalDate).toISOString().split('T')[0] : '');
 
     useEffect(() => {
-        if (!isActive && !coach.withdrawalDate && !withdrawalDate) {
-            const today = new Date().toISOString().split('T')[0];
-            setWithdrawalDate(today);
-        } else if (isActive) {
+        if (status === 'INACTIVO' && !withdrawalDate) {
+            setWithdrawalDate(new Date().toISOString().split('T')[0]);
+        } else if (status === 'ACTIVO') {
             setWithdrawalDate('');
         }
-    }, [isActive, coach.withdrawalDate, withdrawalDate]);
+    }, [status]);
 
     const coachTiras = (coach.tira || '').split(',').map((s: string) => s.trim());
     const coachCats = (coach.category || '').split(',').map((s: string) => s.trim());
@@ -125,23 +124,55 @@ export default function EditCoachForm({ coach, categories }: { coach: any, categ
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'bold' }}>
-                        <input
-                            type="checkbox"
-                            name="active"
-                            checked={isActive}
-                            onChange={(e) => setIsActive(e.target.checked)}
-                        />
-                        Usuario Activo
-                    </label>
+                <div style={{ marginBottom: '1.5rem', background: 'var(--secondary)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <label className="label" style={{ color: '#fff' }}>Estado del Entrenador</label>
+                    <select
+                        name="status"
+                        className="input"
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        style={{ background: status === 'ACTIVO' ? '#064e3b' : status === 'REVISAR' ? '#78350f' : '#450a0a', color: '#fff', fontWeight: 'bold' }}
+                    >
+                        <option value="ACTIVO">ACTIVO (En listas y reportes)</option>
+                        <option value="INACTIVO">INACTIVO (Dado de baja)</option>
+                        <option value="REVISAR">REVISAR (Datos incompletos/pendientes)</option>
+                    </select>
                 </div>
 
                 {state.message && <p style={{ color: 'red', marginBottom: '1rem' }}>{state.message}</p>}
 
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={isPending}>
-                    {isPending ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }} disabled={isPending}>
+                        {isPending ? 'Guardando...' : 'Guardar Cambios'}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            if (confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a ${coach.name}? Esta acción no se puede deshacer.`)) {
+                                const { deleteCoach } = await import("@/lib/coach-actions");
+                                const res = await deleteCoach(coach.id);
+                                if (res.message) {
+                                    alert(res.message);
+                                    window.location.href = '/dashboard/coaches';
+                                }
+                            }
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: '#450a0a',
+                            color: '#fca5a5',
+                            border: '1px solid #7f1d1d',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        Eliminar Entrenador Permanentemente
+                    </button>
+                </div>
             </div>
         </form>
     );

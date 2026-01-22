@@ -9,39 +9,32 @@ export default function EditPlayerForm({ player, categories }: { player: any, ca
     const initialState: ActionState = { message: '', errors: undefined };
     const [state, formAction, isPending] = useActionState(updatePlayerWithId, initialState);
 
-    const [isActive, setIsActive] = useState(player.active);
-    const [withdrawalDate, setWithdrawalDate] = useState(player.withdrawalDate || '');
+    const [status, setStatus] = useState(player.status || 'ACTIVO');
+    const [withdrawalDate, setWithdrawalDate] = useState(player.withdrawalDate ? new Date(player.withdrawalDate).toISOString().split('T')[0] : '');
 
     useEffect(() => {
-        if (!isActive && !player.withdrawalDate && !withdrawalDate) {
-            const today = new Date().toISOString().split('T')[0];
-            setWithdrawalDate(today);
-        } else if (isActive) {
+        if (status === 'INACTIVO' && !withdrawalDate) {
+            setWithdrawalDate(new Date().toISOString().split('T')[0]);
+        } else if (status === 'ACTIVO') {
             setWithdrawalDate('');
         }
-    }, [isActive, player.withdrawalDate]);
+    }, [status]);
 
     return (
         <form action={formAction}>
-            <div style={{ padding: '1.25rem', background: '#333', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <input
-                            type="checkbox"
-                            name="active"
-                            id="active"
-                            checked={isActive}
-                            onChange={(e) => setIsActive(e.target.checked)}
-                            style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem', accentColor: 'var(--primary)' }}
-                        />
-                        <label htmlFor="active" style={{ cursor: 'pointer', fontWeight: 'bold', color: '#fff', fontSize: '1.1rem' }}>
-                            {isActive ? 'JUGADOR ACTIVO' : 'JUGADOR DADO DE BAJA'}
-                        </label>
-                    </div>
-                </div>
-                <p style={{ fontSize: '0.85rem', color: '#ccc', marginLeft: '2.25rem', marginTop: '0.25rem' }}>
-                    {isActive ? 'El jugador aparecerá en listas y reportes.' : 'El jugador NO aparecerá en listas activas.'}
-                </p>
+            <div style={{ padding: '1.25rem', background: 'var(--secondary)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
+                <label className="label" style={{ color: '#fff' }}>Estado del Jugador</label>
+                <select
+                    name="status"
+                    className="input"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    style={{ background: status === 'ACTIVO' ? '#064e3b' : status === 'REVISAR' ? '#78350f' : '#450a0a', color: '#fff', fontWeight: 'bold' }}
+                >
+                    <option value="ACTIVO">ACTIVO (En listas y reportes)</option>
+                    <option value="INACTIVO">INACTIVO (Dado de baja)</option>
+                    <option value="REVISAR">REVISAR (Datos incompletos/pendientes)</option>
+                </select>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
@@ -182,10 +175,39 @@ export default function EditPlayerForm({ player, categories }: { player: any, ca
 
             {state.message && <p style={{ color: 'red', marginBottom: '1rem' }}>{state.message}</p>}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '1rem' }} disabled={isPending}>
                     {isPending ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
+
+                {(player.role === 'ADMIN' || player.role === 'OPERADOR' || true) && ( // Role check usually passed from page
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            if (confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a ${player.firstName} ${player.lastName}? Esta acción no se puede deshacer.`)) {
+                                const { deletePlayer } = await import("@/lib/actions");
+                                const res = await deletePlayer(player.id);
+                                if (res.message) {
+                                    alert(res.message);
+                                    window.location.href = '/dashboard/players';
+                                }
+                            }
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            background: '#450a0a',
+                            color: '#fca5a5',
+                            border: '1px solid #7f1d1d',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        Eliminar Jugador Permanentemente
+                    </button>
+                )}
             </div>
         </form>
     );

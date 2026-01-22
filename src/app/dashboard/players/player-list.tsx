@@ -148,7 +148,7 @@ export default function PlayerList({
                         <button
                             className="btn btn-secondary"
                             style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#064e3b', color: '#6ee7b7', border: 'none' }}
-                            onClick={() => handleBulkUpdate({ active: true })}
+                            onClick={() => handleBulkUpdate({ status: 'ACTIVO' })}
                             disabled={isUpdating}
                         >
                             Activar
@@ -157,30 +157,21 @@ export default function PlayerList({
                         <button
                             className="btn btn-secondary"
                             style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#450a0a', color: '#fca5a5', border: 'none' }}
-                            onClick={() => handleBulkUpdate({ active: false })}
+                            onClick={() => handleBulkUpdate({ status: 'INACTIVO' })}
                             disabled={isUpdating}
                         >
                             Inactivar
                         </button>
 
-                        {canEdit && (
-                            <button
-                                className="btn"
-                                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#dc2626', color: 'var(--foreground)', border: 'none' }}
-                                onClick={handleBulkDelete}
-                                disabled={isUpdating}
-                            >
-                                Eliminar
-                            </button>
-                        )}
+                        <button
+                            className="btn btn-secondary"
+                            style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', height: '36px', background: '#78350f', color: '#fcd34d', border: 'none' }}
+                            onClick={() => handleBulkUpdate({ status: 'REVISAR' })}
+                            disabled={isUpdating}
+                        >
+                            Revisar
+                        </button>
                     </div>
-
-                    <button
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--foreground)' }}
-                        onClick={() => setSelectedIds([])}
-                    >
-                        ✕
-                    </button>
                 </div>
             )}
 
@@ -203,7 +194,7 @@ export default function PlayerList({
                             <SortableHeader label="Socio / Camiseta" value="partnerNumber" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Contacto" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Alta" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="Estado" value="active" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Estado" value="status" currentSort={currentSort} currentOrder={currentOrder} />
                             <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Acciones</th>
                         </tr>
                     </thead>
@@ -260,38 +251,21 @@ export default function PlayerList({
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                            {player.needsReview && (
+                                            {player.status === 'REVISAR' && (
                                                 <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>REVISAR</span>
                                             )}
                                             {player.scholarship && (
                                                 <span style={{ background: '#1e3a8a', color: '#93c5fd', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>BECA</span>
                                             )}
-                                            {player.active ? (
+                                            {player.status === 'ACTIVO' ? (
                                                 <span style={{ background: '#064e3b', color: '#6ee7b7', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>ACTIVO</span>
-                                            ) : (
+                                            ) : player.status === 'INACTIVO' ? (
                                                 <span style={{ background: '#450a0a', color: '#fca5a5', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>INACTIVO</span>
-                                            )}
+                                            ) : null}
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <Link href={`/dashboard/players/${player.id}/edit`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
-                                            {canEdit && (
-                                                <button
-                                                    onClick={async () => {
-                                                        if (confirm(`¿Eliminar a ${player.lastName}, ${player.firstName}?`)) {
-                                                            const { deletePlayer } = await import('@/lib/actions');
-                                                            const res = await deletePlayer(player.id);
-                                                            alert(res.message);
-                                                            window.location.reload();
-                                                        }
-                                                    }}
-                                                    style={{ background: 'none', border: 'none', color: '#f87171', fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
-                                                >
-                                                    Eliminar
-                                                </button>
-                                            )}
-                                        </div>
+                                        <Link href={`/dashboard/players/${player.id}/edit`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
                                     </td>
                                 </tr>
                             );
