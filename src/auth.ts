@@ -48,10 +48,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         },
     },
     providers: [
-        Google({
-            clientId: process.env.AUTH_GOOGLE_ID,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET,
-        }),
         Credentials({
             async authorize(credentials) {
                 const parsedCredentials = z
