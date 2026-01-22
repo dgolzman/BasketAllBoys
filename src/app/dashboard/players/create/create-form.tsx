@@ -53,7 +53,7 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
                         <div>
                             <label className="label">DNI <span style={{ color: 'red' }}>*</span></label>
                             <input name="dni" type="text" className="input" required placeholder="Solo números" />
-                            <p style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.25rem' }}>Sin puntos, guiones ni espacios. Ej: 40123456</p>
+                            <p style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '0.25rem' }}>Sin puntos, guiones ni espacios. Ej: 40123456</p>
                             {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                         </div>
                         <div>

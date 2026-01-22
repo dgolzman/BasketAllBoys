@@ -67,7 +67,7 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                             e.target.value = e.target.value.replace(/[^0-9]/g, '');
                         }}
                     />
-                    <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>Ingrese solo números. Los puntos se eliminan automáticamente.</p>
+                    <p style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '0.25rem' }}>Ingrese solo números. Los puntos se eliminan automáticamente.</p>
                     {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                 </div>
                 <div>
@@ -183,12 +183,26 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
 
 
 
-            <div style={{ padding: '1rem', background: 'rgba(3, 105, 161, 0.1)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #0369a1' }}>
+            <div style={{ padding: '1rem', background: 'rgba(3, 105, 161, 0.1)', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #0369a1' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <input type="checkbox" name="playsPrimera" id="playsPrimera" defaultChecked={player.playsPrimera} disabled={!canEdit} style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem' }} />
                     <label htmlFor="playsPrimera" style={{ cursor: 'pointer', fontWeight: 'bold', color: '#7dd3fc' }}>¿Juega en Primera División?</label>
                 </div>
                 <p style={{ fontSize: '0.75rem', color: '#7dd3fc', marginTop: '0.25rem', marginLeft: '2.25rem' }}>Aparecerá en la lista de Primera sin importar su edad.</p>
+            </div>
+
+            <div style={{ padding: '1rem', background: 'rgba(5, 150, 105, 0.1)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #059669' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#34d399', marginBottom: '0.5rem' }}>Estado de Pagos (YYYYMM)</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                        <label className="label" style={{ color: '#ecfccb' }}>Última Cuota Social</label>
+                        <input name="lastSocialPayment" type="text" className="input" defaultValue={player.lastSocialPayment || ''} placeholder="202601" disabled={!canEdit} />
+                    </div>
+                    <div>
+                        <label className="label" style={{ color: '#ecfccb' }}>Última Actividad</label>
+                        <input name="lastActivityPayment" type="text" className="input" defaultValue={player.lastActivityPayment || ''} placeholder="202601" disabled={!canEdit} />
+                    </div>
+                </div>
             </div>
 
             {state.message && <p style={{ color: 'red', marginBottom: '1rem' }}>{state.message}</p>}
