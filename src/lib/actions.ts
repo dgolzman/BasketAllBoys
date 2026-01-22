@@ -161,7 +161,6 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
 
     const scholarship = formData.get("scholarship") === "on";
     const playsPrimera = formData.get("playsPrimera") === "on";
-    const active = formData.get("active") === "on";
 
     const rawData = {
         firstName: formData.get("firstName"),
@@ -173,7 +172,6 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
         playsPrimera: playsPrimera,
         email: formData.get("email"),
         phone: formData.get("phone"),
-        active: active,
         partnerNumber: formData.get("partnerNumber"),
         contactName: formData.get("contactName"),
         shirtNumber: formData.get("shirtNumber"),
@@ -208,7 +206,6 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 playsPrimera: playsPrimera,
                 email: (rawData.email as string) || null,
                 phone: (rawData.phone as string) || null,
-                active: active,
                 partnerNumber: (rawData.partnerNumber as string) || null,
                 contactName: rawData.contactName ? (rawData.contactName as string).toUpperCase() : null,
                 shirtNumber: rawData.shirtNumber ? parseInt(rawData.shirtNumber as string) : null,
@@ -268,7 +265,7 @@ export async function searchPlayers(query: string) {
                 { lastName: { contains: query } },
                 { dni: { contains: query } },
             ],
-            active: true
+            status: "ACTIVO"
         },
         select: {
             id: true,
