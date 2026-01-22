@@ -86,7 +86,7 @@ async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any
     });
 
     const mappings = await (prisma as any).categoryMapping.findMany();
-    const coaches = await (prisma as any).coach.findMany({ where: { active: true } }) as any[];
+    const coaches = await (prisma as any).coach.findMany({ where: { status: 'ACTIVO' } }) as any[];
 
     // Grouping for the report: Day + Category + Tira
     const reportData = attendanceRecords.reduce((acc: Record<string, any>, record: any) => {
@@ -202,7 +202,7 @@ async function SalaryView({ year }: { year: number }) {
     const coaches = await (prisma as any).coach.findMany({
         where: {
             OR: [
-                { active: true },
+                { status: 'ACTIVO' },
                 { withdrawalDate: { gte: startOfYear } }
             ]
         },

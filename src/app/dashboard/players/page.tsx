@@ -75,9 +75,11 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
             <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h2>Jugadores ({players.length})</h2>
-                    <Link href="/dashboard/players/create" className="btn btn-primary">
-                        + Nuevo Jugador
-                    </Link>
+                    {(role === 'ADMIN' || role === 'OPERADOR') && (
+                        <Link href="/dashboard/players/create" className="btn btn-primary">
+                            + Nuevo Jugador
+                        </Link>
+                    )}
                 </div>
 
                 {/* Filters */}
