@@ -157,7 +157,10 @@ export type ActionState = {
 
 export async function updatePlayer(id: string, prevState: ActionState, formData: FormData): Promise<ActionState> {
     const session = await auth();
-    if (!session) return { message: "Unauthorized", errors: undefined };
+    const role = (session?.user as any)?.role || 'VIEWER';
+    if (!session || (role !== 'ADMIN' && role !== 'OPERADOR')) {
+        return { message: "No tiene permisos para realizar esta acción", errors: undefined };
+    }
 
     const scholarship = formData.get("scholarship") === "on";
     const playsPrimera = formData.get("playsPrimera") === "on";

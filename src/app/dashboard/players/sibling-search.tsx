@@ -10,7 +10,7 @@ interface Player {
     dni: string;
 }
 
-export default function SiblingSearch({ initialValue = '', onSelect }: { initialValue?: string, onSelect?: (names: string) => void }) {
+export default function SiblingSearch({ initialValue = '', onSelect, disabled = false }: { initialValue?: string, onSelect?: (names: string) => void, disabled?: boolean }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Player[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -93,7 +93,7 @@ export default function SiblingSearch({ initialValue = '', onSelect }: { initial
                 {selectedSiblings.map((s, idx) => (
                     <div key={s.id || idx} style={{ background: 'var(--accent)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         {s.name}
-                        <button type="button" onClick={() => removeSibling(s.id, s.name)} style={{ border: 'none', background: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>×</button>
+                        {!disabled && <button type="button" onClick={() => removeSibling(s.id, s.name)} style={{ border: 'none', background: 'none', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>×</button>}
                     </div>
                 ))}
             </div>
@@ -110,6 +110,7 @@ export default function SiblingSearch({ initialValue = '', onSelect }: { initial
                     value={query}
                     onChange={(e) => handleSearch(e.target.value)}
                     onFocus={() => query.length >= 2 && setIsOpen(true)}
+                    disabled={disabled}
                     style={{ fontSize: '0.85rem' }}
                 />
             </div>

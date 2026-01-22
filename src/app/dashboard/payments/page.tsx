@@ -4,10 +4,10 @@ import Link from "next/link";
 import { format } from "date-fns";
 
 export default async function PaymentsPage() {
-    const players = await prisma.player.findMany({
-        where: { active: true },
+    const players = await (prisma.player.findMany({
+        where: { status: 'ACTIVO' },
         include: { payments: true }
-    });
+    }) as any);
 
     const currentYear = new Date().getFullYear();
     const currentMonthIdx = new Date().getMonth(); // 0-based
