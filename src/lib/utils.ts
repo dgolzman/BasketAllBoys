@@ -3,13 +3,13 @@ export function getCategory(player: any, mappings?: { category: string, minYear:
     if (player.category) return player.category;
 
     // 2. BirthDate logic
-    if (!player.birthDate) return "Revisar";
+    if (!player.birthDate) return "REVISAR";
 
     const date = new Date(player.birthDate);
-    if (isNaN(date.getTime()) || date.getTime() <= 0) return "Revisar";
+    if (isNaN(date.getTime()) || date.getTime() <= 0) return "REVISAR";
 
     const year = date.getFullYear();
-    if (year <= 1970) return "Revisar";
+    if (year <= 1970) return "REVISAR";
 
     if (mappings && mappings.length > 0) {
         const found = mappings.find(m => year >= m.minYear && year <= m.maxYear);

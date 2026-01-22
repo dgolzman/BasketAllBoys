@@ -29,7 +29,7 @@ const FormSchema = z.object({
     observations: z.string().optional(),
     registrationDate: z.string().optional(),
     withdrawalDate: z.string().optional(),
-    active: z.boolean().optional(),
+    status: z.enum(["ACTIVO", "INACTIVO", "REVISAR"]).default("ACTIVO"),
     siblings: z.string().optional(),
     category: z.string().optional(),
 });
@@ -79,6 +79,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
         shirtNumber: formData.get("shirtNumber"),
         observations: formData.get("observations"),
         registrationDate: formData.get("registrationDate"),
+        status: formData.get("status") || "ACTIVO",
         siblings: formData.get("siblings"),
         category: formData.get("category"),
     };
@@ -115,7 +116,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
                 siblings: data.siblings ? data.siblings.toUpperCase() : null,
                 category: data.category || null,
-                active: true,
+                status: data.status,
             } as any,
         });
 
@@ -179,6 +180,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
         observations: formData.get("observations"),
         registrationDate: formData.get("registrationDate"),
         withdrawalDate: formData.get("withdrawalDate"),
+        status: formData.get("status") || "ACTIVO",
         siblings: formData.get("siblings"),
         category: formData.get("category")
     };
@@ -215,6 +217,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 withdrawalDate: parseDate(rawData.withdrawalDate),
                 siblings: rawData.siblings ? (rawData.siblings as string).toUpperCase() : null,
                 category: (rawData.category as string) || null,
+                status: rawData.status as string,
             } as any
         });
 

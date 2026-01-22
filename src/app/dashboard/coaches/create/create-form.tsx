@@ -90,11 +90,22 @@ export default function CreateCoachForm({ categories }: { categories: string[] }
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'bold' }}>
-                        <input type="checkbox" name="active" defaultChecked />
-                        Usuario Activo
-                    </label>
+                <div style={{ marginBottom: '1.5rem', background: 'var(--secondary)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <label className="label" style={{ color: '#fff' }}>Estado Inicial</label>
+                    <select
+                        name="status"
+                        className="input"
+                        defaultValue="ACTIVO"
+                        style={{ background: '#064e3b', color: '#fff', fontWeight: 'bold' }}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            e.target.style.background = val === 'ACTIVO' ? '#064e3b' : val === 'REVISAR' ? '#78350f' : '#450a0a';
+                        }}
+                    >
+                        <option value="ACTIVO">ACTIVO (En listas y reportes)</option>
+                        <option value="INACTIVO">INACTIVO (Dado de baja)</option>
+                        <option value="REVISAR">REVISAR (Datos incompletos/pendientes)</option>
+                    </select>
                 </div>
 
                 {state.message && <p style={{ color: 'red', marginBottom: '1rem' }}>{state.message}</p>}

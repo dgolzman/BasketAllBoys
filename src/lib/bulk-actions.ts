@@ -8,7 +8,7 @@ export async function bulkUpdatePlayers(
     updates: {
         category?: string | null,
         tira?: string,
-        active?: boolean,
+        status?: string,
         scholarship?: boolean,
         playsPrimera?: boolean,
         observations?: string | null
