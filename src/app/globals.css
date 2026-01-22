@@ -198,3 +198,21 @@ th {
 td {
   border-bottom-color: var(--border) !important;
 }
+/* moved from dashboard.module.css */
+.btn-secondary { background: white !important; color: #334155 !important; border: 1px solid #cbd5e1 !important; }
+.btn-secondary:hover { background: #f1f5f9 !important; }
+input[type='date'] { color: #1e293b !important; }
+.badge-inactive { background: #fee2e2 !important; color: #991b1b !important; font-weight: 600 !important; }
+.attendance-selected { color: #166534 !important; }
+.attendance-unselected { color: #334155 !important; }
+
+/* Mobile overrides moved from dashboard.module.css */
+@media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { position: fixed; top: 0; left: -280px; height: 100vh; width: 280px; z-index: 1000; transition: left 0.3s ease; }
+    .sidebar.open { left: 0; }
+    .main { padding: 1rem; margin-top: 60px; }
+    table { display: block; overflow-x: auto; white-space: nowrap; }
+    form > div[style*='grid'] { grid-template-columns: 1fr !important; }
+    .btn { width: 100%; }
+}

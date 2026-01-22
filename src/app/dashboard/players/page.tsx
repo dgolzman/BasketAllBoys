@@ -4,6 +4,7 @@ import { getCategory } from "@/lib/utils";
 import PageGuide from "@/components/page-guide";
 import PlayerList from "./player-list";
 import { auth } from "@/auth";
+import FilterPersistence from "./filter-persistence";
 
 export default async function PlayersPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const session = await auth();
@@ -58,6 +59,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
 
     return (
         <div>
+            <FilterPersistence />
             <PageGuide>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     <div>

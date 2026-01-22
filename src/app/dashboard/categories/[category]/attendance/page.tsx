@@ -22,7 +22,7 @@ export default async function CategoryAttendancePage({
     // Get all active players
     const players = await prisma.player.findMany({
         where: {
-            active: true,
+            status: 'ACTIVO',
             // Only apply Tira filter if provided and NOT for Mosquitos (which is mixed)
             tira: (tira && tira !== 'Mixed' && tira !== 'Mixto' && !isMosquitos)
                 ? (tira === 'A' ? { contains: 'A' } : (tira === 'B' ? { contains: 'B' } : tira))

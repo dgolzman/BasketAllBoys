@@ -191,33 +191,6 @@
 }
 
 /* Global utility classes for better contrast/visibility */
-:global(.btn-secondary) {
-    background: white !important;
-    color: #334155 !important;
-    border: 1px solid #cbd5e1 !important;
-}
-
-:global(.btn-secondary:hover) {
-    background: #f1f5f9 !important;
-}
-
-:global(input[type="date"]) {
-    color: #1e293b !important;
-}
-
-:global(.badge-inactive) {
-    background: #fee2e2 !important;
-    color: #991b1b !important;
-    font-weight: 600 !important;
-}
-
-:global(.attendance-selected) {
-    color: #166534 !important;
-}
-
-:global(.attendance-unselected) {
-    color: #334155 !important;
-}
 
 .main {
     flex: 1;
@@ -228,48 +201,6 @@
     overflow-y: auto;
 }
 
-/* Mobile Responsive Styles */
-@media (max-width: 768px) {
-    .layout {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: -280px;
-        height: 100vh;
-        width: 280px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-    }
-
-    .sidebar.open {
-        left: 0;
-    }
-
-    .main {
-        padding: 1rem;
-        margin-top: 60px;
-    }
-
-    /* Make tables scrollable on mobile */
-    :global(table) {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-
-    /* Stack form grids on mobile */
-    :global(form > div[style*="grid"]) {
-        grid-template-columns: 1fr !important;
-    }
-
-    /* Full width buttons on mobile */
-    :global(.btn) {
-        width: 100%;
-    }
-}
 
 /* Hamburger menu button */
 .mobileMenuBtn {
