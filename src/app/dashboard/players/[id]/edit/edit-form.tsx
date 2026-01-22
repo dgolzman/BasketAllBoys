@@ -108,9 +108,23 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                     <input name="partnerNumber" type="text" className="input" defaultValue={player.partnerNumber || ''} placeholder="Opcional" disabled={!canEdit} />
                 </div>
                 <div>
-                    <label className="label">N° Camiseta</label>
-                    <input name="shirtNumber" type="number" className="input" defaultValue={player.shirtNumber || ''} placeholder="Opcional" disabled={!canEdit} />
+                    <label className="label">¿Federado?</label>
+                    <div style={{ display: 'flex', alignItems: 'center', height: '38px' }}>
+                        <select name="federated" className="input" defaultValue={player.federated ? "on" : "off"} disabled={!canEdit}>
+                            <option value="off">NO</option>
+                            <option value="on">SI</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+                <label className="label">N° Camiseta</label>
+                <input name="shirtNumber" type="number" className="input" defaultValue={player.shirtNumber || ''} placeholder="Opcional (0-99)" disabled={!canEdit} />
+                <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>
+                    Validación: No puede repetirse en tu categoría ni en las adyacentes (ej: si sos Mini, se valida contra Pre-Mini y U13).
+                </p>
+                {state.errors?.shirtNumber && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.shirtNumber.join(', ')}</p>}
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
@@ -193,9 +207,8 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                             if (confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a ${player.firstName} ${player.lastName}? Esta acción no se puede deshacer.`)) {
                                 const { deletePlayer } = await import("@/lib/actions");
                                 const res = await deletePlayer(player.id);
-                                if (res.message) {
+                                if (res?.message) {
                                     alert(res.message);
-                                    window.location.href = '/dashboard/players';
                                 }
                             }
                         }}

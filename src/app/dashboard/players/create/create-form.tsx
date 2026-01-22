@@ -94,9 +94,23 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
                             <input name="partnerNumber" type="text" className="input" placeholder="Opcional" />
                         </div>
                         <div>
-                            <label className="label">N° Camiseta</label>
-                            <input name="shirtNumber" type="number" className="input" placeholder="Opcional" />
+                            <label className="label">¿Federado?</label>
+                            <div style={{ display: 'flex', alignItems: 'center', height: '38px' }}>
+                                <select name="federated" className="input" defaultValue="off">
+                                    <option value="off">NO</option>
+                                    <option value="on">SI</option>
+                                </select>
+                            </div>
                         </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label className="label">N° Camiseta</label>
+                        <input name="shirtNumber" type="number" className="input" placeholder="Opcional (0-99)" />
+                        <p style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.25rem' }}>
+                            Validación: No puede repetirse en tu categoría ni en las adyacentes (ej: si sos Mini, se valida contra Pre-Mini y U13).
+                        </p>
+                        {state.errors?.shirtNumber && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.shirtNumber.join(', ')}</p>}
                     </div>
 
                     <div style={{ marginBottom: '1rem' }}>
