@@ -15,7 +15,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
     const query = typeof params?.query === 'string' ? params.query : '';
     const tira = typeof params?.tira === 'string' ? params.tira : '';
     const categoryFilter = typeof params?.category === 'string' ? params.category : '';
-    const statusFilter = typeof params?.status === 'string' ? params.status : 'ACTIVO';
+    const statusFilter = typeof params?.status === 'string' ? params.status : 'DEFAULT';
     const scholarshipFilter = typeof params?.scholarship === 'string' ? params.scholarship : '';
     const primeraFilter = typeof params?.primera === 'string' ? params.primera : '';
 
@@ -33,7 +33,12 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
     }
     if (tira) where.tira = tira;
 
-    if (statusFilter !== 'all') where.status = statusFilter;
+    if (statusFilter === 'DEFAULT') {
+        where.status = { in: ['ACTIVO', 'REVISAR'] };
+    } else if (statusFilter !== 'all') {
+        where.status = statusFilter;
+    }
+
     if (scholarshipFilter) where.scholarship = scholarshipFilter === 'true';
     if (primeraFilter) where.playsPrimera = primeraFilter === 'true';
 
@@ -118,10 +123,11 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
                         <div>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Estado</label>
                             <select name="status" className="input" defaultValue={statusFilter} style={{ padding: '0.45rem' }}>
-                                <option value="all">Todos</option>
-                                <option value="ACTIVO">Activo</option>
-                                <option value="INACTIVO">Inactivo</option>
-                                <option value="REVISAR">Revisar</option>
+                                <option value="DEFAULT">Visibles (Activos + Revisar)</option>
+                                <option value="all">Todos (Incluye Bajas)</option>
+                                <option value="ACTIVO">Solo Activos</option>
+                                <option value="REVISAR">Solo Revisar</option>
+                                <option value="INACTIVO">Solo Bajas (Inactivos)</option>
                             </select>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
