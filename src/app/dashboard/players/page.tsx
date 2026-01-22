@@ -15,7 +15,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
     const query = typeof params?.query === 'string' ? params.query : '';
     const tira = typeof params?.tira === 'string' ? params.tira : '';
     const categoryFilter = typeof params?.category === 'string' ? params.category : '';
-    const activeFilter = typeof params?.active === 'string' ? params.active : 'true'; // Default to true
+    const statusFilter = typeof params?.status === 'string' ? params.status : 'ACTIVO';
     const scholarshipFilter = typeof params?.scholarship === 'string' ? params.scholarship : '';
     const primeraFilter = typeof params?.primera === 'string' ? params.primera : '';
 
@@ -33,7 +33,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
     }
     if (tira) where.tira = tira;
 
-    if (activeFilter !== 'all') where.active = activeFilter === 'true';
+    if (statusFilter !== 'all') where.status = statusFilter;
     if (scholarshipFilter) where.scholarship = scholarshipFilter === 'true';
     if (primeraFilter) where.playsPrimera = primeraFilter === 'true';
 
@@ -115,10 +115,11 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
                         </div>
                         <div>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Estado</label>
-                            <select name="active" className="input" defaultValue={activeFilter} style={{ padding: '0.45rem' }}>
+                            <select name="status" className="input" defaultValue={statusFilter} style={{ padding: '0.45rem' }}>
                                 <option value="all">Todos</option>
-                                <option value="true">Activo</option>
-                                <option value="false">Inactivo</option>
+                                <option value="ACTIVO">Activo</option>
+                                <option value="INACTIVO">Inactivo</option>
+                                <option value="REVISAR">Revisar</option>
                             </select>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>

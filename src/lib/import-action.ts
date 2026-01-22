@@ -76,10 +76,10 @@ export async function importData(prevState: any, formData: FormData) {
                 // Status Logic
                 let status = 'ACTIVO';
                 const excelStatus = row['Estado']?.toString().trim().toUpperCase();
-                const excelReview = row['Revisar']?.toString().trim().toUpperCase();
 
                 if (excelStatus === 'INACTIVO' || excelStatus === 'NO') status = 'INACTIVO';
-                if (excelReview === 'SI' || excelReview === 'SÍ' || excelReview === 'S' || autoReview) status = 'REVISAR';
+                else if (excelStatus === 'REVISAR' || autoReview) status = 'REVISAR';
+                else if (excelStatus === 'ACTIVO' || excelStatus === 'SI' || excelStatus === 'SÍ') status = 'ACTIVO';
 
                 const tiraRaw = row['Tira']?.toString().trim() || 'Masculino A';
                 let tira = 'Masculino A';

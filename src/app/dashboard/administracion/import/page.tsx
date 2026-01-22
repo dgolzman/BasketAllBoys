@@ -51,8 +51,7 @@ export default function ImportPage() {
                         <li><strong>NumeroSocio</strong>, <strong>NumeroCamiseta</strong></li>
                         <li><strong>FechaAlta:</strong> Fecha de ingreso (DD/MM/AAAA)</li>
                         <li><strong>Beca</strong>, <strong>Primera:</strong> "SI" o "NO"</li>
-                        <li><strong>Estado:</strong> "ACTIVO" o "INACTIVO" (default: ACTIVO)</li>
-                        <li><strong>Revisar:</strong> "SI" para forzar estado <strong>REVISAR</strong></li>
+                        <li><strong>Estado:</strong> "ACTIVO", "INACTIVO" o "REVISAR" (default: ACTIVO)</li>
                         <li><strong>Observaciones:</strong> Comentarios adicionales</li>
                     </ul>
 
@@ -62,7 +61,7 @@ export default function ImportPage() {
                     <ul style={{ margin: '0 0 0.5rem 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.85rem', lineHeight: '1.6' }}>
                         <li><strong>Sin DNI:</strong> Si usas <strong>"0"</strong>, se genera un ID temporal y queda en estado <strong>REVISAR</strong>.</li>
                         <li><strong>Sin Fecha Nac.:</strong> Si usas <strong>"00/00/0000"</strong> o vacío, queda en estado <strong>REVISAR</strong>.</li>
-                        <li><strong>Marcado Manual:</strong> Si la columna "Revisar" dice "SI", queda en estado <strong>REVISAR</strong>.</li>
+                        <li><strong>Manual:</strong> También puedes poner <strong>"REVISAR"</strong> en la columna "Estado".</li>
                     </ul>
 
                     <p style={{ margin: '0.5rem 0 0 0', opacity: 0.7, fontSize: '0.85rem' }}>
