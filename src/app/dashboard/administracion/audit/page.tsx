@@ -6,7 +6,7 @@ import PageGuide from "@/components/page-guide";
 
 export default async function AuditPage() {
     // 1. Fetch data for consistency audit
-    const players = await prisma.player.findMany({ where: { active: true } });
+    const players = await prisma.player.findMany({ where: { status: 'ACTIVO' } });
     const dismissed = await prisma.dismissedAuditIssue.findMany();
 
     const issues: any[] = [];

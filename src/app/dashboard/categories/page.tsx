@@ -9,12 +9,12 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
     const filterCat = rawSearchParams.cat || '';
 
     const players = await prisma.player.findMany({
-        where: { active: true },
+        where: { status: 'ACTIVO' },
         orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }]
     });
 
     const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } }) as any[];
-    const coaches = await (prisma as any).coach.findMany({ where: { active: true } }) as any[];
+    const coaches = await (prisma as any).coach.findMany({ where: { status: 'ACTIVO' } }) as any[];
     const categoriesList = mappings.map(m => m.category);
 
     // Initialize grouped object with all categories

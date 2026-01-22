@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 import EditPlayerForm from "./edit-form";
 
 export default async function EditPlayerPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+
     const player = await prisma.player.findUnique({
         where: { id }
     });
@@ -31,7 +35,7 @@ export default async function EditPlayerPage({ params }: { params: Promise<{ id:
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
             <h2 style={{ marginBottom: '1.5rem' }}>Editar Jugador: {player.firstName} {player.lastName}</h2>
             <div className="card">
-                <EditPlayerForm player={playerSerialized} categories={categories} />
+                <EditPlayerForm player={playerSerialized} categories={categories} role={role} />
             </div>
         </div>
     );
