@@ -260,6 +260,9 @@ export default function PlayerList({
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                            {player.needsReview && (
+                                                <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>REVISAR</span>
+                                            )}
                                             {player.scholarship && (
                                                 <span style={{ background: '#1e3a8a', color: '#93c5fd', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>BECA</span>
                                             )}
@@ -271,7 +274,24 @@ export default function PlayerList({
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <Link href={`/dashboard/players/${player.id}/edit`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.9rem' }}>Editar</Link>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <Link href={`/dashboard/players/${player.id}/edit`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
+                                            {canEdit && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (confirm(`¿Eliminar a ${player.lastName}, ${player.firstName}?`)) {
+                                                            const { deletePlayer } = await import('@/lib/actions');
+                                                            const res = await deletePlayer(player.id);
+                                                            alert(res.message);
+                                                            window.location.reload();
+                                                        }
+                                                    }}
+                                                    style={{ background: 'none', border: 'none', color: '#f87171', fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             );

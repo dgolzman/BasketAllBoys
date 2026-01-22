@@ -34,18 +34,16 @@ export async function importData(prevState: any, formData: FormData) {
         let rowIdx = 2; // Excel row number (starting after header)
 
         for (const row of playersData) {
-            // Required fields validation
+            // Required fields validation - allow placeholders
             const nombre = row['Nombre']?.toString().trim().toUpperCase();
             const apellido = row['Apellido']?.toString().trim().toUpperCase();
-            const dni = row['DNI']?.toString().trim();
+            let dni = row['DNI']?.toString().trim() || '0';
             const fechaNacimiento = row['FechaNacimiento'];
 
-            if (!nombre || !apellido || !dni || !fechaNacimiento) {
+            if (!nombre || !apellido) {
                 const missing = [];
                 if (!nombre) missing.push("Nombre");
                 if (!apellido) missing.push("Apellido");
-                if (!dni) missing.push("DNI");
-                if (!fechaNacimiento) missing.push("FechaNacimiento");
 
                 const errorMsg = `Fila ${rowIdx}: Faltan campos obligatorios (${missing.join(', ')})`;
                 errorDetails.push(errorMsg);
@@ -68,22 +66,33 @@ export async function importData(prevState: any, formData: FormData) {
                 continue;
             }
 
+            let flagNeedsReview = false;
+
+            // Handle placeholder DNI
+            if (dni === '0' || !dni) {
+                dni = `TEMP-${Date.now()}-${rowIdx}`;
+                flagNeedsReview = true;
+            }
+
             try {
                 // Parse Excel date (handles both Excel serial numbers and date strings)
                 const parseExcelDate = (val: any) => {
                     if (!val) return null;
+                    const strVal = val.toString().trim();
+                    if (strVal === '00/00/0000' || strVal === '0/0/0' || strVal === '0') return null;
+
                     if (typeof val === 'number') {
                         // Excel serial date
                         return new Date(Math.round((val - 25569) * 86400 * 1000));
                     }
                     const d = new Date(val);
-                    if (!isNaN(d.getTime())) return d;
+                    if (!isNaN(d.getTime()) && d.getFullYear() > 1900) return d;
                     return null;
                 };
 
                 const birthDate = parseExcelDate(fechaNacimiento);
                 if (!birthDate) {
-                    throw new Error("Fecha de nacimiento inválida");
+                    flagNeedsReview = true;
                 }
 
                 // Optional fields
@@ -112,13 +121,18 @@ export async function importData(prevState: any, formData: FormData) {
                 const activoRaw = row['Activo']?.toString().trim().toUpperCase();
                 const active = activoRaw === 'NO' || activoRaw === 'N' ? false : true; // Default to true
 
+                const revisarRaw = row['Revisar']?.toString().trim().toUpperCase();
+                const explicitNeedsReview = revisarRaw === 'SI' || revisarRaw === 'SÍ' || revisarRaw === 'S';
+
+                const finalNeedsReview = flagNeedsReview || explicitNeedsReview;
+
                 // Upsert player
-                await prisma.player.upsert({
+                await (prisma.player as any).upsert({
                     where: { dni },
                     update: {
                         firstName: nombre,
                         lastName: apellido,
-                        birthDate,
+                        birthDate: birthDate || new Date(0), // Placeholder for null
                         tira,
                         email,
                         phone: telefono,
@@ -129,13 +143,14 @@ export async function importData(prevState: any, formData: FormData) {
                         observations: observaciones,
                         scholarship,
                         playsPrimera,
-                        active
+                        active,
+                        needsReview: finalNeedsReview
                     },
                     create: {
                         dni,
                         firstName: nombre,
                         lastName: apellido,
-                        birthDate,
+                        birthDate: birthDate || new Date(0),
                         tira,
                         email,
                         phone: telefono,
@@ -146,7 +161,8 @@ export async function importData(prevState: any, formData: FormData) {
                         observations: observaciones,
                         scholarship,
                         playsPrimera,
-                        active
+                        active,
+                        needsReview: finalNeedsReview
                     }
                 });
 

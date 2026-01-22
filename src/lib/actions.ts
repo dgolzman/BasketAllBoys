@@ -344,3 +344,24 @@ export async function dismissAuditIssue(ruleId: string, identifier: string) {
         return { message: "Error dismissing issue: " + error.message };
     }
 }
+export async function deletePlayer(id: string) {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+    if (role !== 'ADMIN' && role !== 'OPERADOR') return { message: "No autorizado" };
+
+    try {
+        // Delete related records
+        await (prisma as any).attendance.deleteMany({ where: { playerId: id } });
+        await (prisma as any).payment.deleteMany({ where: { playerId: id } });
+
+        const player = await prisma.player.delete({ where: { id } });
+
+        await createAuditLog("DELETE", "Player", id, { name: `${player.lastName}, ${player.firstName}` });
+
+        revalidatePath("/dashboard/players");
+        return { message: "Jugador eliminado correctamente." };
+    } catch (error: any) {
+        console.error("Delete Player Error:", error);
+        return { message: "Error al eliminar jugador: " + error.message };
+    }
+}

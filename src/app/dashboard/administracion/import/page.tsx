@@ -56,7 +56,16 @@ export default function ImportPage() {
                         <li><strong>Beca:</strong> "SI" o "NO" (indica si es becado)</li>
                         <li><strong>Primera:</strong> "SI" o "NO" (juega en Primera División)</li>
                         <li><strong>Activo:</strong> "SI" o "NO" (default: SI si no se especifica)</li>
+                        <li><strong>Revisar:</strong> "SI" o "NO" (marcar manualmente para revisar datos luego)</li>
                         <li><strong>Observaciones:</strong> Texto libre (comentarios, apto médico, etc.)</li>
+                    </ul>
+
+                    <p style={{ margin: '0.8rem 0 0.25rem 0', opacity: 0.9, fontSize: '0.9rem' }}>
+                        ⚠️ <strong>Datos faltantes / marcados para revisión:</strong>
+                    </p>
+                    <ul style={{ margin: '0 0 0.5rem 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.85rem', lineHeight: '1.6' }}>
+                        <li>Si no tienes el DNI, usa <strong>"0"</strong>. Se generará un ID temporal y se marcará como <strong>REVISAR</strong>.</li>
+                        <li>Si no tienes fecha de nacimiento, usa <strong>"00/00/0000"</strong> o déjalo vacío. Se marcará como <strong>REVISAR</strong> y no se calculará categoría.</li>
                     </ul>
 
                     <p style={{ margin: '0.5rem 0 0 0', opacity: 0.7, fontSize: '0.85rem' }}>
