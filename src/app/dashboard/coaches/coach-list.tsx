@@ -16,7 +16,7 @@ export default function CoachList({ coaches, currentSort, currentOrder, role }: 
                         <SortableHeader label="ROL" value="role" currentSort={currentSort} currentOrder={currentOrder} />
                         <SortableHeader label="CONTACTO" value="email" currentSort={currentSort} currentOrder={currentOrder} />
                         <SortableHeader label="ALTA" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
-                        <SortableHeader label="ESTADO" value="active" currentSort={currentSort} currentOrder={currentOrder} />
+                        <SortableHeader label="ESTADO" value="status" currentSort={currentSort} currentOrder={currentOrder} />
                         <th style={{ padding: '1rem' }}></th>
                     </tr>
                 </thead>
@@ -46,15 +46,16 @@ export default function CoachList({ coaches, currentSort, currentOrder, role }: 
                                 )}
                             </td>
                             <td style={{ padding: '1rem' }}>
-                                <span style={{
-                                    fontSize: '0.75rem',
-                                    padding: '0.2rem 0.5rem',
-                                    borderRadius: '4px',
-                                    background: coach.active ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                    color: coach.active ? '#4ade80' : '#f87171'
-                                }}>
-                                    {coach.active ? 'ACTIVO' : 'INACTIVO'}
-                                </span>
+                                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                    {coach.status === 'REVISAR' && (
+                                        <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>REVISAR</span>
+                                    )}
+                                    {coach.status === 'ACTIVO' ? (
+                                        <span style={{ background: '#064e3b', color: '#6ee7b7', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>ACTIVO</span>
+                                    ) : coach.status === 'INACTIVO' ? (
+                                        <span style={{ background: '#450a0a', color: '#fca5a5', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>INACTIVO</span>
+                                    ) : null}
+                                </div>
                             </td>
                             <td style={{ padding: '1rem' }}>
                                 {canEdit && (
@@ -62,7 +63,6 @@ export default function CoachList({ coaches, currentSort, currentOrder, role }: 
                                         <Link href={`/dashboard/coaches/${coach.id}/edit`} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
                                             Editar
                                         </Link>
-                                        <DeleteCoachButton id={coach.id} />
                                     </div>
                                 )}
                             </td>
