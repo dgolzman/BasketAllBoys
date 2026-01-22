@@ -4,6 +4,7 @@ import Link from "next/link";
 import PageGuide from "@/components/page-guide";
 import ReportsTable from "./reports-table";
 import CoachSalaryReport from "./coach-salary-report";
+import PaymentStatusReport from "./payment-status-report";
 
 export default async function ReportsPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const params = await Promise.resolve(searchParams);
@@ -17,7 +18,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
 
     const tabs = [
         { id: 'attendance', label: '📊 Asistencia' },
-        { id: 'salaries', label: '💰 Sueldos' }
+        { id: 'salaries', label: '💰 Sueldos' },
+        { id: 'payments', label: '💳 Pagos' }
     ];
 
     return (
@@ -35,6 +37,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
                             <li><strong>Asistencia:</strong> Control de presentismo por categoría y fecha.</li>
                             <li><strong>Sueldos:</strong> Proyección financiera basada en la fecha de alta de cada entrenador.
                                 Muestra datos históricos y proyecta costos hasta el mes próximo.</li>
+                            <li><strong>Pagos:</strong> Estado de deuda de cuota social y actividad.</li>
                         </ul>
                     </div>
                 </div>
@@ -65,8 +68,43 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
 
             {tab === 'attendance' && await AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy })}
             {tab === 'salaries' && await SalaryView({ year })}
+            {tab === 'payments' && await PaymentsView()}
         </div>
     );
+}
+
+// ... AttendanceView and SalaryView existing code ...
+
+async function PaymentsView() {
+    const mappings = await (prisma as any).categoryMapping.findMany();
+
+    const players = await (prisma.player as any).findMany({
+        where: { status: 'ACTIVO' },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            category: true,
+            birthDate: true,
+            tira: true,
+            scholarship: true,
+            lastSocialPayment: true,
+            lastActivityPayment: true,
+        },
+        orderBy: { lastName: 'asc' }
+    });
+
+    const formattedPlayers = players.map((p: any) => ({
+        id: p.id,
+        name: `${p.lastName}, ${p.firstName}`,
+        category: getCategory(p, mappings),
+        tira: p.tira || '',
+        scholarship: p.scholarship || false,
+        lastSocialPayment: p.lastSocialPayment,
+        lastActivityPayment: p.lastActivityPayment
+    }));
+
+    return <PaymentStatusReport players={formattedPlayers} />;
 }
 
 async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any) {

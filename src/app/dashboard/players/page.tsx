@@ -112,6 +112,14 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
                             </select>
                         </div>
                         <div>
+                            <label className="label" style={{ marginBottom: '0.25rem' }}>Becado</label>
+                            <select name="scholarship" className="input" defaultValue={scholarshipFilter} style={{ padding: '0.45rem' }}>
+                                <option value="">Todos</option>
+                                <option value="true">Sí</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Tira</label>
                             <select name="tira" className="input" defaultValue={tira} style={{ padding: '0.45rem' }}>
                                 <option value="">Todas</option>

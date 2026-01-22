@@ -54,6 +54,10 @@ model Player {
 
   createdAt        DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // External Payment Reports
+  lastSocialPayment   String? // Format: YYYYMM
+  lastActivityPayment String? // Format: YYYYMM
 }
 
 model Attendance {

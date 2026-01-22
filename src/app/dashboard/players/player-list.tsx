@@ -81,22 +81,25 @@ export default function PlayerList({
                     left: '50%',
                     transform: 'translateX(-50%)',
                     background: 'var(--secondary)',
-                    padding: '1.25rem 2.5rem',
+                    padding: '1rem',
                     borderRadius: '16px',
                     boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '1.5rem',
+                    gap: '1rem',
                     zIndex: 100,
                     border: '1px solid var(--border)',
                     animation: 'slideUp 0.3s ease-out',
-                    color: 'var(--foreground)'
+                    color: 'var(--foreground)',
+                    width: '90%',
+                    maxWidth: '800px'
                 }}>
-                    <div style={{ fontWeight: 'bold' }}>
-                        {selectedIds.length} <span style={{ color: 'var(--foreground)', fontWeight: 'normal' }}>jugadores</span>
+                    <div style={{ fontWeight: 'bold', width: '100%', textAlign: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                        {selectedIds.length} <span style={{ color: 'var(--foreground)', fontWeight: 'normal' }}>jugadores seleccionados</span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                         <select
                             className="input"
                             style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: 'var(--input)', border: '1px solid var(--border)', height: '36px' }}
