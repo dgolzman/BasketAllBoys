@@ -114,7 +114,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                 </div>
             </PageGuide>
 
-            <div style={{ marginBottom: '2rem', background: 'rgba(23, 23, 23, 0.9)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', position: 'sticky', top: '1rem', zIndex: 20, backdropFilter: 'blur(8px)' }}>
+            <div style={{ marginBottom: '2rem', background: 'rgba(23, 23, 23, 0.9)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', backdropFilter: 'blur(8px)' }}>
                 <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem', color: 'var(--primary)' }}>Filtros Rapidos</h2>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
@@ -160,7 +160,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                                 <span style={{ fontSize: '0.75rem', color: 'var(--foreground)', marginTop: '0.2rem' }}>👔 {getCoachFor(cat, 'Mixed')?.name}</span>
                                             )}
                                         </div>
-                                        <Link href={`/dashboard/categories/${cat}/attendance`} className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}>
+                                        <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance`} className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}>
                                             📝 Tomar Lista
                                         </Link>
                                     </div>
@@ -185,7 +185,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                                     <span style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'Femenino')?.name}</span>
                                                 )}
                                             </div>
-                                            <Link href={`/dashboard/categories/${cat}/attendance?tira=Femenino`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                            <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance?tira=Femenino`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
                                                 📝 Lista
                                             </Link>
                                         </div>
@@ -209,7 +209,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                                     <span style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'A')?.name}</span>
                                                 )}
                                             </div>
-                                            <Link href={`/dashboard/categories/${cat}/attendance?tira=A`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                            <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance?tira=A`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
                                                 📝 Lista
                                             </Link>
                                         </div>
@@ -233,7 +233,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
                                                     <span style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'B')?.name}</span>
                                                 )}
                                             </div>
-                                            <Link href={`/dashboard/categories/${cat}/attendance?tira=B`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                            <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance?tira=B`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
                                                 📝 Lista
                                             </Link>
                                         </div>
