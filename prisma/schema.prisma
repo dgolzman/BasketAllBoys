@@ -111,6 +111,9 @@ model Coach {
   name             String
   phone            String?
   email            String?
+  dni              String?   @unique
+  birthDate        DateTime?
+  observations     String?
   tira             String?   // "A", "B", "Femenino" or multiple comma separated
   category         String?   // "Mini", "U13" or multiple comma separated
   role             String?   // "Entrenador", "Monitor", "Asistente", "Preparador Físico"

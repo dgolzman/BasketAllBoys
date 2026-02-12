@@ -21,17 +21,24 @@ async function createAuditLog(action: string, entity: string, entityId: string, 
     }
 }
 
+// Helper to handle empty strings from forms as undefined/null
+const emptyToUndefined = z.preprocess((val) => (val === "" ? undefined : val), z.string().optional());
+const emptyToNull = z.preprocess((val) => (val === "" ? null : val), z.string().nullable().optional());
+
 const CoachSchema = z.object({
     name: z.string().min(1, "El nombre es obligatorio"),
-    email: z.string().email("Email inválido").optional().or(z.literal("")),
-    phone: z.string().optional(),
-    tira: z.string().optional(),
-    category: z.string().optional(),
-    role: z.string().optional(),
+    dni: emptyToNull,
+    birthDate: emptyToUndefined,
+    observations: emptyToUndefined,
+    email: z.preprocess((val) => (val === "" ? undefined : val), z.string().email("Email inválido").optional()),
+    phone: emptyToUndefined,
+    tira: emptyToUndefined,
+    category: emptyToUndefined,
+    role: emptyToUndefined,
     status: z.enum(["ACTIVO", "INACTIVO", "REVISAR"]).default("ACTIVO"),
     salary: z.coerce.number().optional(),
-    registrationDate: z.string().optional(),
-    withdrawalDate: z.string().optional(),
+    registrationDate: emptyToUndefined,
+    withdrawalDate: emptyToUndefined,
 });
 
 export async function createCoach(prevState: any, formData: FormData) {
@@ -40,6 +47,9 @@ export async function createCoach(prevState: any, formData: FormData) {
 
     const rawData = {
         name: formData.get("name"),
+        dni: formData.get("dni"),
+        birthDate: formData.get("birthDate"),
+        observations: formData.get("observations"),
         email: formData.get("email"),
         phone: formData.get("phone"),
         tira: formData.getAll("tira").join(", "),
@@ -54,6 +64,7 @@ export async function createCoach(prevState: any, formData: FormData) {
     const validatedFields = CoachSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
+        console.error("Validation failed:", validatedFields.error.flatten().fieldErrors);
         return {
             errors: validatedFields.error.flatten().fieldErrors,
             message: "Error de validación",
@@ -66,10 +77,13 @@ export async function createCoach(prevState: any, formData: FormData) {
         // Fix timezone issue by appending time, ensuring it falls on the correct day in local time
         const regDate = data.registrationDate ? new Date(data.registrationDate + "T12:00:00") : null;
         const widthDate = data.withdrawalDate ? new Date(data.withdrawalDate + "T12:00:00") : null;
+        const birthDate = data.birthDate ? new Date(data.birthDate + "T12:00:00") : null;
 
         const coach = await (prisma as any).coach.create({
             data: {
                 ...data,
+                dni: data.dni || null,
+                birthDate: birthDate,
                 registrationDate: regDate,
                 withdrawalDate: widthDate,
                 status: data.status || "ACTIVO",
@@ -97,6 +111,9 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
 
     const rawData = {
         name: formData.get("name"),
+        dni: formData.get("dni"),
+        birthDate: formData.get("birthDate"),
+        observations: formData.get("observations"),
         email: formData.get("email"),
         phone: formData.get("phone"),
         tira: formData.getAll("tira").join(", "),
@@ -111,6 +128,7 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
     const validatedFields = CoachSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
+        console.error("Validation failed:", validatedFields.error.flatten().fieldErrors);
         return {
             errors: validatedFields.error.flatten().fieldErrors,
             message: "Error de validación",
@@ -124,11 +142,14 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
         // Fix timezone issue
         const regDate = data.registrationDate ? new Date(data.registrationDate + "T12:00:00") : null;
         const widthDate = data.withdrawalDate ? new Date(data.withdrawalDate + "T12:00:00") : null;
+        const birthDate = data.birthDate ? new Date(data.birthDate + "T12:00:00") : null;
 
         await (prisma as any).coach.update({
             where: { id },
             data: {
                 ...data,
+                dni: data.dni || null,
+                birthDate: birthDate,
                 registrationDate: regDate,
                 withdrawalDate: widthDate,
             }
