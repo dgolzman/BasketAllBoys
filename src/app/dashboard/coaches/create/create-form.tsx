@@ -31,14 +31,21 @@ export default function CreateCoachForm({ categories }: { categories: string[] }
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                     <div>
-                        <label className="label">Email</label>
-                        <input name="email" type="email" className="input" placeholder="Opcional" />
-                        {state.errors?.email && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.email.join(', ')}</p>}
+                        <label className="label">DNI</label>
+                        <input name="dni" type="text" className="input" placeholder="Opcional" />
+                        {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                     </div>
                     <div>
-                        <label className="label">Teléfono</label>
-                        <input name="phone" type="text" className="input" placeholder="Opcional" />
+                        <label className="label">Fecha de Nacimiento</label>
+                        <input name="birthDate" type="date" className="input" />
+                        {state.errors?.birthDate && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.birthDate.join(', ')}</p>}
                     </div>
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <label className="label">Observaciones</label>
+                    <textarea name="observations" className="input" placeholder="Opcional" rows={3} style={{ resize: 'vertical', minHeight: '80px' }} />
+                    {state.errors?.observations && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.observations.join(', ')}</p>}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
