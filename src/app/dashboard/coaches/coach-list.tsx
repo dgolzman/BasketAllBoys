@@ -7,6 +7,11 @@ import DeleteCoachButton from "./delete-coach-button";
 export default function CoachList({ coaches, currentSort, currentOrder, role }: { coaches: any[], currentSort: string, currentOrder: string, role: string }) {
     const canEdit = role === 'ADMIN' || role === 'OPERADOR';
 
+    const getWhatsAppLink = (phone: string) => {
+        const cleanPhone = phone.replace(/\D/g, '');
+        return `https://wa.me/${cleanPhone}`;
+    };
+
     return (
         <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -33,7 +38,20 @@ export default function CoachList({ coaches, currentSort, currentOrder, role }: 
                             </td>
                             <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
                                 {coach.email && <div style={{ color: 'var(--foreground)' }}>📧 {coach.email}</div>}
-                                {coach.phone && <div style={{ color: 'var(--foreground)', marginTop: '0.25rem' }}>📱 {coach.phone}</div>}
+                                {coach.phone && (
+                                    <div style={{ marginTop: '0.25rem' }}>
+                                        <a
+                                            href={getWhatsAppLink(coach.phone)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ color: 'var(--foreground)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                            title="Enviar WhatsApp"
+                                        >
+                                            <span style={{ fontSize: '1rem' }}>📱</span>
+                                            <span style={{ textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}>{coach.phone}</span>
+                                        </a>
+                                    </div>
+                                )}
                             </td>
                             <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
                                 <div style={{ color: 'var(--foreground)' }}>

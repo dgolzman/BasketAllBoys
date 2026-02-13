@@ -62,6 +62,19 @@ export default function EditCoachForm({ coach, categories }: { coach: any, categ
                     </div>
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                        <label className="label">Email</label>
+                        <input name="email" type="email" className="input" defaultValue={coach.email || ''} />
+                        {state.errors?.email && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.email.join(', ')}</p>}
+                    </div>
+                    <div>
+                        <label className="label">Teléfono</label>
+                        <input name="phone" type="tel" className="input" defaultValue={coach.phone || ''} />
+                        {state.errors?.phone && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.phone.join(', ')}</p>}
+                    </div>
+                </div>
+
                 <div style={{ marginBottom: '1rem' }}>
                     <label className="label">Observaciones</label>
                     <textarea
@@ -170,9 +183,8 @@ export default function EditCoachForm({ coach, categories }: { coach: any, categ
                             if (confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a ${coach.name}? Esta acción no se puede deshacer.`)) {
                                 const { deleteCoach } = await import("@/lib/coach-actions");
                                 const res = await deleteCoach(coach.id);
-                                if (res.message) {
+                                if (res?.message) {
                                     alert(res.message);
-                                    window.location.href = '/dashboard/coaches';
                                 }
                             }
                         }}

@@ -22,15 +22,15 @@ async function createAuditLog(action: string, entity: string, entityId: string, 
 }
 
 // Helper to handle empty strings from forms as undefined/null
-const emptyToUndefined = z.preprocess((val) => (val === "" ? undefined : val), z.string().optional());
-const emptyToNull = z.preprocess((val) => (val === "" ? null : val), z.string().nullable().optional());
+const emptyToUndefined = z.preprocess((val) => (val === "" || val === null ? undefined : val), z.string().optional());
+const emptyToNull = z.preprocess((val) => (val === "" || val === null ? null : val), z.string().nullable().optional());
 
 const CoachSchema = z.object({
     name: z.string().min(1, "El nombre es obligatorio"),
     dni: emptyToNull,
     birthDate: emptyToUndefined,
     observations: emptyToUndefined,
-    email: z.preprocess((val) => (val === "" ? undefined : val), z.string().email("Email inválido").optional()),
+    email: z.preprocess((val) => (val === "" || val === null ? undefined : val), z.string().email("Email inválido").optional()),
     phone: emptyToUndefined,
     tira: emptyToUndefined,
     category: emptyToUndefined,
@@ -190,9 +190,10 @@ export async function deleteCoach(id: string) {
 
     try {
         await (prisma as any).coach.delete({ where: { id } });
-        revalidatePath("/dashboard/coaches");
-        return { message: "Entrenador eliminado correctamente" };
     } catch (error: any) {
         return { message: "Error al eliminar entrenador: " + error.message };
     }
+
+    revalidatePath("/dashboard/coaches");
+    redirect("/dashboard/coaches");
 }
