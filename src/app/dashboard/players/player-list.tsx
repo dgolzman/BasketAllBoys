@@ -72,6 +72,11 @@ export default function PlayerList({
         setIsUpdating(false);
     };
 
+    const getWhatsAppLink = (phone: string) => {
+        const cleanPhone = phone.replace(/\D/g, '');
+        return `https://wa.me/${cleanPhone}`;
+    };
+
     return (
         <>
             {selectedIds.length > 0 && (
@@ -245,7 +250,20 @@ export default function PlayerList({
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>
-                                            {player.phone && <div>📞 {player.phone}</div>}
+                                            {player.phone && (
+                                                <div style={{ marginBottom: '0.25rem' }}>
+                                                    <a
+                                                        href={getWhatsAppLink(player.phone)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{ color: 'var(--foreground)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                                        title="Enviar WhatsApp"
+                                                    >
+                                                        <span>📞</span>
+                                                        <span style={{ textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: '3px' }}>{player.phone}</span>
+                                                    </a>
+                                                </div>
+                                            )}
                                             {player.email && <div style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={player.email}>✉️ {player.email}</div>}
                                         </div>
                                     </td>

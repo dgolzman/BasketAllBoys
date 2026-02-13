@@ -42,6 +42,19 @@ export default function CreateCoachForm({ categories }: { categories: string[] }
                     </div>
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                        <label className="label">Email</label>
+                        <input name="email" type="email" className="input" placeholder="ejemplo@email.com" />
+                        {state.errors?.email && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.email.join(', ')}</p>}
+                    </div>
+                    <div>
+                        <label className="label">Teléfono</label>
+                        <input name="phone" type="tel" className="input" placeholder="Ej: 11 1234 5678" />
+                        {state.errors?.phone && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.phone.join(', ')}</p>}
+                    </div>
+                </div>
+
                 <div style={{ marginBottom: '1rem' }}>
                     <label className="label">Observaciones</label>
                     <textarea name="observations" className="input" placeholder="Opcional" rows={3} style={{ resize: 'vertical', minHeight: '80px' }} />
