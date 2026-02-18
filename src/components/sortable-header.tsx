@@ -7,9 +7,10 @@ interface SortableHeaderProps {
     value: string;
     currentSort: string;
     currentOrder: string;
+    className?: string;
 }
 
-export default function SortableHeader({ label, value, currentSort, currentOrder }: SortableHeaderProps) {
+export default function SortableHeader({ label, value, currentSort, currentOrder, className }: SortableHeaderProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -29,6 +30,7 @@ export default function SortableHeader({ label, value, currentSort, currentOrder
 
     return (
         <th
+            className={className}
             style={{ padding: '1rem', color: 'var(--foreground)', fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none' }}
             onClick={handleSort}
         >

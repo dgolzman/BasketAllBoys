@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { exportPaymentsToExcel } from '@/lib/export-utils';
 
 type PaymentReportProps = {
     players: {
@@ -150,6 +151,15 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
 
     return (
         <div className="space-y-6">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-1rem', position: 'relative', zIndex: 10 }}>
+                <button
+                    onClick={() => exportPaymentsToExcel(processData)}
+                    className="btn btn-sm btn-outline bg-white"
+                    style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    📊 Exportar Excel
+                </button>
+            </div>
             {/* Filters Bar */}
             <div className="card p-5 bg-white shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-end justify-between">
                 <div className="flex-1 w-full md:w-auto grid grid-cols-1 md:grid-cols-3 gap-4">

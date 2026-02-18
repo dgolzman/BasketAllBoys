@@ -130,7 +130,6 @@ a {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  /* Replaced transparent white border */
   border-radius: var(--radius);
   padding: 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
@@ -198,21 +197,218 @@ th {
 td {
   border-bottom-color: var(--border) !important;
 }
-/* moved from dashboard.module.css */
-.btn-secondary { background: white !important; color: #334155 !important; border: 1px solid #cbd5e1 !important; }
-.btn-secondary:hover { background: #f1f5f9 !important; }
-input[type='date'] { color: #1e293b !important; }
-.badge-inactive { background: #fee2e2 !important; color: #991b1b !important; font-weight: 600 !important; }
-.attendance-selected { color: #166534 !important; }
-.attendance-unselected { color: #334155 !important; }
 
-/* Mobile overrides moved from dashboard.module.css */
+/* moved from dashboard.module.css */
+.btn-secondary {
+  background: white !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.btn-secondary:hover {
+  background: #f1f5f9 !important;
+}
+
+input[type='date'] {
+  color: #1e293b !important;
+}
+
+.badge-inactive {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  font-weight: 600 !important;
+}
+
+.attendance-selected {
+  color: #166534 !important;
+}
+
+.attendance-unselected {
+  color: #334155 !important;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE MOBILE — Global
+   ═══════════════════════════════════════ */
+
+/* Tablas: scroll horizontal en mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Filas de acciones (header de páginas) */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Tablet (< 1024px) ── */
+@media (max-width: 1024px) {
+  .card {
+    padding: 1.5rem;
+  }
+}
+
+/* ── Mobile (< 768px) ── */
 @media (max-width: 768px) {
-    .layout { flex-direction: column; }
-    .sidebar { position: fixed; top: 0; left: -280px; height: 100vh; width: 280px; z-index: 1000; transition: left 0.3s ease; }
-    .sidebar.open { left: 0; }
-    .main { padding: 1rem; margin-top: 60px; }
-    table { display: block; overflow-x: auto; white-space: nowrap; }
-    form > div[style*='grid'] { grid-template-columns: 1fr !important; }
-    .btn { width: 100%; }
+
+  /* Sidebar: fixed, fuera de pantalla por defecto */
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -280px !important;
+    height: 100vh !important;
+    width: 280px !important;
+    z-index: 1000 !important;
+    transition: left 0.3s ease !important;
+  }
+
+  .sidebar.open {
+    left: 0 !important;
+  }
+
+  /* Main: espacio para el top nav fijo */
+  .main {
+    padding: 1rem !important;
+  }
+
+  /* Cards: menos padding */
+  .card {
+    padding: 1rem;
+  }
+
+  /* Tablas: scroll horizontal */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Formularios: 1 columna */
+  form>div[style*='grid'],
+  div[style*='grid-template-columns'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Botones en formularios: ancho completo */
+  form .btn {
+    width: 100%;
+  }
+
+  /* Filtros: wrap */
+  div[style*='display: flex'][style*='gap'] {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Mobile pequeño (< 480px) ── */
+@media (max-width: 480px) {
+  .card {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+  }
+
+  h2 {
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* ═══════════════════════════════════════
+   COLUMNAS RESPONSIVE — Player List
+   ═══════════════════════════════════════ */
+
+/* Desktop: todas las columnas visibles */
+.players-table {
+  min-width: 1100px;
+}
+
+/* Tablet (< 1024px): ocultar Alta y Primera */
+@media (max-width: 1024px) {
+  .players-table {
+    min-width: 700px;
+  }
+
+  .col-primera,
+  .col-alta {
+    display: none;
+  }
+}
+
+/* Mobile grande (< 768px): ocultar también DNI y Contacto */
+@media (max-width: 768px) {
+  .players-table {
+    min-width: 520px;
+  }
+
+  .col-dni,
+  .col-contacto {
+    display: none;
+  }
+}
+
+/* Mobile pequeño (< 540px): ocultar Socio, Camiseta y checkbox */
+@media (max-width: 540px) {
+  .players-table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .col-socio,
+  .col-camiseta,
+  .col-checkbox {
+    display: none;
+  }
+
+  .players-table td,
+  .players-table th {
+    padding: 0.6rem 0.5rem;
+  }
+}
+
+/* ═══════════════════════════════════════
+   COLUMNAS RESPONSIVE — Coach List
+   ═══════════════════════════════════════ */
+
+/* Tablet (< 1024px): ocultar Alta */
+@media (max-width: 1024px) {
+  .coach-col-alta {
+    display: none;
+  }
+}
+
+/* Mobile (< 640px): ocultar también Contacto y Rol */
+@media (max-width: 640px) {
+
+  .coach-col-contacto,
+  .coach-col-rol {
+    display: none;
+  }
+
+  .coaches-table td,
+  .coaches-table th {
+    padding: 0.6rem 0.5rem;
+  }
 }

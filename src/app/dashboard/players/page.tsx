@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCategory } from "@/lib/utils";
 import PageGuide from "@/components/page-guide";
 import PlayerList from "./player-list";
+import ExportPlayersButton from "./export-button";
 import { auth } from "@/auth";
 import FilterPersistence from "./filter-persistence";
 
@@ -80,13 +81,16 @@ export default async function PlayersPage({ searchParams }: { searchParams: { [k
             </PageGuide>
 
             <div style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <h2>Jugadores ({players.length})</h2>
-                    {(role === 'ADMIN' || role === 'OPERADOR') && (
-                        <Link href="/dashboard/players/create" className="btn btn-primary">
-                            + Nuevo Jugador
-                        </Link>
-                    )}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <ExportPlayersButton players={players} mappings={mappings} />
+                        {(role === 'ADMIN' || role === 'OPERADOR') && (
+                            <Link href="/dashboard/players/create" className="btn btn-primary">
+                                + Nuevo Jugador
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 {/* Filters */}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { getCategory } from '@/lib/utils';
@@ -25,8 +26,17 @@ export default function PlayerList({
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [players, setPlayers] = useState(initialPlayers);
     const [isUpdating, setIsUpdating] = useState(false);
+    const searchParams = useSearchParams();
 
     const canEdit = role === 'ADMIN' || role === 'OPERADOR';
+
+    // Helper to preserve filters when navigating to edit
+    const getEditLink = (playerId: string) => {
+        const currentFilters = searchParams.toString();
+        return currentFilters
+            ? `/dashboard/players/${playerId}/edit?returnFilters=${encodeURIComponent(currentFilters)}`
+            : `/dashboard/players/${playerId}/edit`;
+    };
 
     const toggleSelectAll = () => {
         if (selectedIds.length === players.length) {
@@ -184,10 +194,10 @@ export default function PlayerList({
             )}
 
             <div className="card" style={{ overflowX: 'auto', maxHeight: 'calc(100vh - 250px)', overflowY: 'auto', padding: 0 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '1300px' }}>
+                <table className="players-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead style={{ position: 'sticky', top: 0, background: 'var(--secondary)', zIndex: 10 }}>
                         <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                            <th style={{ padding: '1rem', width: '40px', color: 'var(--foreground)' }}>
+                            <th className="col-checkbox" style={{ padding: '1rem', width: '40px', color: 'var(--foreground)' }}>
                                 <input
                                     type="checkbox"
                                     checked={selectedIds.length === players.length && players.length > 0}
@@ -195,13 +205,14 @@ export default function PlayerList({
                                 />
                             </th>
                             <SortableHeader label="Jugador" value="lastName" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="DNI" value="dni" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-dni" label="DNI" value="dni" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Categoría" value="category" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="Primera" value="playsPrimera" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-primera" label="Primera" value="playsPrimera" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Tira" value="tira" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="Socio / Camiseta" value="partnerNumber" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="Contacto" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="Alta" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-socio" label="Socio" value="partnerNumber" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-camiseta" label="Camiseta" value="shirtNumber" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-contacto" label="Contacto" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-alta" label="Alta" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Estado" value="status" currentSort={currentSort} currentOrder={currentOrder} />
                             <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Acciones</th>
                         </tr>
@@ -219,7 +230,7 @@ export default function PlayerList({
                                         background: isSelected ? 'rgba(255, 255, 255, 0.05)' : 'transparent'
                                     }}
                                 >
-                                    <td style={{ padding: '1rem' }}>
+                                    <td className="col-checkbox" style={{ padding: '1rem' }}>
                                         <input
                                             type="checkbox"
                                             checked={isSelected}
@@ -229,9 +240,9 @@ export default function PlayerList({
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ fontWeight: 'bold', color: 'var(--foreground)' }}>{player.lastName}, {player.firstName}</div>
                                     </td>
-                                    <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>{player.dni}</td>
+                                    <td className="col-dni" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>{player.dni}</td>
                                     <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--foreground)' }}>{calculatedCat}</td>
-                                    <td style={{ padding: '1rem', textAlign: 'center', color: 'var(--foreground)' }}>{player.playsPrimera ? '✅' : '-'}</td>
+                                    <td className="col-primera" style={{ padding: '1rem', textAlign: 'center', color: 'var(--foreground)' }}>{player.playsPrimera ? '✅' : '-'}</td>
                                     <td style={{ padding: '1rem' }}>
                                         <span style={{
                                             fontSize: '0.75rem',
@@ -244,11 +255,13 @@ export default function PlayerList({
                                             {player.tira}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>
-                                        <div>S: {player.partnerNumber || '-'}</div>
-                                        <div>C: {player.shirtNumber || '-'}</div>
+                                    <td className="col-socio" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)', textAlign: 'center' }}>
+                                        {player.partnerNumber || '-'}
                                     </td>
-                                    <td style={{ padding: '1rem' }}>
+                                    <td className="col-camiseta" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)', textAlign: 'center' }}>
+                                        {player.shirtNumber || '-'}
+                                    </td>
+                                    <td className="col-contacto" style={{ padding: '1rem' }}>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>
                                             {player.phone && (
                                                 <div style={{ marginBottom: '0.25rem' }}>
@@ -267,7 +280,7 @@ export default function PlayerList({
                                             {player.email && <div style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={player.email}>✉️ {player.email}</div>}
                                         </div>
                                     </td>
-                                    <td style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--foreground)' }}>
+                                    <td className="col-alta" style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--foreground)' }}>
                                         {player.registrationDate ? format(new Date(player.registrationDate), 'dd/MM/yyyy') : '-'}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
@@ -286,7 +299,7 @@ export default function PlayerList({
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <Link href={`/dashboard/players/${player.id}/edit`} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
+                                        <Link href={getEditLink(player.id)} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
                                     </td>
                                 </tr>
                             );

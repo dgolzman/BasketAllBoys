@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { exportSalariesToExcel } from '@/lib/export-utils';
 
 export default function CoachSalaryReport({ coaches, year }: { coaches: any[], year: number }) {
     const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -71,6 +72,15 @@ export default function CoachSalaryReport({ coaches, year }: { coaches: any[], y
 
     return (
         <div className="card" style={{ padding: 0, overflowX: 'auto', border: '1px solid var(--border)' }}>
+            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-end', borderBottom: '1px solid var(--border)', background: 'var(--secondary)' }}>
+                <button
+                    onClick={() => exportSalariesToExcel(reportData, year)}
+                    className="btn btn-sm btn-outline"
+                    style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    📊 Exportar Excel
+                </button>
+            </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ background: 'var(--secondary)', borderBottom: '1px solid var(--border)' }}>
