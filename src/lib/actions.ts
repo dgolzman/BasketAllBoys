@@ -283,7 +283,11 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
     }
 
     revalidatePath("/dashboard/players");
-    redirect("/dashboard/players");
+
+    // Get return filters to preserve them
+    const returnFilters = formData.get("returnFilters")?.toString();
+    const redirectUrl = returnFilters ? `/dashboard/players?${returnFilters}` : '/dashboard/players';
+    redirect(redirectUrl);
 }
 
 export async function searchPlayers(query: string) {
@@ -378,7 +382,7 @@ export async function dismissAuditIssue(ruleId: string, identifier: string) {
         return { message: "Error dismissing issue: " + error.message };
     }
 }
-export async function deletePlayer(id: string) {
+export async function deletePlayer(id: string, returnFilters?: string) {
     const session = await auth();
     const role = (session?.user as any)?.role || 'VIEWER';
     if (role !== 'ADMIN' && role !== 'OPERADOR') return { message: "No autorizado" };
@@ -393,7 +397,10 @@ export async function deletePlayer(id: string) {
         await createAuditLog("DELETE", "Player", id, { name: `${player.lastName}, ${player.firstName}` });
 
         revalidatePath("/dashboard/players");
-        redirect("/dashboard/players");
+
+        // Preserve filters on redirect
+        const redirectUrl = returnFilters ? `/dashboard/players?${returnFilters}` : '/dashboard/players';
+        redirect(redirectUrl);
     } catch (error: any) {
         if (error.message === 'NEXT_REDIRECT') throw error;
         console.error("Delete Player Error:", error);

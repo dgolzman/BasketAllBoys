@@ -1,7 +1,6 @@
 'use client';
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import styles from "./dashboard.module.css";
 
 export default function TopNav({ userName, role }: { userName?: string | null, role: string }) {
     return (
@@ -9,24 +8,25 @@ export default function TopNav({ userName, role }: { userName?: string | null, r
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '1rem 2rem',
+            padding: '0.75rem 1rem 0.75rem 4.5rem',
             background: 'var(--card-bg)',
             borderBottom: '1px solid var(--border)',
             backdropFilter: 'blur(10px)',
             position: 'sticky',
             top: 0,
-            zIndex: 10
+            zIndex: 10,
+            minHeight: '56px',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <h1 style={{ margin: 0, fontSize: '1.25rem', fontFamily: 'var(--font-display)', textTransform: 'uppercase' }}>
+                <h1 style={{ margin: 0, fontSize: 'clamp(0.9rem, 3vw, 1.25rem)', fontFamily: 'var(--font-display)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                     Gestión Basket
                 </h1>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{userName}</span>
-                    <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--foreground)' }}>{role}</span>
+                    <span style={{ fontWeight: 600, fontSize: 'clamp(0.7rem, 2vw, 0.9rem)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>{userName}</span>
+                    <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--foreground)' }}>{role}</span>
                 </div>
                 <ThemeToggle />
             </div>

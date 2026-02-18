@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import PageGuide from "@/components/page-guide";
 import CoachList from "./coach-list";
+import ExportCoachesButton from "./export-button";
 import { auth } from "@/auth";
 
 export default async function CoachesPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
@@ -14,6 +15,16 @@ export default async function CoachesPage({ searchParams }: { searchParams: { [k
     const coaches = await (prisma as any).coach.findMany({
         orderBy: { [sort]: sortOrder }
     });
+
+    const coachesSerialized = coaches.map((c: any) => ({
+        ...c,
+        birthDate: c.birthDate ? c.birthDate.toISOString().split('T')[0] : '',
+        registrationDate: c.registrationDate ? c.registrationDate.toISOString().split('T')[0] : '',
+        withdrawalDate: c.withdrawalDate ? c.withdrawalDate.toISOString().split('T')[0] : '',
+        salary: c.salary ? c.salary.toString() : '',
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+    }));
 
     return (
         <div>
@@ -29,13 +40,16 @@ export default async function CoachesPage({ searchParams }: { searchParams: { [k
                 </div>
             </PageGuide>
 
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <h2 style={{ margin: 0 }}>Entrenadores ({coaches.length})</h2>
-                {(role === 'ADMIN' || role === 'OPERADOR') && (
-                    <Link href="/dashboard/coaches/create" className="btn btn-primary">
-                        + Nuevo Entrenador
-                    </Link>
-                )}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <ExportCoachesButton coaches={coachesSerialized} />
+                    {(role === 'ADMIN' || role === 'OPERADOR') && (
+                        <Link href="/dashboard/coaches/create" className="btn btn-primary">
+                            + Nuevo Entrenador
+                        </Link>
+                    )}
+                </div>
             </div>
 
             <CoachList coaches={coaches} currentSort={sort} currentOrder={sortOrder} role={role} />

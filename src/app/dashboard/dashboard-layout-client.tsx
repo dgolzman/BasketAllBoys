@@ -51,7 +51,7 @@ export default function DashboardLayoutClient({
                         />
                     </div>
                 </div>
-                <SidebarNav role={role} />
+                <SidebarNav role={role} onLinkClick={() => setSidebarOpen(false)} />
                 <div className={styles.user}>
                     <form action={handleSignOut}>
                         <button className={styles.logoutBtn}>Cerrar Sesión</button>

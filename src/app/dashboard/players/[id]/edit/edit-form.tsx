@@ -2,6 +2,7 @@
 
 import { updatePlayer, type ActionState } from "@/lib/actions";
 import { useActionState, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import SiblingSearch from "../../sibling-search";
 
 export default function EditPlayerForm({ player, categories, role }: { player: any, categories: string[], role: string }) {
@@ -9,6 +10,7 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
     const updatePlayerWithId = updatePlayer.bind(null, player.id);
     const initialState: ActionState = { message: '', errors: undefined };
     const [state, formAction, isPending] = useActionState(updatePlayerWithId, initialState);
+    const searchParams = useSearchParams();
 
     const [status, setStatus] = useState(player.status || 'ACTIVO');
     const [withdrawalDate, setWithdrawalDate] = useState(player.withdrawalDate ? new Date(player.withdrawalDate).toISOString().split('T')[0] : '');
@@ -21,8 +23,13 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
         }
     }, [status]);
 
+    // Get return filters from URL
+    const returnFilters = searchParams.get('returnFilters') || '';
+
     return (
         <form action={formAction}>
+            {/* Hidden input to preserve filters */}
+            <input type="hidden" name="returnFilters" value={returnFilters} />
             <div style={{ padding: '1.25rem', background: 'var(--secondary)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
                 <label className="label" style={{ color: '#fff' }}>Estado del Jugador</label>
                 <select
@@ -220,7 +227,7 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                         onClick={async () => {
                             if (confirm(`⚠️ ¿ELIMINAR PERMANENTEMENTE a ${player.firstName} ${player.lastName}? Esta acción no se puede deshacer.`)) {
                                 const { deletePlayer } = await import("@/lib/actions");
-                                const res = await deletePlayer(player.id);
+                                const res = await deletePlayer(player.id, returnFilters);
                                 if (res?.message) {
                                     alert(res.message);
                                 }

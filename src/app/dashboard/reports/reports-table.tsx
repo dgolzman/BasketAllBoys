@@ -3,6 +3,7 @@
 import { useState, Fragment } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { exportAttendanceToExcel } from '@/lib/export-utils';
 
 interface ReportRow {
     date: Date;
@@ -23,6 +24,15 @@ export default function ReportsTable({ data, groupBy = 'day' }: { data: ReportRo
 
     return (
         <div className="card" style={{ overflowX: 'auto', padding: 0, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'flex-end', borderBottom: '1px solid var(--border)', background: 'var(--secondary)' }}>
+                <button
+                    onClick={() => exportAttendanceToExcel(data)}
+                    className="btn btn-sm btn-outline"
+                    style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    📊 Exportar Excel
+                </button>
+            </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                     <tr style={{ background: 'var(--secondary)', borderBottom: '1px solid var(--border)' }}>
