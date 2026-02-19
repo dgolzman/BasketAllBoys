@@ -42,13 +42,24 @@ export function exportPlayersToExcel(players: any[], mappings: any[]) {
     const exportData = players.map(player => {
         const calculatedCategory = getCategory(player, mappings);
 
+        // Audit logic for Excel
+        const year = player.birthDate instanceof Date ? player.birthDate.getFullYear() : new Date(player.birthDate).getFullYear();
+        const isInvalidDate = year <= 1970 || year === 1900;
+        const isTempDni = player.dni.startsWith('TEMP-');
+
+        const auditNotes = [];
+        if (isInvalidDate) auditNotes.push('FALTA NACIMIENTO');
+        if (isTempDni) auditNotes.push('DNI TEMPORAL');
+        if (!player.phone && !player.email) auditNotes.push('SIN CONTACTO');
+
         return {
             'Apellido': player.lastName,
             'Nombre': player.firstName,
-            'DNI': player.dni,
-            'Fecha Nacimiento': player.birthDate,
+            'DNI': isTempDni ? 'SIN DNI' : player.dni,
+            'Fecha Nacimiento': isInvalidDate ? 'SIN FECHA' : (player.birthDate instanceof Date ? player.birthDate.toLocaleDateString('es-AR') : new Date(player.birthDate).toLocaleDateString('es-AR')),
             'Categoría': calculatedCategory,
             'Tira': player.tira,
+            'Auditoría': auditNotes.join(' | ') || 'OK',
             'Socio': player.partnerNumber || '',
             'Camiseta': player.shirtNumber || '',
             'Teléfono': player.phone || '',
@@ -56,11 +67,11 @@ export function exportPlayersToExcel(players: any[], mappings: any[]) {
             'Estado': player.status,
             'Beca': player.scholarship ? 'Sí' : 'No',
             'Juega Primera': player.playsPrimera ? 'Sí' : 'No',
-            'Fecha Alta': player.registrationDate || '',
-            'Fecha Baja': player.withdrawalDate || '',
+            'Fecha Alta': player.registrationDate ? new Date(player.registrationDate).toLocaleDateString('es-AR') : '',
             'Observaciones': player.observations || ''
         };
     });
+
 
     exportToExcel(exportData, `jugadores_${new Date().toISOString().split('T')[0]}`);
 }

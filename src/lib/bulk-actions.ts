@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { evaluatePlayerStatus } from "./utils";
 
 export async function bulkUpdatePlayers(
     playerIds: string[],
@@ -17,12 +18,24 @@ export async function bulkUpdatePlayers(
     if (!playerIds.length) return { success: false, message: "No se seleccionaron jugadores" };
 
     try {
-        await prisma.player.updateMany({
-            where: {
-                id: { in: playerIds }
-            },
-            data: updates
+        // We fetch players to evaluate status correctly for each
+        const players = await prisma.player.findMany({
+            where: { id: { in: playerIds } },
+            select: { id: true, status: true, dni: true, birthDate: true }
         });
+
+        for (const player of players) {
+            const newStatus = updates.status || player.status;
+            const finalStatus = evaluatePlayerStatus(newStatus, player.dni, player.birthDate);
+
+            await prisma.player.update({
+                where: { id: player.id },
+                data: {
+                    ...updates,
+                    status: finalStatus
+                }
+            });
+        }
 
         revalidatePath("/dashboard/players");
         revalidatePath("/dashboard/categories");
@@ -31,6 +44,7 @@ export async function bulkUpdatePlayers(
         return { success: false, message: "Error en actualización masiva: " + error.message };
     }
 }
+
 
 export async function bulkDeletePlayers(playerIds: string[]) {
     if (!playerIds.length) return { success: false, message: "No se seleccionaron jugadores" };

@@ -284,9 +284,17 @@ export default function PlayerList({
                                         {player.registrationDate ? format(new Date(player.registrationDate), 'dd/MM/yyyy') : '-'}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                                             {player.status === 'REVISAR' && (
-                                                <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>REVISAR</span>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                                    <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold', textAlign: 'center' }}>REVISAR</span>
+                                                    {player.dni.startsWith('TEMP-') && (
+                                                        <span style={{ fontSize: '0.6rem', color: '#fca5a5', fontWeight: 600 }}>⚠️ Falta DNI</span>
+                                                    )}
+                                                    {(player.birthDate && (new Date(player.birthDate).getFullYear() <= 1970 || new Date(player.birthDate).getFullYear() === 1900)) && (
+                                                        <span style={{ fontSize: '0.6rem', color: '#fca5a5', fontWeight: 600 }}>⚠️ Falta Nacimiento</span>
+                                                    )}
+                                                </div>
                                             )}
                                             {player.scholarship && (
                                                 <span style={{ background: '#1e3a8a', color: '#93c5fd', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>BECA</span>
@@ -298,6 +306,7 @@ export default function PlayerList({
                                             ) : null}
                                         </div>
                                     </td>
+
                                     <td style={{ padding: '1rem' }}>
                                         <Link href={getEditLink(player.id)} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
                                     </td>

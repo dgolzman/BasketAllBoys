@@ -6,20 +6,9 @@ import { revalidatePath } from "next/cache";
 export async function dismissAuditIssue(ruleId: string, identifier: string, reason?: string) {
     try {
         await prisma.dismissedAuditIssue.upsert({
-            where: {
-                ruleId_identifier: {
-                    ruleId,
-                    identifier,
-                }
-            },
-            update: {
-                reason,
-            },
-            create: {
-                ruleId,
-                identifier,
-                reason,
-            },
+            where: { ruleId_identifier: { ruleId, identifier } },
+            update: { reason },
+            create: { ruleId, identifier, reason },
         });
         revalidatePath("/dashboard/administracion/audit");
         return { success: true, message: "Incidencia marcada como conocida" };
@@ -31,16 +20,34 @@ export async function dismissAuditIssue(ruleId: string, identifier: string, reas
 export async function restoreAuditIssue(ruleId: string, identifier: string) {
     try {
         await prisma.dismissedAuditIssue.delete({
-            where: {
-                ruleId_identifier: {
-                    ruleId,
-                    identifier,
-                }
-            },
+            where: { ruleId_identifier: { ruleId, identifier } },
         });
         revalidatePath("/dashboard/administracion/audit");
         return { success: true, message: "Incidencia restaurada" };
     } catch (error: any) {
         return { success: false, message: "Error al restaurar incidencia: " + error.message };
+    }
+}
+
+/** Marks ALL issues of the same ruleId as known in a single batch */
+export async function dismissAuditIssuesByRule(
+    ruleId: string,
+    identifiers: string[],
+    reason?: string
+) {
+    try {
+        await prisma.$transaction(
+            identifiers.map((identifier) =>
+                prisma.dismissedAuditIssue.upsert({
+                    where: { ruleId_identifier: { ruleId, identifier } },
+                    update: { reason },
+                    create: { ruleId, identifier, reason },
+                })
+            )
+        );
+        revalidatePath("/dashboard/administracion/audit");
+        return { success: true, message: `${identifiers.length} incidencias marcadas como conocidas` };
+    } catch (error: any) {
+        return { success: false, message: "Error al descartar incidencias: " + error.message };
     }
 }

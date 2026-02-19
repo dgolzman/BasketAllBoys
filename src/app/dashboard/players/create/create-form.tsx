@@ -52,10 +52,30 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                         <div>
                             <label className="label">DNI <span style={{ color: 'red' }}>*</span></label>
-                            <input name="dni" type="text" className="input" required placeholder="Solo números" />
-                            <p style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '0.25rem' }}>Sin puntos, guiones ni espacios. Ej: 40123456</p>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                <input name="dni" type="text" className="input" required placeholder="Ej: 40123456 ó TEMP-xxxxx" id="create-dni" />
+                                <button
+                                    type="button"
+                                    title="Asignar DNI provisional cuando no se conoce el DNI real"
+                                    onClick={() => {
+                                        const dniInput = document.getElementById('create-dni') as HTMLInputElement;
+                                        const statusSelect = document.querySelector('select[name="status"]') as HTMLSelectElement;
+                                        if (dniInput) dniInput.value = `TEMP-${Date.now()}`;
+                                        if (statusSelect) {
+                                            statusSelect.value = 'REVISAR';
+                                            statusSelect.style.background = '#78350f';
+                                        }
+                                    }}
+                                    className="btn btn-secondary"
+                                    style={{ whiteSpace: 'nowrap', fontSize: '0.75rem', padding: '0.5rem 0.75rem', flexShrink: 0 }}
+                                >
+                                    Sin DNI
+                                </button>
+                            </div>
+                            <p style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '0.25rem' }}>Ingrese solo dígitos (7-12). Sin DNI, use "Sin DNI" → asigna ID provisional y estado REVISAR.</p>
                             {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                         </div>
+
                         <div>
                             <label className="label">Fecha de Nacimiento <span style={{ color: 'red' }}>*</span></label>
                             <input name="birthDate" type="date" className="input" required />

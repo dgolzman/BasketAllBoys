@@ -62,19 +62,34 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div>
                     <label className="label" title="Documento Nacional de Identidad">DNI <span style={{ color: 'red' }}>*</span></label>
-                    <input
-                        name="dni"
-                        type="text"
-                        className="input"
-                        required
-                        defaultValue={player.dni}
-                        disabled={!canEdit}
-                        placeholder="Ej: 12345678"
-                        onChange={(e) => {
-                            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                        }}
-                    />
-                    <p style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '0.25rem' }}>Ingrese solo números. Los puntos se eliminan automáticamente.</p>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                        <input
+                            name="dni"
+                            type="text"
+                            className="input"
+                            required
+                            defaultValue={player.dni}
+                            disabled={!canEdit}
+                            placeholder="Ej: 12345678 ó TEMP-xxxxx"
+                        />
+                        {canEdit && (
+                            <button
+                                type="button"
+                                title="Asignar DNI provisional (cuando no se conoce el DNI real)"
+                                onClick={() => {
+                                    const dniInput = document.querySelector('input[name="dni"]') as HTMLInputElement;
+                                    const statusSelect = document.querySelector('select[name="status"]') as HTMLSelectElement;
+                                    if (dniInput) dniInput.value = `TEMP-${Date.now()}`;
+                                    if (statusSelect) { statusSelect.value = 'REVISAR'; setStatus('REVISAR'); }
+                                }}
+                                className="btn btn-secondary"
+                                style={{ whiteSpace: 'nowrap', fontSize: '0.75rem', padding: '0.5rem 0.75rem', flexShrink: 0 }}
+                            >
+                                Sin DNI
+                            </button>
+                        )}
+                    </div>
+                    <p style={{ fontSize: '0.7rem', color: '#cbd5e1', marginTop: '0.25rem' }}>Ingrese solo dígitos (7-12). Sin DNI, use el botón “Sin DNI”.</p>
                     {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                 </div>
                 <div>

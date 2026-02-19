@@ -5,21 +5,8 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { createAuditLog } from "./actions";
 
-async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
-    const session = await auth();
-    if (session?.user?.id) {
-        await prisma.auditLog.create({
-            data: {
-                action,
-                entity,
-                entityId,
-                details: details ? JSON.stringify(details) : null,
-                userId: session.user.id,
-            },
-        });
-    }
-}
 
 // Helper to handle empty strings from forms as undefined/null
 const emptyToUndefined = z.preprocess((val) => (val === "" || val === null ? undefined : val), z.string().optional());
