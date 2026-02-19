@@ -5,15 +5,18 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { evaluatePlayerStatus } from "./utils";
+
 
 const FormSchema = z.object({
     firstName: z.string().min(1, "Nombre es obligatorio"),
     lastName: z.string().min(1, "Apellido es obligatorio"),
     dni: z.string()
         .min(1, "DNI es obligatorio")
-        .regex(/^\d+$/, "El DNI solo debe contener números (sin puntos ni espacios)")
-        .min(7, "DNI demasiado corto")
-        .max(10, "DNI demasiado largo"),
+        .refine(
+            (val) => /^\d{7,12}$/.test(val) || /^TEMP-/.test(val),
+            "El DNI debe tener entre 7 y 12 dígitos, o comenzar con TEMP-"
+        ),
     birthDate: z.string().min(1, "Fecha de nacimiento es obligatoria"),
     tira: z.string(), // "Femenino", "Masculino A", "Masculino B"
     scholarship: z.boolean().optional(),
@@ -35,22 +38,29 @@ const FormSchema = z.object({
 });
 
 function sanitizeDNI(dni: any): string {
-    if (!dni) return "11111111";
-    const sanitized = String(dni).replace(/\D/g, "");
-    return sanitized.length > 0 ? sanitized : "11111111";
+    if (!dni) return `TEMP-${Date.now()}`;
+    const str = String(dni);
+    // Preserve TEMP- prefix if already set
+    if (str.startsWith('TEMP-')) return str;
+    const sanitized = str.replace(/\D/g, "");
+    return sanitized.length > 0 ? sanitized : `TEMP-${Date.now()}`;
 }
 
-async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
+export async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
     const session = await auth();
-    // Use session user id if available
-    if (session?.user?.id) {
+    const userId = session?.user?.id;
+
+    if (userId) {
+        // Double check if user exists in DB to avoid FK violations (e.g. after DB reset)
+        const userExists = await prisma.user.findUnique({ where: { id: userId } });
+
         await prisma.auditLog.create({
             data: {
                 action,
                 entity,
                 entityId,
                 details: details ? JSON.stringify(details) : null,
-                userId: session.user.id,
+                userId: userExists ? userId : null,
             },
         });
     }
@@ -133,7 +143,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
                 siblings: data.siblings ? data.siblings.toUpperCase() : null,
                 category: data.category || null,
-                status: data.status,
+                status: evaluatePlayerStatus(data.status, data.dni, data.birthDate),
             } as any,
         });
 
@@ -248,7 +258,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 withdrawalDate: parseDate(rawData.withdrawalDate),
                 siblings: rawData.siblings ? (rawData.siblings as string).toUpperCase() : null,
                 category: (rawData.category as string) || null,
-                status: rawData.status as string,
+                status: evaluatePlayerStatus(rawData.status as string, rawData.dni as string, rawData.birthDate as string),
             } as any
         });
 

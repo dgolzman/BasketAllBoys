@@ -79,7 +79,7 @@ async function PaymentsView() {
     const mappings = await (prisma as any).categoryMapping.findMany();
 
     const players = await (prisma.player as any).findMany({
-        where: { status: 'ACTIVO' },
+        where: { status: { in: ['ACTIVO', 'REVISAR'] } },
         select: {
             id: true,
             firstName: true,

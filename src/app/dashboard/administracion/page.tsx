@@ -78,6 +78,18 @@ export default async function AdministrationPage() {
 
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
                     <div>
+                        <h3 style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Duplicados</h3>
+                        <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                            Buscar y limpiar jugadores repetidos por nombre y apellido en la base de datos.
+                        </p>
+                    </div>
+                    <Link href="/dashboard/administracion/duplicates" className="btn btn-secondary" style={{ textAlign: 'center' }}>
+                        Ir a Duplicados
+                    </Link>
+                </div>
+
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                    <div>
                         <h3 style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Respaldo (Backup)</h3>
                         <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                             Descargar una copia de seguridad de toda la base de datos o restaurar desde un archivo previo.

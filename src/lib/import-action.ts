@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { createAuditLog } from "./actions";
+import { evaluatePlayerStatus } from "./utils";
 import * as XLSX from 'xlsx';
 
 export async function importData(prevState: any, formData: FormData) {
@@ -20,63 +22,88 @@ export async function importData(prevState: any, formData: FormData) {
     const buffer = Buffer.from(arrayBuffer);
     const workbook = XLSX.read(buffer, { type: 'buffer' });
 
-    let stats = { players: 0, errors: 0 };
-    let errorDetails: string[] = [];
+    let stats = { created: 0, updated: 0, unchanged: 0, errors: 0, conflicts: 0 };
+    let importResults: any[] = [];
 
     try {
         const playersSheet = workbook.Sheets['Jugadores'];
         if (!playersSheet) {
-            return { message: "Error: No se encontró la hoja 'Jugadores' en el archivo Excel." };
+            return { message: "Error: No se encontró la hoja 'Jugadores'." };
         }
 
         const playersData: any[] = XLSX.utils.sheet_to_json(playersSheet);
         let rowIdx = 2;
+        // Track already-processed player IDs within this import to skip Excel duplicates
+        const processedIds = new Set<string>();
+
+        // Create Summary first
+        const summary = await (prisma as any).importSummary.create({
+            data: {
+                fileName: file.name,
+                stats_created: 0,
+                stats_updated: 0,
+                stats_unchanged: 0,
+                stats_errors: 0
+            }
+        });
+
+        // Helper: normalize a value for comparison (null/""/undefined all treated as empty)
+        const normalize = (val: any): string => {
+            if (val === null || val === undefined || val === '') return '';
+            if (val instanceof Date) return val.toISOString().slice(0, 10);
+            if (typeof val === 'boolean') return val ? 'true' : 'false';
+            return String(val).trim();
+        };
+
+        const parseExcelDate = (val: any): Date | null => {
+            if (!val) return null;
+            const strVal = val.toString().trim();
+            if (strVal === '00/00/0000' || strVal === '0/0/0' || strVal === '0') return null;
+            if (typeof val === 'number') {
+                return new Date(Math.round((val - 25569) * 86400 * 1000));
+            }
+            const d = new Date(val);
+            if (!isNaN(d.getTime()) && d.getFullYear() > 1900) return d;
+            return null;
+        };
 
         for (const row of playersData) {
             const nombre = row['Nombre']?.toString().trim().toUpperCase();
             const apellido = row['Apellido']?.toString().trim().toUpperCase();
-            let dni = row['DNI']?.toString().trim() || '0';
+            const dniRaw = row['DNI']?.toString().trim() || '';
             const fechaNacimiento = row['FechaNacimiento'];
 
             if (!nombre || !apellido) {
-                const missing = [];
-                if (!nombre) missing.push("Nombre");
-                if (!apellido) missing.push("Apellido");
                 stats.errors++;
-                errorDetails.push(`Fila ${rowIdx}: Faltan campos básicos (${missing.join(', ')})`);
+                await (prisma as any).importDetail.create({
+                    data: {
+                        summaryId: summary.id,
+                        playerName: `Fila ${rowIdx}`,
+                        action: 'ERROR',
+                        details: 'Faltan campos básicos (Nombre/Apellido)'
+                    }
+                });
                 rowIdx++;
                 continue;
             }
 
+            let isTempDni = false;
             let autoReview = false;
+            let dni = dniRaw;
 
-            // DNI Placeholder handling
-            if (dni === '0' || !dni) {
+            // DNI handling: empty or "0" → generate TEMP
+            if (!dni || dni === '0') {
                 dni = `TEMP-${Date.now()}-${rowIdx}`;
+                isTempDni = true;
                 autoReview = true;
             }
 
             try {
-                const parseExcelDate = (val: any) => {
-                    if (!val) return null;
-                    const strVal = val.toString().trim();
-                    if (strVal === '00/00/0000' || strVal === '0/0/0' || strVal === '0') return null;
-
-                    if (typeof val === 'number') {
-                        return new Date(Math.round((val - 25569) * 86400 * 1000));
-                    }
-                    const d = new Date(val);
-                    if (!isNaN(d.getTime()) && d.getFullYear() > 1900) return d;
-                    return null;
-                };
-
                 const birthDate = parseExcelDate(fechaNacimiento);
                 if (!birthDate) autoReview = true;
 
-                // Status Logic
                 let status = 'ACTIVO';
                 const excelStatus = row['Estado']?.toString().trim().toUpperCase();
-
                 if (excelStatus === 'INACTIVO' || excelStatus === 'NO') status = 'INACTIVO';
                 else if (excelStatus === 'REVISAR' || autoReview) status = 'REVISAR';
                 else if (excelStatus === 'ACTIVO' || excelStatus === 'SI' || excelStatus === 'SÍ') status = 'ACTIVO';
@@ -87,52 +114,257 @@ export async function importData(prevState: any, formData: FormData) {
                 else if (tiraRaw.toLowerCase().includes('mosquitos')) tira = 'Mosquitos';
                 else if (tiraRaw.toLowerCase().includes('b')) tira = 'Masculino B';
 
-                const email = row['Email']?.toString().trim().toLowerCase() || null;
-                const phone = row['Telefono']?.toString().trim() || null;
-                const contactName = row['PersonaContacto']?.toString().trim().toUpperCase() || null;
-                const partnerNumber = row['NumeroSocio']?.toString().trim() || null;
-                const shirtNumber = row['NumeroCamiseta'] ? parseInt(row['NumeroCamiseta'].toString()) : null;
-                const registrationDate = parseExcelDate(row['FechaAlta']) || new Date();
-                const observations = row['Observaciones']?.toString().trim().toUpperCase() || null;
+                // All data from Excel (only non-empty values will be applied in updates)
+                const excelData: any = {
+                    firstName: nombre,
+                    lastName: apellido,
+                    dni,
+                    birthDate: birthDate || new Date(0),
+                    tira,
+                    status: evaluatePlayerStatus(status, dni, birthDate),
+                };
+                // Optional fields: only include if Excel has a real value
+                if (row['Beca']?.toString().trim()) excelData.scholarship = row['Beca'].toString().trim().toUpperCase() === 'SI';
+                if (row['Primera']?.toString().trim()) excelData.playsPrimera = row['Primera'].toString().trim().toUpperCase() === 'SI';
+                if (row['Email']?.toString().trim()) excelData.email = row['Email'].toString().trim().toLowerCase();
+                if (row['Telefono']?.toString().trim()) excelData.phone = row['Telefono'].toString().trim();
+                if (row['PersonaContacto']?.toString().trim()) excelData.contactName = row['PersonaContacto'].toString().trim().toUpperCase();
+                if (row['NumeroSocio']?.toString().trim()) excelData.partnerNumber = row['NumeroSocio'].toString().trim();
+                if (row['NumeroCamiseta']?.toString().trim()) excelData.shirtNumber = parseInt(row['NumeroCamiseta'].toString());
+                if (row['Observaciones']?.toString().trim()) excelData.observations = row['Observaciones'].toString().trim().toUpperCase();
 
-                const scholarship = row['Beca']?.toString().trim().toUpperCase() === 'SI';
-                const playsPrimera = row['Primera']?.toString().trim().toUpperCase() === 'SI';
+                // ─────────────────────────────────────────────────────────────
+                // STEP 1: Try to find by exact DNI (only meaningful DNIs)
+                // ─────────────────────────────────────────────────────────────
+                let existingPlayer: any = null;
+                let foundByName = false;
 
-                await (prisma.player as any).upsert({
-                    where: { dni },
-                    update: {
-                        firstName: nombre, lastName: apellido, birthDate: birthDate || new Date(0),
-                        tira, status, scholarship, playsPrimera, email, phone,
-                        contactName, partnerNumber, shirtNumber, registrationDate, observations
-                    },
-                    create: {
-                        dni, firstName: nombre, lastName: apellido, birthDate: birthDate || new Date(0),
-                        tira, status, scholarship, playsPrimera, email, phone,
-                        contactName, partnerNumber, shirtNumber, registrationDate, observations
+                if (!isTempDni) {
+                    existingPlayer = await prisma.player.findUnique({ where: { dni } });
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // STEP 2: If not found by DNI, look by Name + Lastname
+                // ─────────────────────────────────────────────────────────────
+                if (!existingPlayer) {
+                    const potentialMatch = await prisma.player.findFirst({
+                        where: { firstName: nombre, lastName: apellido }
+                    });
+
+                    if (potentialMatch) {
+                        foundByName = true;
+                        const dbDni = potentialMatch.dni || '';
+                        const dbIsTemp = dbDni.startsWith('TEMP-');
+
+                        if (isTempDni || dbIsTemp) {
+                            // Both sides don't have a real DNI, OR DB has temp and Excel has real → treat as same person, UPDATE
+                            existingPlayer = potentialMatch;
+                            // If Excel now has a real DNI, update it
+                            if (!isTempDni) {
+                                excelData.dni = dni; // upgrade from TEMP to real
+                            } else {
+                                // Keep the DB DNI (don't assign a new TEMP each import)
+                                excelData.dni = dbDni;
+                                dni = dbDni;
+                            }
+                        } else {
+                            // Both have different real DNIs → CONFLICT
+                            stats.conflicts = (stats.conflicts || 0) + 1;
+                            await (prisma as any).importDetail.create({
+                                data: {
+                                    summaryId: summary.id,
+                                    playerName: `${apellido}, ${nombre}`,
+                                    action: 'CONFLICT',
+                                    details: `Mismo nombre pero distinto DNI (BD: ${potentialMatch.dni} / Excel: ${dniRaw})`,
+                                    conflictEntityId: potentialMatch.id,
+                                    conflictData: JSON.stringify({
+                                        ...excelData,
+                                        birthDate: birthDate?.toISOString() ?? null
+                                    })
+                                }
+                            });
+                            rowIdx++;
+                            continue;
+                        }
                     }
-                });
+                }
 
-                stats.players++;
+                // ─────────────────────────────────────────────────────────────
+                // STEP 3: UPDATE or CREATE
+                // ─────────────────────────────────────────────────────────────
+                if (existingPlayer) {
+                    // If this player was already processed in a previous row (Excel duplicate), skip
+                    if (processedIds.has(existingPlayer.id)) {
+                        stats.unchanged++;
+                        await (prisma as any).importDetail.create({
+                            data: {
+                                summaryId: summary.id,
+                                playerName: `${apellido}, ${nombre}`,
+                                action: 'UNCHANGED',
+                                details: 'Fila duplicada en el Excel (ya procesado)',
+                                entityId: existingPlayer.id
+                            }
+                        });
+                        rowIdx++;
+                        continue;
+                    }
+                    processedIds.add(existingPlayer.id);
+
+                    // Smart comparison: only count real differences
+                    // Skip empty Excel values (don't overwrite DB data with nothing)
+                    const changedFields: string[] = [];
+                    const updatePayload: any = {};
+
+                    for (const key of Object.keys(excelData)) {
+                        const excelVal = excelData[key];
+                        const dbVal = (existingPlayer as any)[key];
+
+                        // Normalize for comparison
+                        const excelNorm = excelVal instanceof Date
+                            ? excelVal.toISOString().slice(0, 10)
+                            : normalize(excelVal);
+                        const dbNorm = dbVal instanceof Date
+                            ? dbVal.toISOString().slice(0, 10)
+                            : normalize(dbVal);
+
+                        // Rule: if Excel value is empty, DON'T overwrite existing DB data
+                        if (excelNorm === '' && dbNorm !== '') {
+                            continue; // skip – keep DB value
+                        }
+
+                        if (excelNorm !== dbNorm) {
+                            changedFields.push(key);
+                            updatePayload[key] = excelVal;
+                        }
+                    }
+
+                    if (changedFields.length > 0) {
+                        // Protect registrationDate – never overwrite it from import
+                        delete updatePayload.registrationDate;
+
+                        await prisma.player.update({
+                            where: { id: existingPlayer.id },
+                            data: updatePayload
+                        });
+
+                        await createAuditLog('UPDATE', 'Player', existingPlayer.id, {
+                            import: `Excel - Actualizados: ${changedFields.join(', ')}`
+                        });
+                        stats.updated++;
+                        await (prisma as any).importDetail.create({
+                            data: {
+                                summaryId: summary.id,
+                                playerName: `${apellido}, ${nombre}`,
+                                action: 'UPDATE',
+                                details: changedFields.join(', '),
+                                entityId: existingPlayer.id
+                            }
+                        });
+                    } else {
+                        stats.unchanged++;
+                        await (prisma as any).importDetail.create({
+                            data: {
+                                summaryId: summary.id,
+                                playerName: `${apellido}, ${nombre}`,
+                                action: 'UNCHANGED',
+                                entityId: existingPlayer.id
+                            }
+                        });
+                    }
+                } else {
+                    // CREATE: Add registrationDate only for new players
+                    excelData.registrationDate = parseExcelDate(row['FechaAlta']) || new Date();
+                    const newPlayer = await prisma.player.create({ data: excelData });
+                    await createAuditLog('CREATE', 'Player', newPlayer.id, {
+                        import: 'Excel - Jugador Nuevo'
+                    });
+                    stats.created++;
+                    await (prisma as any).importDetail.create({
+                        data: {
+                            summaryId: summary.id,
+                            playerName: `${apellido}, ${nombre}`,
+                            action: 'CREATE',
+                            entityId: newPlayer.id
+                        }
+                    });
+                }
             } catch (e: any) {
                 stats.errors++;
-                errorDetails.push(`Fila ${rowIdx} (${apellido}): ${e.message}`);
+                await (prisma as any).importDetail.create({
+                    data: {
+                        summaryId: summary.id,
+                        playerName: `${apellido || 'Error'}`,
+                        action: 'ERROR',
+                        details: e.message
+                    }
+                });
             }
             rowIdx++;
         }
 
-        if (session?.user?.id) {
-            await prisma.auditLog.create({
-                data: {
-                    action: 'IMPORT', entity: 'Player', entityId: 'BATCH',
-                    details: JSON.stringify({ stats, errorCount: stats.errors }),
-                    userId: session.user.id
-                }
-            });
-        }
+        // Update Summary Stats
+        await (prisma as any).importSummary.update({
+            where: { id: summary.id },
+            data: {
+                stats_created: stats.created,
+                stats_updated: stats.updated,
+                stats_unchanged: stats.unchanged,
+                stats_errors: stats.errors
+            }
+        });
+
     } catch (error: any) {
         return { message: "Error crítico: " + error.message };
     }
 
     revalidatePath('/dashboard/players');
-    return { message: stats.errors > 0 ? `Importación con ${stats.errors} errores.` : "Éxito.", stats, errorDetails };
+    revalidatePath('/dashboard/administracion/import');
+    revalidatePath('/dashboard/administracion/audit');
+
+    return {
+        message: stats.errors > 0 ? `Finalizado con ${stats.errors} errores.` : "Completado con éxito.",
+        stats,
+        success: true
+    };
+}
+
+export async function resolveConflict(detailId: string, choice: 'keep_db' | 'use_excel') {
+    const session = await auth();
+    if (!session) throw new Error("No autorizado");
+
+    const detail = await (prisma as any).importDetail.findUnique({ where: { id: detailId } });
+    if (!detail || detail.action !== 'CONFLICT') throw new Error("Detalle no encontrado o no es un conflicto");
+
+    if (choice === 'use_excel' && detail.conflictEntityId && detail.conflictData) {
+        const excelData = JSON.parse(detail.conflictData);
+        // Convert birthDate back to Date if present
+        if (excelData.birthDate) excelData.birthDate = new Date(excelData.birthDate);
+        // Don't overwrite registrationDate
+        delete excelData.registrationDate;
+
+        await prisma.player.update({
+            where: { id: detail.conflictEntityId },
+            data: {
+                ...excelData,
+                status: evaluatePlayerStatus(excelData.status, excelData.dni, excelData.birthDate)
+            }
+        });
+
+        await createAuditLog('UPDATE', 'Player', detail.conflictEntityId, {
+            resolution: `Conflicto de importación resuelto: datos del Excel aplicados al jugador existente`
+        });
+    } else if (choice === 'keep_db') {
+        await createAuditLog('CONFLICT_RESOLVED', 'Player', detail.conflictEntityId || 'unknown', {
+            resolution: 'Se mantuvieron los datos de la base de datos'
+        });
+    }
+
+    // Mark conflict as resolved regardless of choice
+    await (prisma as any).importDetail.update({
+        where: { id: detailId },
+        data: { resolved: true }
+    });
+
+    revalidatePath('/dashboard/administracion/import');
+    revalidatePath('/dashboard/players');
 }

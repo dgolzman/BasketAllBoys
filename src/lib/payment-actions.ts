@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createAuditLog } from "./actions";
 import * as XLSX from 'xlsx';
 
 export type PaymentStatus = {
@@ -200,15 +201,7 @@ export async function savePaymentUpdates(prevState: any, dataset: PlayerMatchRes
             count++;
         }
 
-        await prisma.auditLog.create({
-            data: {
-                action: 'IMPORT_PAYMENTS',
-                entity: 'Player',
-                entityId: 'BATCH',
-                details: JSON.stringify({ count, total: updates.length }),
-                userId: session.user?.id
-            }
-        });
+        await createAuditLog('IMPORT_PAYMENTS', 'Player', 'BATCH', { count, total: updates.length });
 
         return { success: true, message: `Se actualizaron los pagos de ${count} jugadores correctamente.` };
     } catch (error: any) {
