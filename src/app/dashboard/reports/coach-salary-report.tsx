@@ -49,6 +49,10 @@ export default function CoachSalaryReport({ coaches, year }: { coaches: any[], y
                 if (effectiveRecord) {
                     monthlySalaries[i] = effectiveRecord.amount;
                     total += effectiveRecord.amount;
+                } else if (coach.salary > 0) {
+                    // Fallback to current salary if no history record found but coach has a salary
+                    monthlySalaries[i] = coach.salary;
+                    total += coach.salary;
                 }
             }
         }

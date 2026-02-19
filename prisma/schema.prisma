@@ -150,3 +150,13 @@ model User {
   updatedAt DateTime
   AuditLog  AuditLog[]
 }
+
+model RolePermission {
+  id         String   @id
+  role       String
+  permission String
+  enabled    Boolean  @default(true)
+  updatedAt  DateTime
+
+  @@unique([role, permission])
+}

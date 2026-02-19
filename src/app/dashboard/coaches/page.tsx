@@ -4,10 +4,14 @@ import PageGuide from "@/components/page-guide";
 import CoachList from "./coach-list";
 import ExportCoachesButton from "./export-button";
 import { auth } from "@/auth";
+import { hasPermission } from "@/lib/role-permission-actions";
+import { PERMISSIONS } from "@/lib/roles";
 
 export default async function CoachesPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const session = await auth();
-    const role = (session?.user as any)?.role || 'VIEWER';
+    const role = (session?.user as any)?.role || 'ENTRENADOR';
+    const canEditCoaches = await hasPermission(role, PERMISSIONS.EDIT_COACHES);
+    const canSeeSalary = await hasPermission(role, PERMISSIONS.VIEW_COACH_SALARY);
     const params = await Promise.resolve(searchParams);
     const sort = typeof params?.sort === 'string' ? params.sort : 'name';
     const sortOrder = typeof params?.sortOrder === 'string' ? params.sortOrder : 'asc';
@@ -44,7 +48,7 @@ export default async function CoachesPage({ searchParams }: { searchParams: { [k
                 <h2 style={{ margin: 0 }}>Entrenadores ({coaches.length})</h2>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <ExportCoachesButton coaches={coachesSerialized} />
-                    {(role === 'ADMIN' || role === 'OPERADOR') && (
+                    {canEditCoaches && (
                         <Link href="/dashboard/coaches/create" className="btn btn-primary">
                             + Nuevo Entrenador
                         </Link>
@@ -52,7 +56,7 @@ export default async function CoachesPage({ searchParams }: { searchParams: { [k
                 </div>
             </div>
 
-            <CoachList coaches={coaches} currentSort={sort} currentOrder={sortOrder} role={role} />
+            <CoachList coaches={coaches} currentSort={sort} currentOrder={sortOrder} role={role} canSeeSalary={canSeeSalary} />
         </div>
     );
 }

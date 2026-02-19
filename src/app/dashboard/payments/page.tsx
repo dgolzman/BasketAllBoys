@@ -1,8 +1,17 @@
-import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { hasPermission } from "@/lib/role-permission-actions";
+import { PERMISSIONS } from "@/lib/roles";
 import PaymentImporter from "@/components/payment-importer";
 
 export default async function PaymentsPage() {
-    const currentYear = new Date().getFullYear();
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'ENTRENADOR';
+
+    const canAccess = await hasPermission(role, PERMISSIONS.VIEW_PAYMENTS);
+    if (!canAccess) {
+        redirect('/dashboard');
+    }
 
     return (
         <div>

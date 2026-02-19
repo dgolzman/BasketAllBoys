@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './dashboard.module.css';
+import type { Permission } from '@/lib/roles';
 
 interface NavGroupProps {
     title: string;
@@ -37,11 +38,18 @@ function NavGroup({ title, children, defaultExpanded = true }: NavGroupProps) {
     );
 }
 
-export default function SidebarNav({ role, onLinkClick }: { role: string; onLinkClick?: () => void }) {
+export default function SidebarNav({
+    role,
+    permissions,
+    onLinkClick,
+}: {
+    role: string;
+    permissions: Permission[];
+    onLinkClick?: () => void;
+}) {
     const pathname = usePathname();
-    const isAdmin = role === 'ADMIN';
-    const isOperador = role === 'OPERADOR';
-    const canManageAttendance = isAdmin || isOperador;
+
+    const has = (perm: Permission) => permissions.includes(perm);
 
     const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
@@ -55,27 +63,37 @@ export default function SidebarNav({ role, onLinkClick }: { role: string; onLink
                 <Link href="/dashboard" onClick={handleClick} className={`${styles.navLink} ${pathname === '/dashboard' ? styles.activeLink : ''}`}>
                     <span>🏠 Inicio</span>
                 </Link>
-                <Link href="/dashboard/players" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/players') ? styles.activeLink : ''}`}>
-                    <span>🏀 Jugadores</span>
-                </Link>
-                <Link href="/dashboard/categories" onClick={handleClick} className={`${styles.navLink} ${pathname.startsWith('/dashboard/categories') ? styles.activeLink : ''}`}>
-                    <span>🛡️ Equipos</span>
-                </Link>
-                <Link href="/dashboard/payments" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/payments') ? styles.activeLink : ''}`}>
-                    <span>💰 Pagos</span>
-                </Link>
-                <Link href="/dashboard/coaches" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/coaches') ? styles.activeLink : ''}`}>
-                    <span>🧢 Entrenadores</span>
-                </Link>
+                {has('view_players') && (
+                    <Link href="/dashboard/players" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/players') ? styles.activeLink : ''}`}>
+                        <span>🏀 Jugadores</span>
+                    </Link>
+                )}
+                {has('view_teams') && (
+                    <Link href="/dashboard/categories" onClick={handleClick} className={`${styles.navLink} ${pathname.startsWith('/dashboard/categories') ? styles.activeLink : ''}`}>
+                        <span>🛡️ Equipos</span>
+                    </Link>
+                )}
+                {has('view_payments') && (
+                    <Link href="/dashboard/payments" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/payments') ? styles.activeLink : ''}`}>
+                        <span>💰 Pagos</span>
+                    </Link>
+                )}
+                {has('view_coaches') && (
+                    <Link href="/dashboard/coaches" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/coaches') ? styles.activeLink : ''}`}>
+                        <span>🧢 Entrenadores</span>
+                    </Link>
+                )}
             </NavGroup>
 
-            <NavGroup title="Informes">
-                <Link href="/dashboard/reports" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/reports') ? styles.activeLink : ''}`}>
-                    <span>📊 Informes</span>
-                </Link>
-            </NavGroup>
+            {(has('view_report_attendance') || has('view_report_salaries') || has('view_report_payments')) && (
+                <NavGroup title="Informes">
+                    <Link href="/dashboard/reports" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/reports') ? styles.activeLink : ''}`}>
+                        <span>📊 Informes</span>
+                    </Link>
+                </NavGroup>
+            )}
 
-            {isAdmin && (
+            {has('access_admin') && (
                 <div style={{ marginTop: '1rem' }}>
                     <Link href="/dashboard/administracion" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/administracion') ? styles.activeLink : ''}`}>
                         <span>⚙️ Administración</span>

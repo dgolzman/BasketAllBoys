@@ -11,7 +11,7 @@ const UserSchema = z.object({
     name: z.string().min(1, "Nombre es obligatorio"),
     email: z.string().email("Email inválido"),
     password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").optional().or(z.literal("")),
-    role: z.enum(["ADMIN", "OPERADOR", "VIEWER"]),
+    role: z.enum(["ADMIN", "SUB_COMISION", "COORDINADOR", "ENTRENADOR"]),
 });
 
 export async function createUser(prevState: any, formData: FormData) {

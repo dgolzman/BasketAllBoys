@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import DashboardLayoutClient from "./dashboard-layout-client";
+import { getPermissionsForRole } from "@/lib/role-permission-actions";
 
 export default async function DashboardLayout({
     children,
@@ -7,11 +8,12 @@ export default async function DashboardLayout({
     children: React.ReactNode;
 }) {
     const session = await auth();
-    const role = (session?.user as any)?.role || 'VIEWER';
+    const role = (session?.user as any)?.role || 'ENTRENADOR';
     const userName = session?.user?.name;
+    const permissions = await getPermissionsForRole(role);
 
     return (
-        <DashboardLayoutClient role={role} userName={userName}>
+        <DashboardLayoutClient role={role} userName={userName} permissions={permissions}>
             {children}
         </DashboardLayoutClient>
     );

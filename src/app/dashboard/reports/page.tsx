@@ -5,22 +5,36 @@ import PageGuide from "@/components/page-guide";
 import ReportsTable from "./reports-table";
 import CoachSalaryReport from "./coach-salary-report";
 import PaymentStatusReport from "./payment-status-report";
+import { auth } from "@/auth";
+import { hasPermission } from "@/lib/role-permission-actions";
+import { PERMISSIONS } from "@/lib/roles";
 
 export default async function ReportsPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
     const params = await Promise.resolve(searchParams);
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'ENTRENADOR';
 
-    const tab = typeof params?.tab === 'string' ? params.tab : 'attendance';
+    const canSeeAttendance = await hasPermission(role, PERMISSIONS.VIEW_REPORT_ATTENDANCE);
+    const canSeeSalaries = await hasPermission(role, PERMISSIONS.VIEW_REPORT_SALARIES);
+    const canSeePayments = await hasPermission(role, PERMISSIONS.VIEW_REPORT_PAYMENTS);
+
+    const allTabs = [
+        { id: 'attendance', label: '📊 Asistencia', enabled: canSeeAttendance },
+        { id: 'salaries', label: '💰 Sueldos', enabled: canSeeSalaries },
+        { id: 'payments', label: '💳 Pagos', enabled: canSeePayments },
+    ];
+    const tabs = allTabs.filter(t => t.enabled);
+
+    const defaultTab = tabs[0]?.id || 'attendance';
+    const tab = typeof params?.tab === 'string' && tabs.some(t => t.id === params.tab)
+        ? params.tab
+        : defaultTab;
+
     const categoryFilter = typeof params?.category === 'string' ? params.category : '';
     const dateFrom = typeof params?.from === 'string' ? params.from : '';
     const dateTo = typeof params?.to === 'string' ? params.to : '';
     const groupBy = typeof params?.groupBy === 'string' ? params.groupBy : 'day';
     const year = typeof params?.year === 'string' ? parseInt(params.year) : new Date().getFullYear();
-
-    const tabs = [
-        { id: 'attendance', label: '📊 Asistencia' },
-        { id: 'salaries', label: '💰 Sueldos' },
-        { id: 'payments', label: '💳 Pagos' }
-    ];
 
     return (
         <div>
@@ -34,10 +48,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
                     </div>
                     <div>
                         <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8 }}>
-                            <li><strong>Asistencia:</strong> Control de presentismo por categoría y fecha.</li>
-                            <li><strong>Sueldos:</strong> Proyección financiera basada en la fecha de alta de cada entrenador.
-                                Muestra datos históricos y proyecta costos hasta el mes próximo.</li>
-                            <li><strong>Pagos:</strong> Estado de deuda de cuota social y actividad.</li>
+                            {canSeeAttendance && <li><strong>Asistencia:</strong> Control de presentismo por categoría y fecha.</li>}
+                            {canSeeSalaries && <li><strong>Sueldos:</strong> Proyección financiera basada en la fecha de alta de cada entrenador.</li>}
+                            {canSeePayments && <li><strong>Pagos:</strong> Estado de deuda de cuota social y actividad.</li>}
                         </ul>
                     </div>
                 </div>
@@ -66,9 +79,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
                 ))}
             </div>
 
-            {tab === 'attendance' && await AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy })}
-            {tab === 'salaries' && await SalaryView({ year })}
-            {tab === 'payments' && await PaymentsView()}
+            {tab === 'attendance' && canSeeAttendance && await AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy })}
+            {tab === 'salaries' && canSeeSalaries && await SalaryView({ year })}
+            {tab === 'payments' && canSeePayments && await PaymentsView()}
         </div>
     );
 }
