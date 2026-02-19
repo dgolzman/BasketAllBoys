@@ -5,15 +5,18 @@ import styles from "./dashboard.module.css";
 import SidebarNav from "./sidebar-nav";
 import TopNav from "./top-nav";
 import { handleSignOut } from "./actions";
+import type { Permission } from '@/lib/roles';
 
 export default function DashboardLayoutClient({
     children,
     role,
-    userName
+    userName,
+    permissions,
 }: {
     children: React.ReactNode;
     role: string;
     userName?: string | null;
+    permissions: Permission[];
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -51,7 +54,7 @@ export default function DashboardLayoutClient({
                         />
                     </div>
                 </div>
-                <SidebarNav role={role} onLinkClick={() => setSidebarOpen(false)} />
+                <SidebarNav role={role} permissions={permissions} onLinkClick={() => setSidebarOpen(false)} />
                 <div className={styles.user}>
                     <form action={handleSignOut}>
                         <button className={styles.logoutBtn}>Cerrar Sesión</button>

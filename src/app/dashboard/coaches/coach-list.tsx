@@ -4,8 +4,9 @@ import Link from "next/link";
 import SortableHeader from '@/components/sortable-header';
 import DeleteCoachButton from "./delete-coach-button";
 
-export default function CoachList({ coaches, currentSort, currentOrder, role }: { coaches: any[], currentSort: string, currentOrder: string, role: string }) {
-    const canEdit = role === 'ADMIN' || role === 'OPERADOR';
+export default function CoachList({ coaches, currentSort, currentOrder, role, canSeeSalary }: { coaches: any[], currentSort: string, currentOrder: string, role: string, canSeeSalary?: boolean }) {
+    const canEdit = role === 'ADMIN' || role === 'SUB_COMISION' || role === 'COORDINADOR';
+    const showSalary = canSeeSalary !== false;
 
     const getWhatsAppLink = (phone: string) => {
         const cleanPhone = phone.replace(/\D/g, '');

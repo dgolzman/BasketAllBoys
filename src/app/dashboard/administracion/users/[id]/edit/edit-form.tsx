@@ -43,9 +43,10 @@ export default function EditUserForm({ user }: { user: any }) {
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label className="label">Rol <span style={{ color: 'red' }}>*</span></label>
                         <select name="role" className="input" required defaultValue={user.role}>
-                            <option value="VIEWER">Solo Vista (VIEWER)</option>
-                            <option value="OPERADOR">Operador (OPERADOR - Puede editar)</option>
-                            <option value="ADMIN">Administrador (ADMIN)</option>
+                            <option value="ADMIN">Administrador (ADMIN) - Acceso total</option>
+                            <option value="SUB_COMISION">Sub Comisión - Ver todo, editar jugadores/entrenadores/pagos, panel admin limitado</option>
+                            <option value="COORDINADOR">Coordinador - Ver informes, editar jugadores, sin admin ni pagos</option>
+                            <option value="ENTRENADOR">Entrenador - Ver jugadores/equipos, tomar asistencia, solo informe asistencia</option>
                         </select>
                         {state.errors?.role && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.role.join(', ')}</p>}
                     </div>
