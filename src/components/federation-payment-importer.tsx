@@ -180,6 +180,21 @@ export default function FederationPaymentImporter() {
                     </div>
                 )}
 
+                {/* Debug Logs (for support) */}
+                {result.logs && result.logs.length > 0 && (
+                    <div className="card bg-gray-900 text-gray-300 p-4 font-mono text-xs overflow-hidden">
+                        <div className="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
+                            <span className="text-gray-500 uppercase tracking-widest font-bold">📋 Logs de Diagnóstico</span>
+                            <span className="text-[10px] text-gray-600 italic">Sólo visible durante el análisis</span>
+                        </div>
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                            {result.logs.map((log, i) => (
+                                <div key={i} className="border-l border-gray-800 pl-2">{log}</div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Sticky Footer */}
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50 flex justify-end items-center gap-4 md:pr-12">
                     <div className="text-sm text-gray-600 hidden md:block">

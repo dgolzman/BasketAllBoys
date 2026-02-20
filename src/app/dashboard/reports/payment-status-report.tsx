@@ -23,17 +23,39 @@ type SortOrder = 'asc' | 'desc';
 
 export default function PaymentStatusReport({ players }: PaymentReportProps) {
     const [filter, setFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [socialFilter, setSocialFilter] = useState('all');
+    const [activityFilter, setActivityFilter] = useState('all');
+    const [federationFilter, setFederationFilter] = useState('all');
+    const [tiraFilter, setTiraFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+
     const [groupBy, setGroupBy] = useState<'none' | 'category' | 'tira'>('none');
     const [sortField, setSortField] = useState<SortField>('name');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
     const router = useRouter();
 
     const currentYearMonth = parseInt(new Date().toISOString().slice(0, 7).replace('-', '')); // YYYYMM
+    const currentYear = new Date().getFullYear();
+
+    // Available values for filters
+    const categories = useMemo(() => Array.from(new Set(players.map(p => p.category))).sort(), [players]);
+    const tiras = useMemo(() => Array.from(new Set(players.map(p => p.tira))).sort(), [players]);
+    const availableInstallments = useMemo(() => {
+        const set = new Set<string>();
+        players.forEach(p => {
+            if (p.federationInstallments && p.federationInstallments !== '-' && p.federationInstallments !== 'SALDADO') {
+                set.add(p.federationInstallments);
+            }
+        });
+        return Array.from(set).sort((a, b) => {
+            const numA = parseInt(a.match(/\d+/)?.[0] || '0');
+            const numB = parseInt(b.match(/\d+/)?.[0] || '0');
+            return numA - numB;
+        });
+    }, [players]);
 
     // Helper to determine status
     const getStatus = (p: PaymentReportProps['players'][0]) => {
-        const currentYear = new Date().getFullYear();
         const socialOk = p.lastSocialPayment && parseInt(p.lastSocialPayment) >= currentYearMonth;
         const activityOk = p.scholarship || (p.lastActivityPayment && parseInt(p.lastActivityPayment) >= currentYearMonth);
         const federationOk = p.federationYear === currentYear && p.federationInstallments === 'SALDADO';
@@ -41,7 +63,6 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
         if (socialOk && activityOk && federationOk) return 'AL_DIA';
         if (!socialOk && !activityOk && !federationOk) return 'DEUDA_TOTAL';
 
-        // Priority for the badge (if multiple debts, show the most "severe" or social first)
         if (!socialOk) return 'DEUDA_SOCIAL';
         if (!activityOk) return 'DEUDA_ACTIVIDAD';
         return 'DEUDA_FEDERACION';
@@ -49,21 +70,30 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
 
     const processData = useMemo(() => {
         let data = players.filter(p => {
-            const matchesName = p.name.toLowerCase().includes(filter.toLowerCase()) ||
-                p.category?.toLowerCase().includes(filter.toLowerCase());
+            const matchesSearch =
+                p.name.toLowerCase().includes(filter.toLowerCase()) ||
+                p.category?.toLowerCase().includes(filter.toLowerCase()) ||
+                p.federationInstallments?.toLowerCase().includes(filter.toLowerCase());
 
-            if (!matchesName) return false;
+            if (!matchesSearch) return false;
 
-            const currentYear = new Date().getFullYear();
             const socialOk = p.lastSocialPayment && parseInt(p.lastSocialPayment) >= currentYearMonth;
             const activityOk = p.scholarship || (p.lastActivityPayment && parseInt(p.lastActivityPayment) >= currentYearMonth);
             const federationOk = p.federationYear === currentYear && p.federationInstallments === 'SALDADO';
 
-            if (statusFilter === 'debt_social') return !socialOk;
-            if (statusFilter === 'debt_activity') return !activityOk;
-            if (statusFilter === 'up_to_date') return socialOk && activityOk && federationOk;
-            if (statusFilter === 'debt_any') return !socialOk || !activityOk || !federationOk;
-            if (statusFilter === 'debt_fed') return !federationOk;
+            // Independent filters
+            if (socialFilter === 'ok' && !socialOk) return false;
+            if (socialFilter === 'debt' && socialOk) return false;
+
+            if (activityFilter === 'ok' && !activityOk) return false;
+            if (activityFilter === 'debt' && activityOk) return false;
+
+            if (federationFilter === 'ok' && !federationOk) return false;
+            if (federationFilter === 'debt' && federationOk) return false;
+            if (federationFilter.startsWith('Cuota') && p.federationInstallments !== federationFilter) return false;
+
+            if (tiraFilter !== 'all' && p.tira !== tiraFilter) return false;
+            if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
 
             return true;
         });
@@ -79,10 +109,9 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                 valA = a.category;
                 valB = b.category;
             } else {
-                // Status Sorting Priority: Debt Total > Debt Social > Debt Activity > Debt Fed > Up to Date
                 const priority = { 'DEUDA_TOTAL': 0, 'DEUDA_SOCIAL': 1, 'DEUDA_ACTIVIDAD': 2, 'DEUDA_FEDERACION': 3, 'AL_DIA': 4 };
-                valA = priority[getStatus(a)];
-                valB = priority[getStatus(b)];
+                valA = (priority as any)[getStatus(a)];
+                valB = (priority as any)[getStatus(b)];
             }
 
             if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
@@ -91,7 +120,7 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
         });
 
         return data;
-    }, [players, filter, statusFilter, sortField, sortOrder]);
+    }, [players, filter, socialFilter, activityFilter, federationFilter, tiraFilter, categoryFilter, sortField, sortOrder]);
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -103,20 +132,20 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
     };
 
     const renderTable = (data: typeof players) => (
-        <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-gray-100 text-xs font-bold text-gray-700 uppercase">
+        <table className="min-w-max w-full text-sm text-left border-separate border-spacing-0">
+            <thead className="bg-gray-100 text-[10px] font-bold text-gray-700 uppercase sticky top-0 z-10">
                 <tr>
-                    <th className="px-6 py-4 cursor-pointer hover:bg-gray-200 whitespace-nowrap" onClick={() => handleSort('name')}>
+                    <th className="px-6 py-4 cursor-pointer hover:bg-gray-200 whitespace-nowrap min-w-[200px] border-b border-gray-200" onClick={() => handleSort('name')}>
                         Jugador {sortField === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
                     </th>
-                    <th className="px-6 py-4 cursor-pointer hover:bg-gray-200 whitespace-nowrap" onClick={() => handleSort('category')}>
+                    <th className="px-6 py-4 cursor-pointer hover:bg-gray-200 whitespace-nowrap min-w-[150px] border-b border-gray-200" onClick={() => handleSort('category')}>
                         Categoría {sortField === 'category' && (sortOrder === 'asc' ? '▲' : '▼')}
                     </th>
-                    <th className="px-6 py-4 text-center whitespace-nowrap">Últ. Cuota Social</th>
-                    <th className="px-6 py-4 text-center whitespace-nowrap">Últ. Cuota Actividad</th>
-                    <th className="px-6 py-4 text-center whitespace-nowrap">🏅 Federación/Seguro</th>
-                    <th className="px-6 py-4 text-center cursor-pointer hover:bg-gray-200 whitespace-nowrap" onClick={() => handleSort('status')}>
-                        Estado Cuota {sortField === 'status' && (sortOrder === 'asc' ? '▲' : '▼')}
+                    <th className="px-6 py-4 text-center whitespace-nowrap min-w-[140px] border-b border-gray-200">Social</th>
+                    <th className="px-6 py-4 text-center whitespace-nowrap min-w-[140px] border-b border-gray-200">Actividad</th>
+                    <th className="px-6 py-4 text-center whitespace-nowrap min-w-[220px] border-b border-gray-200">🏅 Federación/Seguro</th>
+                    <th className="px-6 py-4 text-center cursor-pointer hover:bg-gray-200 whitespace-nowrap min-w-[140px] border-b border-gray-200" onClick={() => handleSort('status')}>
+                        Estado {sortField === 'status' && (sortOrder === 'asc' ? '▲' : '▼')}
                     </th>
                 </tr>
             </thead>
@@ -127,13 +156,13 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                     const status = getStatus(player);
 
                     return (
-                        <tr key={player.id} className="hover:bg-gray-50/80 transition-colors">
-                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{player.name}</td>
-                            <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{player.category} - {player.tira}</td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <tr key={player.id} className="hover:bg-gray-50/80 transition-colors group">
+                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap border-b border-gray-50">{player.name}</td>
+                            <td className="px-6 py-4 text-gray-500 whitespace-nowrap text-xs border-b border-gray-50">{player.category} - {player.tira}</td>
+                            <td className="px-6 py-4 text-center whitespace-nowrap border-b border-gray-50">
                                 <PaymentDateBadge value={player.lastSocialPayment} isOk={!!socialOk} />
                             </td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap">
+                            <td className="px-6 py-4 text-center whitespace-nowrap border-b border-gray-50">
                                 {player.scholarship ? (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 shadow-sm leading-tight">
                                         BECADO
@@ -142,14 +171,16 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                                     <PaymentDateBadge value={player.lastActivityPayment} isOk={!!activityOk} />
                                 )}
                             </td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap">
-                                <FederationBadge year={player.federationYear} installments={player.federationInstallments} />
+                            <td className="px-6 py-4 text-center whitespace-nowrap border-b border-gray-50">
+                                <div className="inline-block min-w-full">
+                                    <FederationBadge year={player.federationYear} installments={player.federationInstallments} />
+                                </div>
                             </td>
-                            <td className="px-6 py-4 text-center whitespace-nowrap">
+                            <td className="px-6 py-4 text-center whitespace-nowrap border-b border-gray-50">
                                 <StatusBadge status={status} />
                             </td>
                         </tr>
-                    )
+                    );
                 })}
             </tbody>
         </table>
@@ -170,80 +201,115 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
         <div className="space-y-6">
             {/* Buttons hidden here, moved to filter bar */}
             {/* Filters Bar */}
-            <div className="card p-5 bg-white shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-end justify-between">
-                <div className="flex-1 w-full md:w-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label className="label mb-1">Buscar</label>
+            {/* Filters Bar */}
+            <div className="card" style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', background: 'var(--secondary)' }}>
+                <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
+                    <div style={{ flex: 1, minWidth: '180px', display: 'flex', flexDirection: 'column' }}>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Buscar</label>
                         <input
                             type="text"
-                            className="input w-full"
-                            placeholder="Nombre, Categoría..."
+                            className="input w-full p-2 text-xs border-gray-200"
+                            placeholder="Nombre..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                         />
                     </div>
-                    <div>
-                        <label className="label mb-1">Filtrar Estado</label>
-                        <select
-                            className="input w-full"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="all">Todos</option>
-                            <option value="debt_any">Cualquier Deuda</option>
-                            <option value="debt_social">Deuda Social</option>
-                            <option value="debt_activity">Deuda Actividad</option>
-                            <option value="debt_fed">Deuda Federación</option>
-                            <option value="up_to_date">Al Día</option>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Categoría</label>
+                        <select className="input w-full p-2 text-xs border-gray-200" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                            <option value="all">Todas</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
                         </select>
                     </div>
-                    <div>
-                        <label className="label mb-1">Agrupar Por</label>
-                        <div className="flex bg-gray-100 p-1 rounded-lg">
-                            <button onClick={() => setGroupBy('none')} className={`flex-1 py-1 px-2 text-xs rounded-md transition-all ${groupBy === 'none' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Nada</button>
-                            <button onClick={() => setGroupBy('category')} className={`flex-1 py-1 px-2 text-xs rounded-md transition-all ${groupBy === 'category' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Categoría</button>
-                            <button onClick={() => setGroupBy('tira')} className={`flex-1 py-1 px-2 text-xs rounded-md transition-all ${groupBy === 'tira' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Tira</button>
-                        </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Tira</label>
+                        <select className="input w-full p-2 text-xs border-gray-200" value={tiraFilter} onChange={(e) => setTiraFilter(e.target.value)}>
+                            <option value="all">Todas</option>
+                            {tiras.map(tira => (
+                                <option key={tira} value={tira}>{tira}</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0">
-                    <button
-                        className="btn btn-primary btn-sm flex-1 md:flex-none"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
-                    >
-                        🔍 Filtrar
-                    </button>
-                    <button
-                        onClick={() => exportPaymentsToExcel(processData)}
-                        className="btn btn-outline btn-sm flex-1 md:flex-none"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
-                    >
-                        📊 Exportar Excel
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Social</label>
+                        <select className="input w-full p-2 text-xs border-gray-200" value={socialFilter} onChange={(e) => setSocialFilter(e.target.value)}>
+                            <option value="all">Todos</option>
+                            <option value="ok">Al Día</option>
+                            <option value="debt">Con Deuda</option>
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Actividad</label>
+                        <select className="input w-full p-2 text-xs border-gray-200" value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
+                            <option value="all">Todos</option>
+                            <option value="ok">Al Día</option>
+                            <option value="debt">Con Deuda</option>
+                        </select>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Fed/Seguro</label>
+                        <select className="input w-full p-2 text-xs border-gray-200" value={federationFilter} onChange={(e) => setFederationFilter(e.target.value)}>
+                            <option value="all">Todos</option>
+                            <option value="ok">SALDADO</option>
+                            <option value="debt">PENDIENTE</option>
+                            {availableInstallments.map(inst => (
+                                <option key={inst} value={inst}>{inst}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <button
+                            className="btn btn-secondary"
+                            style={{ padding: '0.45rem 1rem', textTransform: 'uppercase', fontWeight: 'bold' }}
+                        >
+                            Filtrar
+                        </button>
+                        <button
+                            onClick={() => {
+                                setFilter('');
+                                setSocialFilter('all');
+                                setActivityFilter('all');
+                                setFederationFilter('all');
+                                setTiraFilter('all');
+                                setCategoryFilter('all');
+                                setGroupBy('none');
+                            }}
+                            className="btn btn-outline"
+                            style={{ border: 'none', background: 'transparent', color: 'white', textTransform: 'uppercase', fontWeight: 'bold' }}
+                        >
+                            Limpiar
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {/* Grouping (Moved sub-filters outside) */}
+            <div className="flex justify-between items-center px-2">
+                <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                    <span className="text-[10px] font-bold text-gray-400 px-2 uppercase leading-none">Agrupar Por:</span>
+                    <button onClick={() => setGroupBy('none')} className={`py-1 px-3 text-xs rounded-md transition-all ${groupBy === 'none' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Nada</button>
+                    <button onClick={() => setGroupBy('category')} className={`py-1 px-3 text-xs rounded-md transition-all ${groupBy === 'category' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Categoría</button>
+                    <button onClick={() => setGroupBy('tira')} className={`py-1 px-3 text-xs rounded-md transition-all ${groupBy === 'tira' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Tira</button>
+                </div>
+
+                <button
+                    onClick={() => exportPaymentsToExcel(processData)}
+                    className="btn btn-outline btn-xs"
+                    style={{ fontSize: '10px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                >
+                    📊 Exportar Excel
+                </button>
+            </div>
+
             {/* Records Counter */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.25rem 0.5rem',
-                fontSize: '0.9rem',
-                color: 'var(--foreground)',
-                opacity: 0.8,
-                marginTop: '-1rem'
-            }}>
-                <span style={{ fontSize: '1.2rem' }}>📊</span>
+            <div className="flex items-center gap-2 px-2 text-sm text-gray-500 -mt-2">
+                <span className="text-lg">📊</span>
                 <span>Se encontraron <strong>{processData.length}</strong> registros</span>
-                {statusFilter !== 'all' && (
-                    <span style={{
-                        fontSize: '0.7rem',
-                        background: 'rgba(255,255,255,0.1)',
-                        padding: '0.1rem 0.4rem',
-                        borderRadius: '4px',
-                        border: '1px solid var(--border)'
-                    }}>Filtro activo</span>
+                {(socialFilter !== 'all' || activityFilter !== 'all' || federationFilter !== 'all' || tiraFilter !== 'all' || categoryFilter !== 'all') && (
+                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">Filtro activo</span>
                 )}
             </div>
 
@@ -303,7 +369,7 @@ function StatusBadge({ status }: { status: string }) {
         case 'DEUDA_ACTIVIDAD':
             return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">DEUDA ACTIVIDAD</span>;
         case 'DEUDA_FEDERACION':
-            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">DEUDA FED.</span>;
+            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">DEUDA F.</span>;
         default:
             return <span>-</span>;
     }
@@ -324,9 +390,13 @@ function FederationBadge({ year, installments }: { year?: number | null; install
             </span>
         );
     }
+    const text = installments?.toLowerCase().includes('cuota')
+        ? installments
+        : installments ? `${installments} cuota${parseInt(installments) > 1 ? 's' : ''}` : 'DESCONOCIDO';
+
     return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
-            ⚠️ {year} — {installments} cuota{installments && parseInt(installments) > 1 ? 's' : ''} (PEND.)
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200 shadow-sm">
+            ⚠️ {year} — {text}
         </span>
     );
 }

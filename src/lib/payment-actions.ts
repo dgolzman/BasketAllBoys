@@ -127,7 +127,8 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
         logs.push(`Filas encontradas: ${rawData.length}`);
 
         if (rawData.length > 0) {
-            logs.push(`Columnas detectadas: ${Object.keys(rawData[0] as any).join(' | ')}`);
+            const detectedColumns = Object.keys(rawData[0] as any);
+            logs.push(`Columnas detectadas en el Excel: ${detectedColumns.join(' | ')}`);
         }
 
         // Fetch ALL players to check for inactive ones too
@@ -327,20 +328,95 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
             const rowNum = index + 2;
             const notes: string[] = [];
 
-            const dniKey = findColumn(r, ['dni', 'documento']);
-            const apellidoKey = findColumn(r, ['apellido']);
-            const nombreKey = findColumn(r, ['nombre']);
-            const yearKey = findColumn(r, ['año', 'anio', 'year', 'año pago', 'año del pago']);
-            const cuotasKey = findColumn(r, ['cuotas', 'cuotas abonadas', 'cuotas pagadas', 'installments', 'estado']);
+            const dniKey = findColumn(r, ['dni', 'documento', 'documento_nro', 'dni_nro']);
+            const apellidoKey = findColumn(r, ['apellido', 'apellidos']);
+            const nombreKey = findColumn(r, ['nombre', 'nombres', 'cliente', 'nombre y apellido', 'nombre completo']);
+            const yearKey = findColumn(r, ['año', 'anio', 'year', 'año pago', 'año del pago', 'periodo', 'año_inscripcion']);
+            const cuotasKey = findColumn(r, ['cuotas', 'cuota', 'nro cuota', 'pago', 'cuotas abonadas', 'cuotas pagadas', 'installments', 'estado', 'cuotas pagas', 'cuota social']);
+            const productosKey = findColumn(r, ['productos', 'item', 'descripcion']);
 
-            const dni = dniKey ? r[dniKey]?.toString().trim() : undefined;
-            const apellido = apellidoKey ? normalizeString(r[apellidoKey]?.toString()) : '';
-            const nombre = nombreKey ? normalizeString(r[nombreKey]?.toString()) : '';
-            const yearRaw = yearKey ? r[yearKey]?.toString().trim() : undefined;
-            const cuotasRaw = cuotasKey ? r[cuotasKey]?.toString().trim().toUpperCase() : undefined;
+            if (index === 0) {
+                logs.push(`Mapeo de columnas: DNI -> ${dniKey || 'no encontrado'}, Nombre -> ${nombreKey || 'no encontrado'}, Apellido -> ${apellidoKey || 'no encontrado'}, Año -> ${yearKey || 'no encontrado'}, Cuotas -> ${cuotasKey || 'no encontrado'}, Productos -> ${productosKey || 'no encontrado'}`);
+            }
 
-            const year = yearRaw ? parseInt(yearRaw) : NaN;
-            const installments = cuotasRaw || '';
+            const dniVal = dniKey ? r[dniKey]?.toString().trim() : undefined;
+            // Filter out junk DNI values like literal "DNI"
+            const dniClean = (dniVal && /\d+/.test(dniVal)) ? dniVal.replace(/\D/g, '') : undefined;
+
+            // Ensure originalData has 'dni' for UI display
+            if (dniVal) r['dni'] = dniVal;
+
+            const dni = dniClean;
+            let apellido = apellidoKey ? normalizeString(r[apellidoKey]?.toString()) : '';
+            let nombre = nombreKey ? normalizeString(r[nombreKey]?.toString()) : '';
+
+            // If we have a name column but no separated apellido, try to split if it looks like "LastName, FirstName" or just multi-word
+            if (nombre && !apellido) {
+                if (nombre.includes(',')) {
+                    const parts = nombre.split(',');
+                    apellido = normalizeString(parts[0]);
+                    nombre = normalizeString(parts[1]);
+                }
+            }
+
+            let year = yearKey ? parseInt(r[yearKey]?.toString()) : NaN;
+            let installments = cuotasKey ? r[cuotasKey]?.toString().trim() : '';
+            let categoryFromExcel = '';
+
+            // Logic for "Productos" column (Exportacion-ventas-20-02-26.xlsx format)
+            if (productosKey && r[productosKey]) {
+                const prodStr = r[productosKey].toString();
+                // Extract Year: "Inscripción 2026"
+                if (isNaN(year)) {
+                    const yearMatch = prodStr.match(/20\d{2}/);
+                    if (yearMatch) year = parseInt(yearMatch[0]);
+                }
+                // Extract Category: "(Categoría: Mosquitos/U9/U11)"
+                const catMatch = prodStr.match(/Categoría:\s*([^,)]+)/i);
+                if (catMatch) categoryFromExcel = catMatch[1].trim();
+
+                // Extract Installments: Find ALL occurrences of "Cuota: Cuota X"
+                const allInstallments = Array.from(prodStr.matchAll(/Cuota:\s*Cuota\s*(\d+)/gi))
+                    .map((m: any) => parseInt(m[1]));
+
+                if (allInstallments.length > 0) {
+                    const maxInst = Math.max(...allInstallments);
+                    const extractedInst = `Cuota ${maxInst}`;
+                    // If the found column was a generic "Estado" (like "Finalizado"), 
+                    // we prioritize the specific "Cuota X" found in the products text.
+                    if (!installments || installments.toLowerCase().includes('finalizado')) {
+                        installments = extractedInst;
+                    }
+                } else {
+                    // Fallback for single match or different format
+                    const installmentMatch = prodStr.match(/Cuota:\s*([^,)]+)/i);
+                    if (installmentMatch) {
+                        const extractedInst = installmentMatch[1].trim();
+                        if (!installments || installments.toLowerCase().includes('finalizado')) {
+                            installments = extractedInst;
+                        }
+                    }
+                }
+            }
+
+            // Normalization of "SALDADO" logic
+            if (installments) {
+                const normalizedInst = installments.toLowerCase();
+                const isMosquitos = categoryFromExcel.toLowerCase().includes('mosquitos') ||
+                    categoryFromExcel.toLowerCase().includes('u9') ||
+                    categoryFromExcel.toLowerCase().includes('u11');
+
+                const instNumMatch = installments.match(/\d+/);
+                const instNum = instNumMatch ? parseInt(instNumMatch[0]) : 0;
+
+                if (normalizedInst.includes('saldado')) {
+                    installments = 'SALDADO';
+                } else if (isMosquitos && instNum >= 1) {
+                    installments = 'SALDADO';
+                } else if (!isMosquitos && instNum >= 3) {
+                    installments = 'SALDADO';
+                }
+            }
 
             let match: typeof dbPlayers[0] | undefined;
             let method: 'DNI' | 'NAME_FUZZY' | undefined;
@@ -350,16 +426,34 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
                 if (match) method = 'DNI';
             }
 
-            if (!match && nombre && apellido) {
-                match = activePlayers.find((p: any) =>
-                    normalizeString(p.firstName) === nombre &&
-                    normalizeString(p.lastName) === apellido
-                );
+            if (!match && nombre) {
+                // Secondary match: Try to find by full name comparison (flexible)
+                const fullSearch = normalizeString(nombre + (apellido ? ' ' + apellido : ''));
+                const searchParts = fullSearch.split(' ').filter(p => p.length > 2);
+
+                match = activePlayers.find((p: any) => {
+                    const dbFull = normalizeString(`${p.firstName} ${p.lastName}`);
+                    const dbFullRev = normalizeString(`${p.lastName} ${p.firstName}`);
+
+                    // Direct match of the full string or reversed full string
+                    if (dbFull === fullSearch || dbFullRev === fullSearch) return true;
+
+                    // If we have at least 2 significant parts, check if they are contained in the DB name
+                    if (searchParts.length >= 2) {
+                        return searchParts.every(part => dbFull.includes(part));
+                    }
+
+                    // Specific case: if we only have name/apellido but it matches precisely
+                    if (apellido && normalizeString(p.firstName) === nombre && normalizeString(p.lastName) === apellido) return true;
+
+                    return false;
+                });
+
                 if (match) method = 'NAME_FUZZY';
             }
 
             const federationData: FederationPaymentData | undefined =
-                (!isNaN(year) && installments) ? { year, installments } : undefined;
+                (year || installments) ? { year: isNaN(year) ? 0 : year, installments: installments || '-' } : undefined;
 
             if (!federationData) {
                 notes.push(`Fila ${rowNum}: Año o cuotas inválidos o faltantes.`);
@@ -425,7 +519,7 @@ export async function saveFederationPaymentUpdates(prevState: any, dataset: Fede
     const session = await auth();
     if (!session) return { success: false, message: "No autorizado" };
 
-    const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id && d.federationData);
+    const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id && d.federationData && d.federationData.year > 0);
     let count = 0;
 
     try {
