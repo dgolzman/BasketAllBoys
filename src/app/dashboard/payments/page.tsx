@@ -117,12 +117,13 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                             </table>
                         </div>
                     ) : (
-                        <div style={{ marginTop: '1rem', fontSize: '0.85rem', opacity: 0.8 }}>
-                            <p style={{ margin: '0.5rem 0' }}><strong>Seguro / Federación:</strong></p>
-                            <ul style={{ margin: '0.3rem 0', paddingLeft: '1.2rem' }}>
-                                <li>Formato: Excel con columnas <em>dni, apellido, nombre, año, cuotas</em>.</li>
-                                <li>Búsqueda: Por DNI y/o Nombre y Apellido.</li>
-                                <li>Estado PENDIENTE: Cualquier registro distinto a "SALDADO".</li>
+                        <div style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.9 }}>
+                            <p style={{ margin: '0.5rem 0' }}><strong>Sube el Excel tal cual se exporta de la tienda online (Exportación de Ventas):</strong></p>
+                            <ul style={{ margin: '0.5rem 0', paddingLeft: '1.2rem', gap: '0.5rem', display: 'flex', flexDirection: 'column' }}>
+                                <li><strong>Columna Cliente:</strong> El sistema ahora detecta automáticamente la columna "Cliente" (Nombre y Apellido) y la separa si es necesario.</li>
+                                <li><strong>Búsqueda Inteligente:</strong> Se busca por DNI y también por nombre completo, permitiendo nombres invertidos o apellidos compuestos (ej: "Budano Ciaschini").</li>
+                                <li><strong>Detección de Cuotas:</strong> Se lee el detalle de "Cuota 1, 2, 3" dentro de la descripción del producto.</li>
+                                <li><strong>Saldado Automático:</strong> Mosquitos/U9/U11 con 1 cuota; resto de categorías con 3 cuotas.</li>
                             </ul>
                         </div>
                     )}
