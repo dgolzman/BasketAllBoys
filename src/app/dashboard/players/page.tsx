@@ -7,11 +7,11 @@ import ExportPlayersButton from "./export-button";
 import { auth } from "@/auth";
 import FilterPersistence from "./filter-persistence";
 
-export default async function PlayersPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function PlayersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const session = await auth();
     const role = (session?.user as any)?.role || 'VIEWER';
 
-    const params = await Promise.resolve(searchParams);
+    const params = await searchParams;
 
     // Parse filters
     const query = typeof params?.query === 'string' ? params.query : '';

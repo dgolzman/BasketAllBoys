@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -11,10 +16,12 @@ async function main() {
         where: { email: 'admin@allboys.com' },
         update: {},
         create: {
+            id: generateId(),
             email: 'admin@allboys.com',
             name: 'Administrador',
             password: hashedPassword,
             role: 'ADMIN',
+            updatedAt: new Date(),
         },
     });
 
@@ -35,8 +42,8 @@ async function main() {
     for (const cat of categories) {
         await (prisma as any).categoryMapping.upsert({
             where: { category: cat.category },
-            update: cat,
-            create: cat,
+            update: { ...cat, updatedAt: new Date() },
+            create: { id: generateId(), ...cat, updatedAt: new Date() },
         });
     }
 

@@ -7,6 +7,11 @@ import { createAuditLog } from "./actions";
 import { evaluatePlayerStatus } from "./utils";
 import * as XLSX from 'xlsx';
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 export async function importData(prevState: any, formData: FormData) {
     const session = await auth();
     if (!session) {
@@ -39,6 +44,7 @@ export async function importData(prevState: any, formData: FormData) {
         // Create Summary first
         const summary = await (prisma as any).importSummary.create({
             data: {
+                id: generateId(),
                 fileName: file.name,
                 stats_created: 0,
                 stats_updated: 0,
@@ -77,6 +83,7 @@ export async function importData(prevState: any, formData: FormData) {
                 stats.errors++;
                 await (prisma as any).importDetail.create({
                     data: {
+                        id: generateId(),
                         summaryId: summary.id,
                         playerName: `Fila ${rowIdx}`,
                         action: 'ERROR',
@@ -172,6 +179,7 @@ export async function importData(prevState: any, formData: FormData) {
                             stats.conflicts = (stats.conflicts || 0) + 1;
                             await (prisma as any).importDetail.create({
                                 data: {
+                                    id: generateId(),
                                     summaryId: summary.id,
                                     playerName: `${apellido}, ${nombre}`,
                                     action: 'CONFLICT',
@@ -198,6 +206,7 @@ export async function importData(prevState: any, formData: FormData) {
                         stats.unchanged++;
                         await (prisma as any).importDetail.create({
                             data: {
+                                id: generateId(),
                                 summaryId: summary.id,
                                 playerName: `${apellido}, ${nombre}`,
                                 action: 'UNCHANGED',
@@ -253,6 +262,7 @@ export async function importData(prevState: any, formData: FormData) {
                         stats.updated++;
                         await (prisma as any).importDetail.create({
                             data: {
+                                id: generateId(),
                                 summaryId: summary.id,
                                 playerName: `${apellido}, ${nombre}`,
                                 action: 'UPDATE',
@@ -264,6 +274,7 @@ export async function importData(prevState: any, formData: FormData) {
                         stats.unchanged++;
                         await (prisma as any).importDetail.create({
                             data: {
+                                id: generateId(),
                                 summaryId: summary.id,
                                 playerName: `${apellido}, ${nombre}`,
                                 action: 'UNCHANGED',
@@ -274,6 +285,8 @@ export async function importData(prevState: any, formData: FormData) {
                 } else {
                     // CREATE: Add registrationDate only for new players
                     excelData.registrationDate = parseExcelDate(row['FechaAlta']) || new Date();
+                    excelData.id = generateId();
+                    excelData.updatedAt = new Date();
                     const newPlayer = await prisma.player.create({ data: excelData });
                     await createAuditLog('CREATE', 'Player', newPlayer.id, {
                         import: 'Excel - Jugador Nuevo'
@@ -281,6 +294,7 @@ export async function importData(prevState: any, formData: FormData) {
                     stats.created++;
                     await (prisma as any).importDetail.create({
                         data: {
+                            id: generateId(),
                             summaryId: summary.id,
                             playerName: `${apellido}, ${nombre}`,
                             action: 'CREATE',
@@ -292,6 +306,7 @@ export async function importData(prevState: any, formData: FormData) {
                 stats.errors++;
                 await (prisma as any).importDetail.create({
                     data: {
+                        id: generateId(),
                         summaryId: summary.id,
                         playerName: `${apellido || 'Error'}`,
                         action: 'ERROR',

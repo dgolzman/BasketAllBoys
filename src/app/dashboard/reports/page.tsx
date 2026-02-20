@@ -6,11 +6,15 @@ import ReportsTable from "./reports-table";
 import CoachSalaryReport from "./coach-salary-report";
 import PaymentStatusReport from "./payment-status-report";
 import { auth } from "@/auth";
+import { format } from "date-fns";
 import { hasPermission } from "@/lib/role-permission-actions";
 import { PERMISSIONS } from "@/lib/roles";
 
-export default async function ReportsPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    const params = await Promise.resolve(searchParams);
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+    const params = await searchParams;
     const session = await auth();
     const role = (session?.user as any)?.role || 'ENTRENADOR';
 
@@ -48,9 +52,15 @@ export default async function ReportsPage({ searchParams }: { searchParams: { [k
                     </div>
                     <div>
                         <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8 }}>
-                            {canSeeAttendance && <li><strong>Asistencia:</strong> Control de presentismo por categoría y fecha.</li>}
-                            {canSeeSalaries && <li><strong>Sueldos:</strong> Proyección financiera basada en la fecha de alta de cada entrenador.</li>}
-                            {canSeePayments && <li><strong>Pagos:</strong> Estado de deuda de cuota social y actividad.</li>}
+                            {canSeeAttendance && <li><strong>Asistencia:</strong> Control de presentismo por categoría.</li>}
+                            {canSeeSalaries && <li><strong>Sueldos:</strong> Proyección financiera de entrenadores.</li>}
+                            {canSeePayments && (
+                                <>
+                                    <li><strong>Cuota Social:</strong> Obligatoria para todos los jugadores.</li>
+                                    <li><strong>Actividad:</strong> No aplica a <strong>Becados</strong>.</li>
+                                    <li><strong>Federación:</strong> Pago anual (Seguro). Alertado si no está SALDADO.</li>
+                                </>
+                            )}
                         </ul>
                     </div>
                 </div>
@@ -103,6 +113,8 @@ async function PaymentsView() {
             scholarship: true,
             lastSocialPayment: true,
             lastActivityPayment: true,
+            federationYear: true,
+            federationInstallments: true,
         },
         orderBy: { lastName: 'asc' }
     });
@@ -114,11 +126,14 @@ async function PaymentsView() {
         tira: p.tira || '',
         scholarship: p.scholarship || false,
         lastSocialPayment: p.lastSocialPayment,
-        lastActivityPayment: p.lastActivityPayment
+        lastActivityPayment: p.lastActivityPayment,
+        federationYear: p.federationYear,
+        federationInstallments: p.federationInstallments,
     }));
 
     return <PaymentStatusReport players={formattedPlayers} />;
 }
+
 
 async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any) {
     const where: any = {};
@@ -131,7 +146,7 @@ async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any
     const attendanceRecords = await (prisma as any).attendance.findMany({
         where,
         include: {
-            player: true
+            Player: true
         },
         orderBy: { date: 'desc' }
     });
@@ -155,8 +170,8 @@ async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any
         }
 
         const dateKey = normalizedDate.getTime();
-        const cat = getCategory(record.player, mappings);
-        const tira = cat === "Mosquitos" ? "Mixto" : (record.player.tira || 'Masculino A');
+        const cat = getCategory(record.Player, mappings);
+        const tira = cat === "Mosquitos" ? "Mixto" : (record.Player.tira || 'Masculino A');
 
         const key = `${dateKey}_${cat}_${tira}`;
         if (!acc[key]) {
@@ -191,7 +206,7 @@ async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any
         acc[key].totalCount++;
         if (record.present) {
             acc[key].presentCount++;
-            acc[key].presentPlayers.push(`${record.player.lastName}, ${record.player.firstName}`);
+            acc[key].presentPlayers.push(`${record.Player.lastName}, ${record.Player.firstName}`);
         }
 
         return acc;
@@ -258,7 +273,7 @@ async function SalaryView({ year }: { year: number }) {
             ]
         },
         include: {
-            salaryHistory: {
+            SalaryHistory: {
                 orderBy: { date: 'asc' }
             }
         }
@@ -271,7 +286,7 @@ async function SalaryView({ year }: { year: number }) {
         name: c.name,
         registrationDate: c.registrationDate,
         withdrawalDate: c.withdrawalDate,
-        salaryHistory: c.salaryHistory
+        salaryHistory: c.SalaryHistory
     }));
 
     return (

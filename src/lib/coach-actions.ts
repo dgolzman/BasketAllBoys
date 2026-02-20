@@ -28,6 +28,11 @@ const CoachSchema = z.object({
     withdrawalDate: emptyToUndefined,
 });
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 export async function createCoach(prevState: any, formData: FormData) {
     const session = await auth();
     if (session?.user?.role !== 'ADMIN') return { message: "No autorizado" };
@@ -68,14 +73,17 @@ export async function createCoach(prevState: any, formData: FormData) {
 
         const coach = await (prisma as any).coach.create({
             data: {
+                id: generateId(),
                 ...data,
                 dni: data.dni || null,
                 birthDate: birthDate,
                 registrationDate: regDate,
                 withdrawalDate: widthDate,
                 status: data.status || "ACTIVO",
+                updatedAt: new Date(),
                 salaryHistory: data.salary ? {
                     create: {
+                        id: generateId(),
                         amount: data.salary,
                         date: regDate || new Date()
                     }
@@ -146,6 +154,7 @@ export async function updateCoach(id: string, prevState: any, formData: FormData
         if (oldCoach && data.salary !== undefined && data.salary !== oldCoach.salary) {
             await (prisma as any).salaryHistory.create({
                 data: {
+                    id: generateId(),
                     amount: data.salary,
                     coachId: id,
                     date: regDate || new Date()

@@ -7,11 +7,11 @@ export default async function CategoryAttendancePage({
     params,
     searchParams
 }: {
-    params: { category: string },
-    searchParams: { tira?: string }
+    params: Promise<{ category: string }>,
+    searchParams: Promise<{ tira?: string }>
 }) {
-    const { category } = await Promise.resolve(params);
-    const { tira } = await Promise.resolve(searchParams);
+    const { category } = await params;
+    const { tira } = await searchParams;
 
     const decodedCategory = decodeURIComponent(category);
 

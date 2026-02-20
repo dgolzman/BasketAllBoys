@@ -7,12 +7,12 @@ import { auth } from "@/auth";
 import { hasPermission } from "@/lib/role-permission-actions";
 import { PERMISSIONS } from "@/lib/roles";
 
-export default async function CoachesPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function CoachesPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const session = await auth();
     const role = (session?.user as any)?.role || 'ENTRENADOR';
     const canEditCoaches = await hasPermission(role, PERMISSIONS.EDIT_COACHES);
     const canSeeSalary = await hasPermission(role, PERMISSIONS.VIEW_COACH_SALARY);
-    const params = await Promise.resolve(searchParams);
+    const params = await searchParams;
     const sort = typeof params?.sort === 'string' ? params.sort : 'name';
     const sortOrder = typeof params?.sortOrder === 'string' ? params.sortOrder : 'asc';
 

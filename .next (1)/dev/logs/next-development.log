@@ -1,0 +1,38 @@
+[00:00:08.657] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:09.256] Server  LOG     ✓ Ready in 8.3s
+[00:00:53.202] Server  LOG     Middleware Authorized Check: { pathname: '/', isLoggedIn: false }
+[00:00:56.212] Server  LOG     ○ Compiling / ...
+[00:00:56.934] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard', isLoggedIn: false }
+[00:00:56.952] Server  LOG     Middleware Authorized Check: { pathname: '/login', isLoggedIn: false }
+[00:01:37.243] Server  LOG     Middleware Authorized Check: { pathname: '/', isLoggedIn: false }
+[00:01:37.474] Server  LOG     Middleware Authorized Check: { pathname: '/', isLoggedIn: false }
+[00:01:37.482] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard', isLoggedIn: false }
+[00:01:37.719] Server  LOG     Middleware Authorized Check: { pathname: '/login', isLoggedIn: false }
+[00:01:37.915] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard', isLoggedIn: false }
+[00:01:38.010] Server  LOG     Middleware Authorized Check: { pathname: '/login', isLoggedIn: false }
+[00:01:38.280] Server  LOG     Middleware Authorized Check: { pathname: '/logo.jpg', isLoggedIn: false }
+[00:01:38.489] Server  LOG     Middleware Authorized Check: { pathname: '/logo.jpg', isLoggedIn: false }
+[00:01:39.038] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:39.510] Server  LOG     Middleware Authorized Check: { pathname: '/manifest.json', isLoggedIn: false }
+[00:01:39.674] Server  LOG     Middleware Authorized Check: { pathname: '/favicon.ico', isLoggedIn: false }
+[00:01:39.742] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:40.045] Server  LOG     Middleware Authorized Check: { pathname: '/manifest.json', isLoggedIn: false }
+[00:02:00.354] Server  LOG     Middleware Authorized Check: { pathname: '/login', isLoggedIn: false }
+[00:02:00.524] Server  WARN    [auth][warn][debug-enabled] "Read more: https://warnings.authjs.dev"
+[00:02:00.580] Server  LOG     prisma:query "SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`password`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?"
+[00:02:00.769] Server  LOG     prisma:query "SELECT `main`.`User`.`id`, `main`.`User`.`name`, `main`.`User`.`email`, `main`.`User`.`password`, `main`.`User`.`role`, `main`.`User`.`createdAt`, `main`.`User`.`updatedAt` FROM `main`.`User` WHERE (`main`.`User`.`email` = ? AND 1=1) LIMIT ? OFFSET ?"
+[00:02:01.798] Server  LOG     Auth Error: Error: NEXT_REDIRECT
+[00:02:01.855] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard', isLoggedIn: true }
+[00:02:04.205] Server  LOG     Middleware Authorized Check: { pathname: '/logo.jpg', isLoggedIn: true }
+[00:02:04.578] Server  LOG     Middleware Authorized Check: { pathname: '/manifest.json', isLoggedIn: false }
+[00:02:04.688] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard/players', isLoggedIn: true }
+[00:02:07.704] Server  LOG     ○ Compiling /dashboard/players ...
+[00:02:08.579] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard/players', isLoggedIn: true }
+[00:02:08.666] Server  LOG     prisma:query "SELECT `main`.`CategoryMapping`.`id`, `main`.`CategoryMapping`.`category`, `main`.`CategoryMapping`.`minYear`, `main`.`CategoryMapping`.`maxYear`, `main`.`CategoryMapping`.`updatedAt` FROM `main`.`CategoryMapping` WHERE 1=1 ORDER BY `main`.`CategoryMapping`.`minYear` DESC LIMIT ? OFFSET ?"
+[00:02:08.696] Server  LOG     prisma:query "SELECT `main`.`Player`.`id`, `main`.`Player`.`firstName`, `main`.`Player`.`lastName`, `main`.`Player`.`dni`, `main`.`Player`.`birthDate`, `main`.`Player`.`tira`, `main`.`Player`.`status`, `main`.`Player`.`scholarship`, `main`.`Player`.`federated`, `main`.`Player`.`playsPrimera`, `main`.`Player`.`email`, `main`.`Player`.`phone`, `main`.`Player`.`partnerNumber`, `main`.`Player`.`shirtNumber`, `main`.`Player`.`contactName`, `main`.`Player`.`observations`, `main`.`Player`.`category`, `main`.`Player`.`registrationDate`, `main`.`Player`.`withdrawalDate`, `main`.`Player`.`siblings`, `main`.`Player`.`createdAt`, `main`.`Player`.`updatedAt`, `main`.`Player`.`lastSocialPayment`, `main`.`Player`.`lastActivityPayment` FROM `main`.`Player` WHERE `main`.`Player`.`status` IN (?,?) ORDER BY `main`.`Player`.`lastName` ASC LIMIT ? OFFSET ?"
+[00:02:08.808] Server  LOG     prisma:query "SELECT `main`.`CategoryMapping`.`id`, `main`.`CategoryMapping`.`category`, `main`.`CategoryMapping`.`minYear`, `main`.`CategoryMapping`.`maxYear`, `main`.`CategoryMapping`.`updatedAt` FROM `main`.`CategoryMapping` WHERE 1=1 ORDER BY `main`.`CategoryMapping`.`minYear` DESC LIMIT ? OFFSET ?"
+[00:02:08.824] Server  LOG     prisma:query "SELECT `main`.`Player`.`id`, `main`.`Player`.`firstName`, `main`.`Player`.`lastName`, `main`.`Player`.`dni`, `main`.`Player`.`birthDate`, `main`.`Player`.`tira`, `main`.`Player`.`status`, `main`.`Player`.`scholarship`, `main`.`Player`.`federated`, `main`.`Player`.`playsPrimera`, `main`.`Player`.`email`, `main`.`Player`.`phone`, `main`.`Player`.`partnerNumber`, `main`.`Player`.`shirtNumber`, `main`.`Player`.`contactName`, `main`.`Player`.`observations`, `main`.`Player`.`category`, `main`.`Player`.`registrationDate`, `main`.`Player`.`withdrawalDate`, `main`.`Player`.`siblings`, `main`.`Player`.`createdAt`, `main`.`Player`.`updatedAt`, `main`.`Player`.`lastSocialPayment`, `main`.`Player`.`lastActivityPayment` FROM `main`.`Player` WHERE `main`.`Player`.`status` IN (?,?) ORDER BY `main`.`Player`.`lastName` ASC LIMIT ? OFFSET ?"
+[00:02:10.368] Server  LOG     Middleware Authorized Check: { pathname: '/manifest.json', isLoggedIn: false }
+[00:02:20.794] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard/payments', isLoggedIn: true }
+[00:02:22.771] Server  LOG     Middleware Authorized Check: { pathname: '/manifest.json', isLoggedIn: false }
+[16:40:55.457] Server  LOG     Middleware Authorized Check: { pathname: '/dashboard/players', isLoggedIn: true }

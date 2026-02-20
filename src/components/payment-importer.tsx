@@ -206,25 +206,6 @@ export default function PaymentImporter() {
         <div className="card max-w-2xl mx-auto mt-8 relative">
             <h2 className="text-xl font-bold mb-4">Importar Reporte de Pagos</h2>
 
-            {/* Instructions Accordion */}
-            <details className="mb-6 bg-blue-50 rounded-lg border border-blue-100 group">
-                <summary className="cursor-pointer p-4 font-medium text-blue-800 flex justify-between items-center group-open:border-b group-open:border-blue-200">
-                    <span>ℹ️ Instrucciones y Formato de Archivo</span>
-                    <span className="text-blue-500 group-open:rotate-180 transition-transform">▼</span>
-                </summary>
-                <div className="p-4 text-sm text-blue-900 space-y-2">
-                    <p>El sistema busca automáticamente una hoja llamada <strong>"Basquet"</strong>.</p>
-                    <p>Las columnas esperadas son:</p>
-                    <ul className="list-disc pl-5 space-y-1">
-                        <li><strong>DNI</strong>: Para buscar coincidencia exacta.</li>
-                        <li><strong>Nro. Socio</strong>: Alternativa si no hay DNI.</li>
-                        <li><strong>Apellido / Nombre</strong>: Última opción de búsqueda (Fuzzy Match).</li>
-                        <li><strong>Ultima cuota Social Abonada</strong>: Formato YYYYMM (ej: 202601).</li>
-                        <li><strong>Ultima cuota Actividad Abonada</strong>: Formato YYYYMM.</li>
-                    </ul>
-                </div>
-            </details>
-
             {successMessage && (
                 <div className="p-4 mb-6 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200 shadow-sm animate-fade-in">
                     <div className="flex justify-between items-start">

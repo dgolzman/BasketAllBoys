@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { exportPaymentsToExcel } from '@/lib/export-utils';
+import { useRouter } from 'next/navigation';
 
 type PaymentReportProps = {
     players: {
@@ -12,6 +13,8 @@ type PaymentReportProps = {
         scholarship: boolean;
         lastSocialPayment: string | null;
         lastActivityPayment: string | null;
+        federationYear?: number | null;
+        federationInstallments?: string | null;
     }[];
 };
 
@@ -24,18 +27,24 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
     const [groupBy, setGroupBy] = useState<'none' | 'category' | 'tira'>('none');
     const [sortField, setSortField] = useState<SortField>('name');
     const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+    const router = useRouter();
 
     const currentYearMonth = parseInt(new Date().toISOString().slice(0, 7).replace('-', '')); // YYYYMM
 
     // Helper to determine status
     const getStatus = (p: PaymentReportProps['players'][0]) => {
+        const currentYear = new Date().getFullYear();
         const socialOk = p.lastSocialPayment && parseInt(p.lastSocialPayment) >= currentYearMonth;
         const activityOk = p.scholarship || (p.lastActivityPayment && parseInt(p.lastActivityPayment) >= currentYearMonth);
+        const federationOk = p.federationYear === currentYear && p.federationInstallments === 'SALDADO';
 
-        if (socialOk && activityOk) return 'AL_DIA';
-        if (!socialOk && !activityOk) return 'DEUDA_TOTAL';
+        if (socialOk && activityOk && federationOk) return 'AL_DIA';
+        if (!socialOk && !activityOk && !federationOk) return 'DEUDA_TOTAL';
+
+        // Priority for the badge (if multiple debts, show the most "severe" or social first)
         if (!socialOk) return 'DEUDA_SOCIAL';
-        return 'DEUDA_ACTIVIDAD';
+        if (!activityOk) return 'DEUDA_ACTIVIDAD';
+        return 'DEUDA_FEDERACION';
     };
 
     const processData = useMemo(() => {
@@ -45,12 +54,16 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
 
             if (!matchesName) return false;
 
-            const status = getStatus(p);
+            const currentYear = new Date().getFullYear();
+            const socialOk = p.lastSocialPayment && parseInt(p.lastSocialPayment) >= currentYearMonth;
+            const activityOk = p.scholarship || (p.lastActivityPayment && parseInt(p.lastActivityPayment) >= currentYearMonth);
+            const federationOk = p.federationYear === currentYear && p.federationInstallments === 'SALDADO';
 
-            if (statusFilter === 'debt_social') return status === 'DEUDA_SOCIAL' || status === 'DEUDA_TOTAL';
-            if (statusFilter === 'debt_activity') return status === 'DEUDA_ACTIVIDAD' || status === 'DEUDA_TOTAL';
-            if (statusFilter === 'up_to_date') return status === 'AL_DIA';
-            if (statusFilter === 'debt_any') return status !== 'AL_DIA';
+            if (statusFilter === 'debt_social') return !socialOk;
+            if (statusFilter === 'debt_activity') return !activityOk;
+            if (statusFilter === 'up_to_date') return socialOk && activityOk && federationOk;
+            if (statusFilter === 'debt_any') return !socialOk || !activityOk || !federationOk;
+            if (statusFilter === 'debt_fed') return !federationOk;
 
             return true;
         });
@@ -66,8 +79,8 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                 valA = a.category;
                 valB = b.category;
             } else {
-                // Status Sorting Priority: Debt Total > Debt Social > Debt Activity > Up to Date
-                const priority = { 'DEUDA_TOTAL': 0, 'DEUDA_SOCIAL': 1, 'DEUDA_ACTIVIDAD': 2, 'AL_DIA': 3 };
+                // Status Sorting Priority: Debt Total > Debt Social > Debt Activity > Debt Fed > Up to Date
+                const priority = { 'DEUDA_TOTAL': 0, 'DEUDA_SOCIAL': 1, 'DEUDA_ACTIVIDAD': 2, 'DEUDA_FEDERACION': 3, 'AL_DIA': 4 };
                 valA = priority[getStatus(a)];
                 valB = priority[getStatus(b)];
             }
@@ -101,8 +114,9 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                     </th>
                     <th className="px-6 py-4 text-center whitespace-nowrap">Últ. Cuota Social</th>
                     <th className="px-6 py-4 text-center whitespace-nowrap">Últ. Cuota Actividad</th>
+                    <th className="px-6 py-4 text-center whitespace-nowrap">🏅 Federación/Seguro</th>
                     <th className="px-6 py-4 text-center cursor-pointer hover:bg-gray-200 whitespace-nowrap" onClick={() => handleSort('status')}>
-                        Estado {sortField === 'status' && (sortOrder === 'asc' ? '▲' : '▼')}
+                        Estado Cuota {sortField === 'status' && (sortOrder === 'asc' ? '▲' : '▼')}
                     </th>
                 </tr>
             </thead>
@@ -121,12 +135,15 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                             </td>
                             <td className="px-6 py-4 text-center whitespace-nowrap">
                                 {player.scholarship ? (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 shadow-sm">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 shadow-sm leading-tight">
                                         BECADO
                                     </span>
                                 ) : (
                                     <PaymentDateBadge value={player.lastActivityPayment} isOk={!!activityOk} />
                                 )}
+                            </td>
+                            <td className="px-6 py-4 text-center whitespace-nowrap">
+                                <FederationBadge year={player.federationYear} installments={player.federationInstallments} />
                             </td>
                             <td className="px-6 py-4 text-center whitespace-nowrap">
                                 <StatusBadge status={status} />
@@ -151,15 +168,7 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
 
     return (
         <div className="space-y-6">
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-1rem', position: 'relative', zIndex: 10 }}>
-                <button
-                    onClick={() => exportPaymentsToExcel(processData)}
-                    className="btn btn-sm btn-outline bg-white"
-                    style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                    📊 Exportar Excel
-                </button>
-            </div>
+            {/* Buttons hidden here, moved to filter bar */}
             {/* Filters Bar */}
             <div className="card p-5 bg-white shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-end justify-between">
                 <div className="flex-1 w-full md:w-auto grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -184,6 +193,7 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                             <option value="debt_any">Cualquier Deuda</option>
                             <option value="debt_social">Deuda Social</option>
                             <option value="debt_activity">Deuda Actividad</option>
+                            <option value="debt_fed">Deuda Federación</option>
                             <option value="up_to_date">Al Día</option>
                         </select>
                     </div>
@@ -196,6 +206,45 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                         </div>
                     </div>
                 </div>
+                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto mt-4 md:mt-0">
+                    <button
+                        className="btn btn-primary btn-sm flex-1 md:flex-none"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
+                    >
+                        🔍 Filtrar
+                    </button>
+                    <button
+                        onClick={() => exportPaymentsToExcel(processData)}
+                        className="btn btn-outline btn-sm flex-1 md:flex-none"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
+                    >
+                        📊 Exportar Excel
+                    </button>
+                </div>
+            </div>
+
+            {/* Records Counter */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.25rem 0.5rem',
+                fontSize: '0.9rem',
+                color: 'var(--foreground)',
+                opacity: 0.8,
+                marginTop: '-1rem'
+            }}>
+                <span style={{ fontSize: '1.2rem' }}>📊</span>
+                <span>Se encontraron <strong>{processData.length}</strong> registros</span>
+                {statusFilter !== 'all' && (
+                    <span style={{
+                        fontSize: '0.7rem',
+                        background: 'rgba(255,255,255,0.1)',
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                        border: '1px solid var(--border)'
+                    }}>Filtro activo</span>
+                )}
             </div>
 
             {/* Results */}
@@ -253,7 +302,32 @@ function StatusBadge({ status }: { status: string }) {
             return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200">DEUDA SOCIAL</span>;
         case 'DEUDA_ACTIVIDAD':
             return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">DEUDA ACTIVIDAD</span>;
+        case 'DEUDA_FEDERACION':
+            return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">DEUDA FED.</span>;
         default:
             return <span>-</span>;
     }
 }
+
+function FederationBadge({ year, installments }: { year?: number | null; installments?: string | null }) {
+    if (!year && !installments) {
+        return (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-red-100 text-red-800 border border-red-300">
+                ❌ DEUDA TOTAL
+            </span>
+        );
+    }
+    if (installments === 'SALDADO') {
+        return (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                ✓ {year} — SALDADO
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+            ⚠️ {year} — {installments} cuota{installments && parseInt(installments) > 1 ? 's' : ''} (PEND.)
+        </span>
+    );
+}
+

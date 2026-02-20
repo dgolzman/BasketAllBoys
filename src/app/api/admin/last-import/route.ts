@@ -12,7 +12,7 @@ export async function GET() {
         const lastSummary = await (prisma as any).importSummary.findFirst({
             orderBy: { timestamp: 'desc' },
             include: {
-                details: {
+                ImportDetail: {
                     orderBy: { createdAt: 'desc' }
                 }
             }

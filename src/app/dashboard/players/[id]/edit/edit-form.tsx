@@ -213,7 +213,7 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                 <p style={{ fontSize: '0.75rem', color: '#7dd3fc', marginTop: '0.25rem', marginLeft: '2.25rem' }}>Aparecerá en la lista de Primera sin importar su edad.</p>
             </div>
 
-            <div style={{ padding: '1rem', background: 'rgba(5, 150, 105, 0.1)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #059669' }}>
+            <div style={{ padding: '1rem', background: 'rgba(5, 150, 105, 0.1)', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #059669' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#34d399', marginBottom: '0.5rem' }}>Estado de Pagos (YYYYMM)</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
@@ -226,6 +226,37 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                     </div>
                 </div>
             </div>
+
+            <div style={{ padding: '1rem', background: 'rgba(124, 58, 237, 0.1)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #7c3aed' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#c4b5fd', marginBottom: '0.5rem' }}>🏅 Seguro / Federación</h3>
+                <p style={{ fontSize: '0.7rem', color: '#a78bfa', marginBottom: '0.75rem' }}>Pago anual de seguro e inscripción a federación.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                        <label className="label" style={{ color: '#ede9fe' }}>Año del Pago</label>
+                        <input
+                            name="federationYear"
+                            type="number"
+                            className="input"
+                            defaultValue={player.federationYear || ''}
+                            placeholder="2026"
+                            min="2020"
+                            max="2099"
+                            disabled={!canEdit}
+                        />
+                    </div>
+                    <div>
+                        <label className="label" style={{ color: '#ede9fe' }}>Cuotas Abonadas</label>
+                        <select name="federationInstallments" className="input" defaultValue={player.federationInstallments || ''} disabled={!canEdit}>
+                            <option value="">— Sin registrar —</option>
+                            <option value="1">1 cuota</option>
+                            <option value="2">2 cuotas</option>
+                            <option value="3">3 cuotas</option>
+                            <option value="SALDADO">SALDADO ✓</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
 
             {state.message && <p style={{ color: 'red', marginBottom: '1rem' }}>{state.message}</p>}
 

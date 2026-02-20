@@ -1,0 +1,270 @@
+/* [project]/src/app/dashboard/dashboard.module.css [app-client] (css) */
+.dashboard-module__XABe8G__layout {
+  background: var(--background);
+  min-height: 100vh;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__sidebar {
+  border-right: 1px solid var(--border);
+  color: #fff;
+  z-index: 20;
+  background-color: #000;
+  background-image: linear-gradient(45deg, #111 25%, #0000 25% 75%, #111 75%, #111), linear-gradient(45deg, #111 25%, #0000 25% 75%, #111 75%, #111);
+  background-position: 0 0, 10px 10px;
+  background-repeat: repeat;
+  background-size: 20px 20px;
+  background-attachment: scroll;
+  background-origin: padding-box;
+  background-clip: border-box;
+  flex-direction: column;
+  width: 280px;
+  padding: 2rem 1.5rem;
+  transition: left .3s;
+  display: flex;
+  position: relative;
+  box-shadow: 5px 0 30px #00000080;
+}
+
+.dashboard-module__XABe8G__logoContainer {
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3rem;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__logoImage {
+  filter: drop-shadow(0 0 10px #fff3);
+  width: 100px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.dashboard-module__XABe8G__logoText {
+  font-family: var(--font-display);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  background: linear-gradient(#fff 0%, #aaa 100%);
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.dashboard-module__XABe8G__nav {
+  flex-direction: column;
+  flex: 1;
+  gap: 1.5rem;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__navGroup {
+  flex-direction: column;
+  gap: .25rem;
+  margin-bottom: 1rem;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__navGroupTitle {
+  color: #fff;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .25rem;
+  padding: .5rem 1.25rem;
+  font-size: .7rem;
+  font-weight: 700;
+  transition: color .2s;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__navGroupTitle:hover {
+  color: #fff;
+}
+
+.dashboard-module__XABe8G__navItems {
+  flex-direction: column;
+  gap: .25rem;
+  transition: max-height .3s ease-in-out, opacity .2s;
+  display: flex;
+  overflow: hidden;
+}
+
+.dashboard-module__XABe8G__navItemsCollapsed {
+  opacity: 0;
+  pointer-events: none;
+  max-height: 0;
+}
+
+.dashboard-module__XABe8G__navItemsExpanded {
+  opacity: 1;
+  max-height: 500px;
+}
+
+.dashboard-module__XABe8G__navChevron {
+  opacity: .9;
+  width: 12px;
+  height: 12px;
+  transition: transform .2s;
+}
+
+.dashboard-module__XABe8G__navChevronRotated {
+  transform: rotate(180deg);
+}
+
+.dashboard-module__XABe8G__navLink {
+  border-radius: var(--radius);
+  opacity: 1;
+  color: #fff;
+  border: 1px solid #0000;
+  align-items: center;
+  padding: .875rem 1.25rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all .2s;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__navLink:hover {
+  opacity: 1;
+  background: #ffffff0d;
+  border-color: #ffffff1a;
+  transform: translateX(5px);
+}
+
+.dashboard-module__XABe8G__activeLink {
+  opacity: 1;
+  color: #fff;
+  background: #ffffff1a;
+  border-color: #ffffff1a;
+  box-shadow: 0 4px 20px #00000080;
+}
+
+.dashboard-module__XABe8G__user {
+  border-top: 1px solid var(--border);
+  opacity: 1;
+  flex-direction: column;
+  gap: .5rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  display: flex;
+}
+
+.dashboard-module__XABe8G__userName {
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.dashboard-module__XABe8G__userRole {
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--accent);
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.dashboard-module__XABe8G__logoutBtn {
+  border: 1px solid var(--border);
+  color: #a3a3a3;
+  opacity: 1;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  background: none;
+  border-radius: 4px;
+  width: 100%;
+  padding: .5rem;
+  font-size: .75rem;
+  transition: all .2s;
+}
+
+.dashboard-module__XABe8G__logoutBtn:hover {
+  color: #f87171;
+  background: #ff00001a;
+  border-color: #ff00004d;
+}
+
+.dashboard-module__XABe8G__main {
+  background: var(--background);
+  flex: 1;
+  padding: 2rem;
+  position: relative;
+  overflow-y: auto;
+}
+
+.dashboard-module__XABe8G__mobileMenuBtn {
+  z-index: 1001;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  padding: .6rem;
+  display: none;
+  position: fixed;
+  top: .875rem;
+  left: .875rem;
+  box-shadow: 0 4px 12px #0000004d;
+}
+
+.dashboard-module__XABe8G__mobileMenuBtn svg {
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.dashboard-module__XABe8G__overlay {
+  z-index: 999;
+  background: #00000080;
+  display: none;
+  position: fixed;
+  inset: 0;
+}
+
+.dashboard-module__XABe8G__overlay.dashboard-module__XABe8G__visible {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .dashboard-module__XABe8G__layout {
+    flex-direction: column;
+  }
+
+  .dashboard-module__XABe8G__sidebar {
+    z-index: 1000;
+    width: 280px;
+    height: 100vh;
+    transition: left .3s;
+    position: fixed;
+    top: 0;
+    left: -280px;
+    overflow-y: auto;
+  }
+
+  .dashboard-module__XABe8G__sidebar.dashboard-module__XABe8G__open {
+    left: 0;
+  }
+
+  .dashboard-module__XABe8G__mobileMenuBtn {
+    display: block;
+  }
+
+  .dashboard-module__XABe8G__main {
+    padding: 1rem;
+  }
+
+  .dashboard-module__XABe8G__logoContainer {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-module__XABe8G__logoContainer > div {
+    width: 80px !important;
+    height: 80px !important;
+  }
+}
+
+/*# sourceMappingURL=src_app_dashboard_dashboard_module_f89138fb.css.map*/
