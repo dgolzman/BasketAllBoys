@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import EditUserForm from "./edit-form";
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
-    const { id } = await Promise.resolve(params);
+export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
 
     const user = await prisma.user.findUnique({
         where: { id }

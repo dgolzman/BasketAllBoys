@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 export async function updateCategoryMapping(category: string, minYear: number, maxYear: number) {
     const session = await auth();
     console.log(`[AdminAction] updateCategoryMapping: ${category} (${minYear}-${maxYear}) - User: ${session?.user?.email}, Role: ${session?.user?.role}`);
@@ -16,8 +21,8 @@ export async function updateCategoryMapping(category: string, minYear: number, m
     try {
         await (prisma as any).categoryMapping.upsert({
             where: { category },
-            update: { minYear, maxYear },
-            create: { category, minYear, maxYear }
+            update: { minYear, maxYear, updatedAt: new Date() },
+            create: { id: generateId(), category, minYear, maxYear, updatedAt: new Date() }
         });
         console.log(`[AdminAction] Successfully updated ${category}`);
     } catch (e) {
@@ -72,7 +77,7 @@ export async function renameCategoryMapping(oldName: string, newName: string) {
     await prisma.$transaction(async (tx) => {
         // Create new mapping
         await (tx as any).categoryMapping.create({
-            data: { category: newName, minYear, maxYear }
+            data: { id: generateId(), category: newName, minYear, maxYear, updatedAt: new Date() }
         });
 
         // Update players

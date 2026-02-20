@@ -14,6 +14,11 @@ const UserSchema = z.object({
     role: z.enum(["ADMIN", "SUB_COMISION", "COORDINADOR", "ENTRENADOR"]),
 });
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 export async function createUser(prevState: any, formData: FormData) {
     const session = await auth();
     if (session?.user?.role !== 'ADMIN') return { message: "No autorizado" };
@@ -43,10 +48,12 @@ export async function createUser(prevState: any, formData: FormData) {
 
         await prisma.user.create({
             data: {
+                id: generateId(),
                 name,
                 email,
                 password: hashedPassword,
                 role,
+                updatedAt: new Date(),
             },
         });
     } catch (error: any) {

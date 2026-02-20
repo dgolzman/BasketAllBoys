@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/damia/My%20Drive/Consultorias/All%20Boys/gestion-basket-app/src/app/dashboard/actions.ts"],"sourcesContent":["'use server';\r\n\r\nimport { signOut } from \"@/auth\";\r\n\r\nexport async function handleSignOut() {\r\n    await signOut();\r\n}\r\n"],"names":[],"mappings":";;;;;AAEA;;;;AAEO,eAAe;IAClB,MAAM,IAAA,sHAAO;AACjB;;;IAFsB;;AAAA,+OAAA"}},
+    {"offset": {"line": 25, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/damia/My%20Drive/Consultorias/All%20Boys/gestion-basket-app/.next-internal/server/app/dashboard/page/actions.js%20%28server%20actions%20loader%29"],"sourcesContent":["export {getAllRolePermissions as '00389c4dee762c9752fa78abeb9062f32a2bc77388'} from 'ACTIONS_MODULE0'\nexport {getPermissionsForRole as '405b1fff19e2829eba6c9bf3e477254b7973b8a323'} from 'ACTIONS_MODULE0'\nexport {hasPermission as '6028f758cf28d192fd5c86810b2b38b40bb85b5b68'} from 'ACTIONS_MODULE0'\nexport {updateRolePermission as '70b175dc5144eb864d129ad1d180d711c56c75c19e'} from 'ACTIONS_MODULE0'\nexport {handleSignOut as '00172bdecf9bdacb64dd4c5180e9c8675d7b15d573'} from 'ACTIONS_MODULE1'\n"],"names":[],"mappings":";AAAA;AAIA"}}]
+}

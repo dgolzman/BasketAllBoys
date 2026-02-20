@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/damia/My%20Drive/Consultorias/All%20Boys/gestion-basket-app/src/app/dashboard/page.tsx"],"sourcesContent":["import { redirect } from \"next/navigation\";\r\n\r\nexport default function Page() {\r\n    redirect(\"/dashboard/players\");\r\n}\r\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAEe,SAAS;IACpB,IAAA,iMAAQ,EAAC;AACb"}}]
+}

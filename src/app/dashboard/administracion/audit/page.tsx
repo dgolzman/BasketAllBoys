@@ -95,7 +95,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
     const totalPages = Math.ceil(totalLogs / pageSize);
     const logs = await prisma.auditLog.findMany({
         orderBy: { timestamp: 'desc' },
-        include: { user: true },
+        include: { User: true },
         skip: (page - 1) * pageSize,
         take: pageSize
     });
@@ -162,7 +162,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                                         {format(log.timestamp, 'dd/MM HH:mm:ss')}
                                     </td>
                                     <td style={{ padding: '1rem', fontSize: '0.85rem', fontWeight: '500' }}>
-                                        {log.user?.name || log.user?.email || 'Sistema'}
+                                        {log.User?.name || log.User?.email || 'Sistema'}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <span style={{

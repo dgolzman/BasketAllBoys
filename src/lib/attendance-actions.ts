@@ -3,6 +3,11 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 export async function saveAttendance(date: Date, attendanceData: Record<string, boolean>) {
     // Normalize date to local midnight to avoid timezone shifts
     const normalizedDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
@@ -27,9 +32,11 @@ export async function saveAttendance(date: Date, attendanceData: Record<string, 
                     present: record.present,
                 },
                 create: {
+                    id: generateId(),
                     playerId: record.playerId,
                     date: record.date,
                     present: record.present,
+                    updatedAt: new Date(),
                 },
             });
         }

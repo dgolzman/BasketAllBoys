@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { findDuplicates, deletePlayerById, deleteDuplicatesByDate } from '@/lib/duplicates-actions';
+import { findDuplicates, deletePlayerById, deleteDuplicatesByDate, dismissDuplicate } from '@/lib/duplicates-actions';
 import PageGuide from '@/components/page-guide';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -64,13 +64,25 @@ export default function DuplicatesPage() {
         }
     };
 
+    const handleDismiss = async (p1: any, p2: any) => {
+        if (!confirm(`¿Marcar a ${p1.lastName} y ${p2.lastName} como "NO DUPLICADOS"? El sistema no volverá a sugerirlos como grupo.`)) return;
+
+        try {
+            await dismissDuplicate(p1.id, p2.id);
+            await loadData();
+        } catch (e: any) {
+            alert("Error: " + e.message);
+        }
+    };
+
     return (
         <div>
             <PageGuide>
                 <div>
                     <strong>🔍 Buscador de Duplicados</strong>
                     <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
-                        Esta herramienta escanea la base de datos buscando jugadores que coincidan en <strong>Nombre y Apellido</strong> pero que tengan distinto DNI o ID.
+                        Escanea jugadores buscando coincidencias por <strong>Nº de Socio</strong> o <strong>Nombre y Apellido</strong> (incluyendo coincidencias parciales).
+                        Podes resolver eliminando el registro duplicado o marcándolo como "No son duplicados" para ocultarlo en el futuro.
                     </p>
                 </div>
             </PageGuide>
@@ -140,9 +152,25 @@ export default function DuplicatesPage() {
 
                     {duplicates.map((group, idx) => (
                         <div key={idx} className="card" style={{ border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
-                            <h3 style={{ marginTop: 0, marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', color: 'var(--accent)' }}>
-                                {group.name}
-                            </h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.8rem' }}>
+                                <div>
+                                    <h3 style={{ margin: 0, color: 'var(--accent)', fontSize: '1.2rem' }}>
+                                        {group.name}
+                                    </h3>
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '0.2rem' }}>
+                                        Motivo: <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{group.reason}</span>
+                                    </div>
+                                </div>
+                                {group.players.length === 2 && (
+                                    <button
+                                        onClick={() => handleDismiss(group.players[0], group.players[1])}
+                                        className="btn btn-secondary"
+                                        style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
+                                    >
+                                        🤝 No son duplicados
+                                    </button>
+                                )}
+                            </div>
                             <div style={{ display: 'grid', gap: '1rem' }}>
                                 {group.players.map((p: any) => (
                                     <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -165,7 +193,7 @@ export default function DuplicatesPage() {
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <Link href={`/dashboard/players?id=${p.id}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                                            <Link href={`/dashboard/players/${p.id}/edit`} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
                                                 Ver Ficha
                                             </Link>
                                             <button

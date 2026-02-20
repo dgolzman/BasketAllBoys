@@ -164,22 +164,27 @@ export function exportSalariesToExcel(coaches: any[], year: number) {
  */
 export function exportPaymentsToExcel(players: any[]) {
     const exportData = players.map(p => {
+        const currentYear = new Date().getFullYear();
         const currentYearMonth = parseInt(new Date().toISOString().slice(0, 7).replace('-', ''));
+
         const socialOk = p.lastSocialPayment && parseInt(p.lastSocialPayment) >= currentYearMonth;
         const activityOk = p.scholarship || (p.lastActivityPayment && parseInt(p.lastActivityPayment) >= currentYearMonth);
+        const federationOk = p.federationYear === currentYear && p.federationInstallments === 'SALDADO';
 
-        let status = 'DEUDA ACTIVIDAD';
-        if (socialOk && activityOk) status = 'AL DÍA';
-        else if (!socialOk && !activityOk) status = 'DEUDA TOTAL';
+        let status = 'AL DÍA';
+        if (!socialOk && !activityOk && !federationOk) status = 'DEUDA TOTAL';
         else if (!socialOk) status = 'DEUDA SOCIAL';
+        else if (!activityOk) status = 'DEUDA ACTIVIDAD';
+        else if (!federationOk) status = 'DEUDA FEDERACIÓN';
 
         return {
             'Jugador': p.name,
             'Categoría': p.category,
             'Tira': p.tira,
             'Estado': status,
-            'Últ. Cuota Social': p.lastSocialPayment || '-',
-            'Últ. Cuota Actividad': p.scholarship ? 'BECADO' : (p.lastActivityPayment || '-')
+            'Últ. Pago Social': p.lastSocialPayment || '-',
+            'Últ. Pago Actividad': p.scholarship ? 'BECADO' : (p.lastActivityPayment || '-'),
+            'Federación/Seguro': p.federationYear ? `${p.federationYear} - ${p.federationInstallments}` : '-'
         };
     });
 

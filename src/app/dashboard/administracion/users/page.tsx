@@ -23,9 +23,10 @@ export default async function UsersPage() {
                         Administra los accesos al sistema. Los roles disponibles son:
                     </p>
                     <ul style={{ margin: '0.2rem 0 0 0', paddingLeft: '1.2rem', opacity: 0.8, fontSize: '0.9rem' }}>
-                        <li><strong>ADMIN:</strong> Acceso total (crear, editar, eliminar, administrar).</li>
-                        <li><strong>OPERADOR:</strong> Puede crear y editar jugadores y pagos.</li>
-                        <li><strong>VIEWER:</strong> Solo lectura (visualiza datos sin modificar).</li>
+                        <li><strong>ADMIN:</strong> Acceso total — usuarios, importar, duplicados, restaurar backup y configurar permisos.</li>
+                        <li><strong>SUB_COMISION:</strong> Ver todo, editar jugadores/entrenadores/pagos, panel admin limitado (sin usuarios ni importar), backup solo exportar.</li>
+                        <li><strong>COORDINADOR:</strong> Ver todos los informes, editar jugadores, sin acceso a pagos ni administración.</li>
+                        <li><strong>ENTRENADOR:</strong> Ver jugadores y equipos, tomar asistencia, solo informe de asistencia.</li>
                     </ul>
                 </div>
             </PageGuide>
@@ -60,13 +61,22 @@ export default async function UsersPage() {
                                 <td style={{ padding: '1rem' }}>{user.email}</td>
                                 <td style={{ padding: '1rem' }}>
                                     <span style={{
-                                        background: user.role === 'ADMIN' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                                        color: user.role === 'ADMIN' ? '#60a5fa' : 'var(--secondary)',
+                                        background: user.role === 'ADMIN' ? 'rgba(59, 130, 246, 0.1)'
+                                            : user.role === 'SUB_COMISION' ? 'rgba(245, 158, 11, 0.12)'
+                                                : user.role === 'COORDINADOR' ? 'rgba(99, 102, 241, 0.12)'
+                                                    : 'rgba(34, 197, 94, 0.12)',
+                                        color: user.role === 'ADMIN' ? '#60a5fa'
+                                            : user.role === 'SUB_COMISION' ? '#f59e0b'
+                                                : user.role === 'COORDINADOR' ? '#818cf8'
+                                                    : '#22c55e',
                                         padding: '0.25rem 0.5rem',
                                         borderRadius: '4px',
                                         fontSize: '0.75rem',
                                         fontWeight: 600,
-                                        border: user.role === 'ADMIN' ? '1px solid rgba(59, 130, 246, 0.2)' : '1px solid var(--border)'
+                                        border: user.role === 'ADMIN' ? '1px solid rgba(59, 130, 246, 0.2)'
+                                            : user.role === 'SUB_COMISION' ? '1px solid rgba(245, 158, 11, 0.25)'
+                                                : user.role === 'COORDINADOR' ? '1px solid rgba(99, 102, 241, 0.25)'
+                                                    : '1px solid rgba(34, 197, 94, 0.25)',
                                     }}>
                                         {user.role}
                                     </span>

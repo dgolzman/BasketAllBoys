@@ -35,6 +35,10 @@ const FormSchema = z.object({
     status: z.enum(["ACTIVO", "INACTIVO", "REVISAR"]).default("ACTIVO"),
     siblings: z.string().optional(),
     category: z.string().optional(),
+    federationYear: z.coerce.number().optional(),
+    federationInstallments: z.string().optional(),
+    lastSocialPayment: z.string().optional(),
+    lastActivityPayment: z.string().optional(),
 });
 
 function sanitizeDNI(dni: any): string {
@@ -46,6 +50,11 @@ function sanitizeDNI(dni: any): string {
     return sanitized.length > 0 ? sanitized : `TEMP-${Date.now()}`;
 }
 
+function generateId(): string {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+
 export async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
     const session = await auth();
     const userId = session?.user?.id;
@@ -56,6 +65,7 @@ export async function createAuditLog(action: string, entity: string, entityId: s
 
         await prisma.auditLog.create({
             data: {
+                id: generateId(),
                 action,
                 entity,
                 entityId,
@@ -99,6 +109,10 @@ export async function createPlayer(prevState: any, formData: FormData) {
         status: formData.get("status") || "ACTIVO",
         siblings: formData.get("siblings"),
         category: formData.get("category"),
+        federationYear: formData.get("federationYear"),
+        federationInstallments: formData.get("federationInstallments"),
+        lastSocialPayment: formData.get("lastSocialPayment"),
+        lastActivityPayment: formData.get("lastActivityPayment"),
     };
 
     const validatedFields = FormSchema.safeParse(rawData);
@@ -126,6 +140,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
         const playerName = `${data.lastName.toUpperCase()}, ${data.firstName.toUpperCase()}`;
         const player = await prisma.player.create({
             data: {
+                id: generateId(),
                 firstName: data.firstName.toUpperCase(),
                 lastName: data.lastName.toUpperCase(),
                 dni: data.dni,
@@ -144,6 +159,11 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 siblings: data.siblings ? data.siblings.toUpperCase() : null,
                 category: data.category || null,
                 status: evaluatePlayerStatus(data.status, data.dni, data.birthDate),
+                federationYear: data.federationYear || null,
+                federationInstallments: data.federationInstallments || null,
+                lastSocialPayment: data.lastSocialPayment || null,
+                lastActivityPayment: data.lastActivityPayment || null,
+                updatedAt: new Date(),
             } as any,
         });
 
@@ -214,7 +234,11 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
         withdrawalDate: formData.get("withdrawalDate"),
         status: formData.get("status") || "ACTIVO",
         siblings: formData.get("siblings"),
-        category: formData.get("category")
+        category: formData.get("category"),
+        federationYear: formData.get("federationYear"),
+        federationInstallments: formData.get("federationInstallments"),
+        lastSocialPayment: formData.get("lastSocialPayment"),
+        lastActivityPayment: formData.get("lastActivityPayment"),
     };
 
     // Manual date parsing check to avoid crash
@@ -259,6 +283,11 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 siblings: rawData.siblings ? (rawData.siblings as string).toUpperCase() : null,
                 category: (rawData.category as string) || null,
                 status: evaluatePlayerStatus(rawData.status as string, rawData.dni as string, rawData.birthDate as string),
+                federationYear: rawData.federationYear ? parseInt(rawData.federationYear as string) : null,
+                federationInstallments: (rawData.federationInstallments as string) || null,
+                lastSocialPayment: (rawData.lastSocialPayment as string) || null,
+                lastActivityPayment: (rawData.lastActivityPayment as string) || null,
+                updatedAt: new Date(),
             } as any
         });
 
@@ -381,6 +410,7 @@ export async function dismissAuditIssue(ruleId: string, identifier: string) {
     try {
         await prisma.dismissedAuditIssue.create({
             data: {
+                id: generateId(),
                 ruleId,
                 identifier,
                 reason: "Dismissed by user"

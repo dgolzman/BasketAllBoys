@@ -3,8 +3,8 @@ import { getCategory } from "@/lib/utils";
 import Link from "next/link";
 import PageGuide from "@/components/page-guide";
 
-export default async function CategoriesPage({ searchParams }: { searchParams: { tira?: string, cat?: string } }) {
-    const rawSearchParams = await Promise.resolve(searchParams);
+export default async function CategoriesPage({ searchParams }: { searchParams: Promise<{ tira?: string, cat?: string }> }) {
+    const rawSearchParams = await searchParams;
     const filterTira = rawSearchParams.tira || '';
     const filterCat = rawSearchParams.cat || '';
 

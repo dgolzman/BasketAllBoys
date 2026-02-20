@@ -48,10 +48,10 @@ export default function ImportPage() {
     }, [state.success]);
 
     // Compute conflict count from details
-    const conflictCount = lastImport?.details?.filter((d: any) => d.action === 'CONFLICT').length ?? 0;
+    const conflictCount = lastImport?.ImportDetail?.filter((d: any) => d.action === 'CONFLICT').length ?? 0;
 
     // Combined filter: free-text AND active counter filter
-    const filteredDetails = lastImport?.details?.filter((d: any) => {
+    const filteredDetails = lastImport?.ImportDetail?.filter((d: any) => {
         const matchesText = !filter ||
             d.playerName.toLowerCase().includes(filter.toLowerCase()) ||
             d.action.toLowerCase().includes(filter.toLowerCase()) ||
