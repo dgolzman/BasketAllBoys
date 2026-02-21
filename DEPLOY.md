@@ -38,7 +38,24 @@ echo "NEXTAUTH_URL=http://10.1.60.8:3000" >> .env
 
 *Nota: Podés editar este archivo en cualquier momento con `nano .env` si cambia tu IP.*
 
-## 3. Despliegue y Actualización
+## 3. Primer Acceso y Usuario Administrador
+
+Cuando inicies la aplicación por primera vez, la base de datos estará vacía. Para crear el usuario administrador y cargar las categorías iniciales, ejecutá este comando en tu servidor (dentro de `/opt/basket-app`):
+
+```bash
+# Ejecutar migraciones y cargar datos iniciales (Seed)
+docker compose exec app npx prisma migrate deploy
+docker compose exec app npx prisma db seed
+```
+
+### Credenciales por defecto:
+*   **Email**: `admin@allboys.com`
+*   **Contraseña**: `admin123`
+
+> [!TIP]
+> **Seguridad**: Una vez que entres, te recomendamos crear un usuario nuevo con tu DNI y borrar el usuario administrador por defecto o cambiarle la contraseña.
+
+## 4. Despliegue y Actualización
 
 Cada vez que quieras instalar por primera vez o actualizar a la versión más reciente:
 
