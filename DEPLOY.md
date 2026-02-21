@@ -54,14 +54,24 @@ El script se encargará de:
 *   Mantener tu base de datos intacta en `./data/prod.db`.
 *   Borrar versiones viejas para ahorrar espacio.
 
-## Solución de Problemas
+## Solución de Problemas / Autenticación
 
-*   **Error: unauthorized**: Sucede porque GitHub oculta las imágenes por defecto. Debés hacerla pública:
-    1. En la web de GitHub, andá a tu repositorio.
-    2. A la derecha, buscá la sección **Packages** y hacé clic en `basketallboys`.
-    3. Clic en **Package Settings** (menú de la derecha).
-    4. Bajá hasta **Danger Zone** y clic en **Change visibility**.
-    5. Seleccioná **Public** y confirmá escribiendo el nombre de la imagen.
+Si el comando `./update.sh` da un error de **"unauthorized"**, es porque necesitás loguear tu servidor a GitHub:
+
+1.  **Crear Token en GitHub**:
+    *   Andá a [GitHub Settings > Developer Settings > Personal Access Tokens > Tokens (classic)](https://github.com/settings/tokens).
+    *   Generá un nuevo token (clásico) con el permiso: `read:packages`.
+    *   Copiá el token generado (ej: `ghp_...`).
+
+2.  **Loguear en el Servidor**:
+    *   En tu Proxmox LXC, ejecutá:
+        ```bash
+        echo "TU_TOKEN_AQUÍ" | docker login ghcr.io -u dgolzman --password-stdin
+        ```
+    *   Reemplazá `TU_TOKEN_AQUÍ` por el token que copiaste.
+
+3.  **Probar de nuevo**: Corré `./update.sh` y ahora debería bajar la imagen sin problemas.
+
 *   **Ver logs en vivo**: `docker compose logs -f`
 *   **Editar secretos**: `nano .env` (luego ejecutá `./update.sh` para aplicar cambios).
 *   **Reiniciar manualmente**: `docker compose restart`
