@@ -1,15 +1,14 @@
 services:
   app:
-    build: .
-    image: ghcr.io/dgolzman/basket-all-boys:latest
+    image: ghcr.io/dgolzman/basketallboys:main
     container_name: basket-app
     restart: always
     ports:
       - "3000:3000"
     volumes:
       - ./data:/app/data
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=file:/app/data/prod.db
-      - AUTH_SECRET=${AUTH_SECRET}
-      - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NODE_ENV=production
