@@ -56,6 +56,12 @@ El script se encargará de:
 
 ## Solución de Problemas
 
+*   **Error: unauthorized**: Sucede porque GitHub oculta las imágenes por defecto. Debés hacerla pública:
+    1. En la web de GitHub, andá a tu repositorio.
+    2. A la derecha, buscá la sección **Packages** y hacé clic en `basketallboys`.
+    3. Clic en **Package Settings** (menú de la derecha).
+    4. Bajá hasta **Danger Zone** y clic en **Change visibility**.
+    5. Seleccioná **Public** y confirmá escribiendo el nombre de la imagen.
 *   **Ver logs en vivo**: `docker compose logs -f`
 *   **Editar secretos**: `nano .env` (luego ejecutá `./update.sh` para aplicar cambios).
 *   **Reiniciar manualmente**: `docker compose restart`
