@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 
 # Script para actualizar la aplicación BasketAllBoys
 echo "🚀 Iniciando actualización manual..."

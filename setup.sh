@@ -52,26 +52,42 @@ fi
 mkdir -p data
 
 # 6. Ejecutar despliegue inicial (pull y up)
-echo "🐳 Levantando contenedores..."
+echo "🐳 Levantando contenedores (descargando imagen)..."
 if ! ./update.sh; then
+    echo ""
     echo "--------------------------------------------------------"
     echo "❌ ERROR: No se pudo descargar la imagen de GitHub."
-    echo "Probablemente necesitás loguearte primero."
+    echo "El servidor no tiene permisos para acceder a GHCR.io."
     echo ""
-    echo "Corré este comando con tu Token de GitHub (read:packages):"
+    echo "DEBÉS CORRER ESTE COMANDO CON TU TOKEN DE GITHUB:"
     echo "echo 'TU_TOKEN' | docker login ghcr.io -u dgolzman --password-stdin"
     echo ""
-    echo "Luego volvé a ejecutar el script de instalación."
+    echo "Si no tenés un token, crealo en GitHub Settings > Developer Settings"
+    echo "con el permiso 'read:packages'."
     echo "--------------------------------------------------------"
     exit 1
 fi
 
 # 7. Inicializar base de datos
-echo "💾 Ejecutando migraciones y carga de datos iniciales..."
-# Esperar un momento a que el contenedor de la DB esté listo si fuera necesario, 
-# pero aquí usamos SQLite, así que solo necesitamos que el servicio app esté corriendo.
+echo "💾 Configurando base de datos..."
+# Esperar a que el contenedor esté realmente arriba
+MAX_RETRIES=5
+COUNT=0
+until [ $(docker compose ps app --status running | wc -l) -gt 1 ] || [ $COUNT -eq $MAX_RETRIES ]; do
+    echo "⏳ Esperando a que el servicio esté listo ($COUNT/$MAX_RETRIES)..."
+    sleep 2
+    COUNT=$((COUNT + 1))
+done
+
+if [ $(docker compose ps app --status running | wc -l) -le 1 ]; then
+    echo "❌ ERROR: El contenedor no inició correctamente. Revisá con 'docker compose logs'."
+    exit 1
+fi
+
+echo "🔄 Ejecutando migraciones y seeding..."
 docker compose exec -T app npx prisma@5.22.0 migrate deploy
 docker compose exec -T app npx tsx prisma/seed.ts
+
 
 echo "🎉 ¡Instalación completada con éxito!"
 echo "📍 Acceso: http://$IP_ADDR:3000"
