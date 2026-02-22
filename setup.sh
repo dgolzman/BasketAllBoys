@@ -92,7 +92,7 @@ fi
 
 echo "🔄 Ejecutando migraciones y seeding..."
 docker compose exec -T app npx prisma@5.22.0 migrate deploy
-docker compose exec -T app npx tsx prisma/seed.ts
+docker compose exec -T app node_modules/.bin/tsx prisma/seed.ts
 
 echo ""
 echo "🎉 ¡Instalación completada con éxito!"
