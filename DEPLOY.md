@@ -34,6 +34,7 @@ echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
 
 # Agregar la URL de tu aplicación (IP de tu servidor)
 echo "NEXTAUTH_URL=http://10.1.60.8:3000" >> .env
+echo "AUTH_TRUST_HOST=true" >> .env
 ```
 
 *Nota: Podés editar este archivo en cualquier momento con `nano .env` si cambia tu IP.*
