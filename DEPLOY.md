@@ -45,8 +45,9 @@ Cuando inicies la aplicación por primera vez, la base de datos estará vacía. 
 
 ```bash
 # Ejecutar migraciones y cargar datos iniciales (Seed)
-docker compose exec app npx prisma migrate deploy
-docker compose exec app npx prisma db seed
+# Es IMPORTANTE usar la versión @5.22.0 para evitar errores
+docker compose exec app npx prisma@5.22.0 migrate deploy
+docker compose exec app npx prisma@5.22.0 db seed
 ```
 
 ### Credenciales por defecto:
