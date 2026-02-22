@@ -102,16 +102,23 @@ echo "🐳 Descargando imagen y levantando contenedor..."
 
 # 9. Esperar a que el servicio esté listo
 echo "⏳ Esperando que el servicio esté listo..."
+sleep 5
 MAX_RETRIES=10
 COUNT=0
-until docker compose ps app --status running 2>/dev/null | grep -q "running" || [ $COUNT -eq $MAX_RETRIES ]; do
-    sleep 2
+while [ $COUNT -lt $MAX_RETRIES ]; do
+    STATUS=$(docker inspect --format='{{.State.Status}}' basket-app 2>/dev/null || echo "not_found")
+    if [ "$STATUS" = "running" ]; then
+        echo "✅ Contenedor corriendo."
+        break
+    fi
+    echo "   Intento $((COUNT+1))/$MAX_RETRIES - Estado: $STATUS"
+    sleep 3
     COUNT=$((COUNT + 1))
 done
 
-if ! docker compose ps app --status running 2>/dev/null | grep -q "running"; then
+if [ "$STATUS" != "running" ]; then
     echo "❌ ERROR: El contenedor no inició correctamente."
-    echo "   Revisá los logs con: docker compose logs"
+    echo "   Revisá los logs con: docker compose -f $APP_DIR/docker-compose.yml logs"
     exit 1
 fi
 
