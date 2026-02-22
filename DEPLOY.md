@@ -4,103 +4,97 @@ Esta guía explica cómo desplegar y mantener la aplicación en un contenedor LX
 
 ## 1. Instalación Rápida (Recomendado)
 
-Si estás en un servidor nuevo (Proxmox LXC con Alpine o Debian), podés instalar todo con un solo comando:
+Si estás en un servidor nuevo (Proxmox LXC con Alpine o Debian), instalá todo con un solo comando:
 
 ```bash
 wget -qO- https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/setup.sh | sh
 ```
 
-Este script configurará las carpetas, descargará las imágenes, creará los secretos y cargará los datos iniciales.
+El script instalador se encarga de **todo** de forma interactiva:
 
-## 2. Preparación Manual del Servidor (Alternativa)
+1. 🔑 **Autenticación**: Pedirá tu Token de GitHub (`read:packages`) y hará el `docker login` automáticamente.
+2. ⚠️ **Detección de instalación existente**: Si ya hay una base de datos, pide confirmación antes de borrar.
+3. 🐳 **Descarga y levantamiento**: Baja la imagen más reciente y levanta el contenedor.
+4. 💾 **Migraciones y seed**: Corre las migraciones y crea el usuario admin + categorías iniciales.
+5. 📦 **Importar backup (opcional)**: Al final, ofrece restaurar un backup `.json` existente si lo tenés.
 
-
-```bash
-# Crear carpeta de la aplicación
-mkdir -p /opt/basket-app && cd /opt/basket-app
-
-# Descargar archivos de control directamente de GitHub
-wget https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/docker-compose.yml
-wget https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/update.sh
-
-# Dar permisos de ejecución
-chmod +x update.sh
-
-# Crear carpeta para la base de datos (persistencia)
-mkdir -p data
-```
-
-## 2. Configuración Local de Secretos (Archivo .env)
-
-Para mantener la seguridad localmente en tu servidor, creá un archivo `.env` en `/opt/basket-app`:
-
-```bash
-# Crear el archivo con las llaves de seguridad
-touch .env
-
-# Generar un AUTH_SECRET aleatorio y guardarlo
-echo "AUTH_SECRET=$(openssl rand -base64 32)" >> .env
-
-# Agregar la URL de tu aplicación (IP de tu servidor)
-echo "NEXTAUTH_URL=http://10.1.60.8:3000" >> .env
-echo "AUTH_TRUST_HOST=true" >> .env
-```
-
-*Nota: Podés editar este archivo en cualquier momento con `nano .env` si cambia tu IP.*
-
-## 3. Primer Acceso y Usuario Administrador
-
-Cuando inicies la aplicación por primera vez, la base de datos estará vacía. Para crear el usuario administrador y cargar las categorías iniciales, ejecutá este comando en tu servidor (dentro de `/opt/basket-app`):
-
-```bash
-# Ejecutar migraciones
-docker compose exec app npx prisma@5.22.0 migrate deploy
-
-# Cargar usuario administrador (usamos tsx para leer el .ts)
-docker compose exec app npx tsx prisma/seed.ts
-```
-
-### Credenciales por defecto:
-*   **Email**: `admin@allboys.com`
-*   **Contraseña**: `admin123`
+### Credenciales por defecto (instalación limpia):
+- **Email**: `admin@allboys.com`
+- **Contraseña**: `admin123`
 
 > [!TIP]
-> **Seguridad**: Una vez que entres, te recomendamos crear un usuario nuevo con tu DNI y borrar el usuario administrador por defecto o cambiarle la contraseña.
+> **Seguridad**: Una vez que entres, te recomendamos crear un usuario nuevo y cambiarle la contraseña al admin por defecto.
 
-## 4. Despliegue y Actualización
+---
 
-Cada vez que quieras instalar por primera vez o actualizar a la versión más reciente:
+## 2. Actualización (Instalación Existente)
 
-1.  Aseguráte de haber hecho `git push` de tus cambios a GitHub y que el "Action" (pestaña Actions) esté en verde.
-2.  En tu servidor, dentro de `/opt/basket-app`, ejecutá:
-    ```bash
-    ./update.sh
-    ```
+Para actualizar a la última versión sin perder datos:
 
-El script se encargará de:
-*   Bajar la última imagen de GitHub.
-*   Reiniciar el contenedor con el nuevo código (usando tu `.env` local).
-*   Mantener tu base de datos intacta en `./data/prod.db`.
-*   Borrar versiones viejas para ahorrar espacio.
+```bash
+cd /opt/basket-app && ./update.sh
+```
 
-## Solución de Problemas / Autenticación
+El script se encarga de bajar la nueva imagen, reiniciar el contenedor y mantener la base de datos intacta.
 
-Si el comando `./update.sh` da un error de **"unauthorized"**, es porque necesitás loguear tu servidor a GitHub:
+---
 
-1.  **Crear Token en GitHub**:
-    *   Andá a [GitHub Settings > Developer Settings > Personal Access Tokens > Tokens (classic)](https://github.com/settings/tokens).
-    *   Generá un nuevo token (clásico) con el permiso: `read:packages`.
-    *   Copiá el token generado (ej: `ghp_...`).
+## 3. Preparación Manual del Servidor (Alternativa sin script)
 
-2.  **Loguear en el Servidor**:
-    *   En tu Proxmox LXC, ejecutá:
-        ```bash
-        echo "TU_TOKEN_AQUÍ" | docker login ghcr.io -u dgolzman --password-stdin
-        ```
-    *   Reemplazá `TU_TOKEN_AQUÍ` por el token que copiaste.
+```bash
+mkdir -p /opt/basket-app && cd /opt/basket-app
 
-3.  **Probar de nuevo**: Corré `./update.sh` y ahora debería bajar la imagen sin problemas.
+# Autenticar con GitHub
+echo "TU_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin
 
-*   **Ver logs en vivo**: `docker compose logs -f`
-*   **Editar secretos**: `nano .env` (luego ejecutá `./update.sh` para aplicar cambios).
-*   **Reiniciar manualmente**: `docker compose restart`
+# Descargar archivos de configuración
+wget https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/docker-compose.yml
+wget https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/update.sh
+chmod +x update.sh
+
+# Crear .env con secretos
+echo "AUTH_SECRET=$(openssl rand -base64 32)" > .env
+echo "NEXTAUTH_URL=http://IP_DEL_SERVIDOR:3000" >> .env
+echo "AUTH_TRUST_HOST=true" >> .env
+
+# Crear carpeta de datos y dar permisos
+mkdir -p data && chmod 777 data
+
+# Levantar contenedor
+./update.sh
+
+# Correr migraciones y seed
+docker compose exec app npx prisma@5.22.0 migrate deploy
+docker compose exec app node -e "
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+bcrypt.hash('admin123', 10).then(hash => {
+  const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return prisma.user.upsert({ where: { email: 'admin@allboys.com' }, update: {}, create: { id, email: 'admin@allboys.com', name: 'Administrador', password: hash, role: 'ADMIN', updatedAt: new Date() }});
+}).then(() => prisma.\$disconnect());
+"
+```
+
+---
+
+## Solución de Problemas
+
+### Error "unauthorized" al bajar la imagen
+
+El script de instalación (`setup.sh`) maneja esto automáticamente. Si usás `update.sh` manualmente:
+
+1. Creá un token en [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens) con permiso `read:packages`.
+2. Ejecutá:
+   ```bash
+   echo "TU_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin
+   ```
+3. Volvé a correr `./update.sh`.
+
+### Comandos útiles
+
+```bash
+docker compose logs -f          # Ver logs en vivo
+docker compose restart          # Reiniciar el contenedor
+nano /opt/basket-app/.env       # Editar secretos (requiere ./update.sh después)
+```
