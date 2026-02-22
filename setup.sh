@@ -64,7 +64,12 @@ else
     echo "ℹ️ El archivo .env ya existe, manteniendo configuración."
 fi
 
+# 5. Crear carpeta para la base de datos (persistencia)
+echo "📁 Preparando permisos para la base de datos..."
 mkdir -p data
+# Muy importante: Como Docker corre como usuario 1001 dentro del contenedor, 
+# la carpeta de host debe ser escribible.
+chmod 777 data
 
 # 6. Descargar imágenes y levantar servicios
 echo "🐳 Iniciando descarga de imágenes y contenedores..."
