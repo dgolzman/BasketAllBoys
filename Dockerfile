@@ -38,6 +38,9 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 
+# Copy bcryptjs explicitly so it's available for seeding (not bundled by webpack)
+COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
 # Ensure permissions for the data directory (SQLite)
 RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
 

@@ -92,7 +92,38 @@ fi
 
 echo "🔄 Ejecutando migraciones y seeding..."
 docker compose exec -T app npx prisma@5.22.0 migrate deploy
-docker compose exec -T app node_modules/.bin/tsx prisma/seed.ts
+# Usamos node directamente para evitar problemas con tsx en el build standalone
+docker compose exec -T app node -e "
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+async function main() {
+  const hash = await bcrypt.hash('admin123', 10);
+  const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+  await prisma.user.upsert({
+    where: { email: 'admin@allboys.com' },
+    update: {},
+    create: { id, email: 'admin@allboys.com', name: 'Administrador', password: hash, role: 'ADMIN', updatedAt: new Date() }
+  });
+  const cats = [
+    { category: 'Mosquitos', minYear: 2018, maxYear: 2030 },
+    { category: 'Pre-Mini', minYear: 2016, maxYear: 2017 },
+    { category: 'Mini', minYear: 2014, maxYear: 2015 },
+    { category: 'U13', minYear: 2013, maxYear: 2013 },
+    { category: 'U15', minYear: 2011, maxYear: 2012 },
+    { category: 'U17', minYear: 2009, maxYear: 2010 },
+    { category: 'U19', minYear: 2007, maxYear: 2008 },
+    { category: 'Primera', minYear: 1950, maxYear: 2006 },
+  ];
+  for (const cat of cats) {
+    const cid = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    await prisma.categoryMapping.upsert({ where: { category: cat.category }, update: { ...cat, updatedAt: new Date() }, create: { id: cid, ...cat, updatedAt: new Date() } });
+  }
+  console.log('✅ Base de datos inicializada: admin y categorías creadas');
+  await prisma.\$disconnect();
+}
+main().catch(e => { console.error(e); process.exit(1); });
+"
 
 echo ""
 echo "🎉 ¡Instalación completada con éxito!"
