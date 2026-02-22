@@ -44,10 +44,11 @@ echo "AUTH_TRUST_HOST=true" >> .env
 Cuando inicies la aplicación por primera vez, la base de datos estará vacía. Para crear el usuario administrador y cargar las categorías iniciales, ejecutá este comando en tu servidor (dentro de `/opt/basket-app`):
 
 ```bash
-# Ejecutar migraciones y cargar datos iniciales (Seed)
-# Es IMPORTANTE usar la versión @5.22.0 para evitar errores
+# Ejecutar migraciones
 docker compose exec app npx prisma@5.22.0 migrate deploy
-docker compose exec app npx prisma@5.22.0 db seed
+
+# Cargar usuario administrador (usamos tsx para leer el .ts)
+docker compose exec app npx tsx prisma/seed.ts
 ```
 
 ### Credenciales por defecto:
