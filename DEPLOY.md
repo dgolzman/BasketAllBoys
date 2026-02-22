@@ -2,9 +2,18 @@
 
 Esta guía explica cómo desplegar y mantener la aplicación en un contenedor LXC de Proxmox con Docker.
 
-## 1. Preparación del Servidor (Solo una vez)
+## 1. Instalación Rápida (Recomendado)
 
-Ejecutá estos comandos en la terminal de tu Proxmox LXC para preparar el entorno:
+Si estás en un servidor nuevo (Proxmox LXC con Alpine o Debian), podés instalar todo con un solo comando:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/setup.sh | sh
+```
+
+Este script configurará las carpetas, descargará las imágenes, creará los secretos y cargará los datos iniciales.
+
+## 2. Preparación Manual del Servidor (Alternativa)
+
 
 ```bash
 # Crear carpeta de la aplicación
