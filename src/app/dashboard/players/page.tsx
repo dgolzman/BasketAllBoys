@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { getCategory } from "@/lib/utils";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 import PlayerList from "./player-list";
 import ExportPlayersButton from "./export-button";
 import { auth } from "@/auth";
 import FilterPersistence from "./filter-persistence";
+import FilterWrapper from "@/components/ui/filter-wrapper";
 
 export default async function PlayersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const session = await auth();
@@ -61,7 +62,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
     return (
         <div>
             <FilterPersistence />
-            <PageGuide>
+            <PageGuide guideId="players">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     <div>
                         <strong>📋 Gestión General</strong>
@@ -94,11 +95,11 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                 </div>
 
                 {/* Filters */}
-                <div className="card" style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', background: 'var(--secondary)' }}>
-                    <form style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
+                <FilterWrapper pageId="players">
+                    <form className="ui-mayusculas" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
                         <div style={{ flex: 1, minWidth: '180px' }}>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Buscar</label>
-                            <input name="query" type="text" className="input" placeholder="Apellido, Nombre o DNI" defaultValue={query} style={{ padding: '0.45rem' }} />
+                            <input name="query" type="text" className="input" placeholder="Apellido, Nombre o DNI" defaultValue={query} style={{ padding: '0.45rem', textTransform: 'none' }} />
                         </div>
                         <div>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Categoría</label>
@@ -146,10 +147,10 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button type="submit" className="btn btn-secondary">Filtrar</button>
-                            <Link href="/dashboard/players" className="btn btn-outline">Limpiar</Link>
+                            <Link href="/dashboard/players" className="btn btn-outline" style={{ border: '1px solid var(--border)', padding: '0.5rem 1rem', borderRadius: 'var(--radius)' }}>Limpiar</Link>
                         </div>
                     </form>
-                </div>
+                </FilterWrapper>
             </div>
 
             <PlayerList

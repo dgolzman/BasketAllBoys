@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getCategoryMappings, updateCategoryMapping, renameCategoryMapping, deleteCategoryMapping } from '@/lib/admin-actions';
-import PageGuide from '@/components/page-guide';
+import PageGuide from '@/components/ui/page-guide';
 
 export default function CategoryMappingPage() {
     const [mappings, setMappings] = useState<any[]>([]);
@@ -107,7 +107,7 @@ export default function CategoryMappingPage() {
 
     return (
         <div style={{ paddingBottom: '4rem' }}>
-            <PageGuide>
+            <PageGuide guideId="administracion-categories">
                 <div>
                     <strong>🗂️ Mapeo de Categorías</strong>
                     <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>

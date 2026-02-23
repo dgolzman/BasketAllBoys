@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { exportPaymentsToExcel } from '@/lib/export-utils';
 import { useRouter } from 'next/navigation';
+import FilterWrapper from '@/components/ui/filter-wrapper';
 
 type PaymentReportProps = {
     players: {
@@ -156,7 +157,7 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                     const status = getStatus(player);
 
                     return (
-                        <tr key={player.id} className="hover:bg-gray-50/80 transition-colors group">
+                        <tr key={player.id} className="hover:bg-gray-50/80 transition-colors group ui-mayusculas">
                             <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap border-b border-gray-50">{player.name}</td>
                             <td className="px-6 py-4 text-gray-500 whitespace-nowrap text-xs border-b border-gray-50">{player.category} - {player.tira}</td>
                             <td className="px-6 py-4 text-center whitespace-nowrap border-b border-gray-50">
@@ -202,21 +203,22 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
             {/* Buttons hidden here, moved to filter bar */}
             {/* Filters Bar */}
             {/* Filters Bar */}
-            <div className="card" style={{ padding: '1rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', background: 'var(--secondary)' }}>
-                <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
+            <FilterWrapper pageId="reports-payments" title="Filtros de Pagos">
+                <div className="ui-mayusculas" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', width: '100%', alignItems: 'flex-end' }}>
                     <div style={{ flex: 1, minWidth: '180px', display: 'flex', flexDirection: 'column' }}>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Buscar</label>
+                        <label className="label" style={{ marginBottom: '0.25rem' }}>Buscar</label>
                         <input
                             type="text"
-                            className="input w-full p-2 text-xs border-gray-200"
+                            className="input w-full p-2 text-xs"
                             placeholder="Nombre..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
+                            style={{ textTransform: 'none' }}
                         />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Categoría</label>
-                        <select className="input w-full p-2 text-xs border-gray-200" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                        <label className="label" style={{ marginBottom: '0.25rem' }}>Categoría</label>
+                        <select className="input w-full p-2 text-xs" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
                             <option value="all">Todas</option>
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>{cat}</option>
@@ -224,8 +226,8 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                         </select>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Tira</label>
-                        <select className="input w-full p-2 text-xs border-gray-200" value={tiraFilter} onChange={(e) => setTiraFilter(e.target.value)}>
+                        <label className="label" style={{ marginBottom: '0.25rem' }}>Tira</label>
+                        <select className="input w-full p-2 text-xs" value={tiraFilter} onChange={(e) => setTiraFilter(e.target.value)}>
                             <option value="all">Todas</option>
                             {tiras.map(tira => (
                                 <option key={tira} value={tira}>{tira}</option>
@@ -233,24 +235,24 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                         </select>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Social</label>
-                        <select className="input w-full p-2 text-xs border-gray-200" value={socialFilter} onChange={(e) => setSocialFilter(e.target.value)}>
+                        <label className="label" style={{ marginBottom: '0.25rem' }}>Social</label>
+                        <select className="input w-full p-2 text-xs" value={socialFilter} onChange={(e) => setSocialFilter(e.target.value)}>
                             <option value="all">Todos</option>
                             <option value="ok">Al Día</option>
                             <option value="debt">Con Deuda</option>
                         </select>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: '100px' }}>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Actividad</label>
-                        <select className="input w-full p-2 text-xs border-gray-200" value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
+                        <label className="label" style={{ marginBottom: '0.25rem' }}>Actividad</label>
+                        <select className="input w-full p-2 text-xs" value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)}>
                             <option value="all">Todos</option>
                             <option value="ok">Al Día</option>
                             <option value="debt">Con Deuda</option>
                         </select>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', minWidth: '120px' }}>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Fed/Seguro</label>
-                        <select className="input w-full p-2 text-xs border-gray-200" value={federationFilter} onChange={(e) => setFederationFilter(e.target.value)}>
+                        <label className="label" style={{ marginBottom: '0.25rem' }}>Fed/Seguro</label>
+                        <select className="input w-full p-2 text-xs" value={federationFilter} onChange={(e) => setFederationFilter(e.target.value)}>
                             <option value="all">Todos</option>
                             <option value="ok">SALDADO</option>
                             <option value="debt">PENDIENTE</option>
@@ -262,12 +264,6 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
 
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <button
-                            className="btn btn-secondary"
-                            style={{ padding: '0.45rem 1rem', textTransform: 'uppercase', fontWeight: 'bold' }}
-                        >
-                            Filtrar
-                        </button>
-                        <button
                             onClick={() => {
                                 setFilter('');
                                 setSocialFilter('all');
@@ -277,17 +273,17 @@ export default function PaymentStatusReport({ players }: PaymentReportProps) {
                                 setCategoryFilter('all');
                                 setGroupBy('none');
                             }}
-                            className="btn btn-outline"
-                            style={{ border: 'none', background: 'transparent', color: 'white', textTransform: 'uppercase', fontWeight: 'bold' }}
+                            className="btn btn-secondary"
+                            style={{ height: '36px' }}
                         >
                             Limpiar
                         </button>
                     </div>
                 </div>
-            </div>
+            </FilterWrapper>
 
             {/* Grouping (Moved sub-filters outside) */}
-            <div className="flex justify-between items-center px-2">
+            <div className="flex justify-between items-center px-2 ui-mayusculas">
                 <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
                     <span className="text-[10px] font-bold text-gray-400 px-2 uppercase leading-none">Agrupar Por:</span>
                     <button onClick={() => setGroupBy('none')} className={`py-1 px-3 text-xs rounded-md transition-all ${groupBy === 'none' ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'}`}>Nada</button>

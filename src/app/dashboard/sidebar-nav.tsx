@@ -58,7 +58,7 @@ export default function SidebarNav({
     };
 
     return (
-        <nav className={styles.nav}>
+        <nav className={`${styles.nav} ui-mayusculas`}>
             <NavGroup title="Principal">
                 <Link href="/dashboard" onClick={handleClick} className={`${styles.navLink} ${pathname === '/dashboard' ? styles.activeLink : ''}`}>
                     <span>🏠 Inicio</span>

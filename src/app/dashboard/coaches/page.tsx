@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 import CoachList from "./coach-list";
 import ExportCoachesButton from "./export-button";
 import { auth } from "@/auth";
@@ -32,7 +32,7 @@ export default async function CoachesPage({ searchParams }: { searchParams: Prom
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="coaches">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     <div>
                         <strong>🧢 Gestión del Staff</strong>

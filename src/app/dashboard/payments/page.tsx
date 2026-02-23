@@ -4,7 +4,7 @@ import { hasPermission } from "@/lib/role-permission-actions";
 import { PERMISSIONS } from "@/lib/roles";
 import PaymentImporter from "@/components/payment-importer";
 import FederationPaymentImporter from "@/components/federation-payment-importer";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 import Link from "next/link";
 
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -29,7 +29,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
     if (!tab) {
         return (
             <div>
-                <PageGuide>
+                <PageGuide guideId="payments">
                     <div>
                         <strong>💰 Control de Pagos e Importación</strong>
                         <p style={{ margin: '0.3rem 0 0', opacity: 0.9 }}>
@@ -39,21 +39,21 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                 </PageGuide>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h2 style={{ margin: 0 }}>Control de Pagos</h2>
+                    <h2 className="ui-mayusculas" style={{ margin: 0 }}>Control de Pagos</h2>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
                     {items.map(item => (
                         <Link key={item.id} href={`/dashboard/payments?tab=${item.id}`} className="card hover:shadow-lg transition-all" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)', textDecoration: 'none', color: 'inherit' }}>
                             <div>
-                                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span>{item.icon}</span> {item.title}
                                 </h3>
-                                <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '1.5rem' }}>
+                                <p className="ui-mayusculas" style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '1.5rem' }}>
                                     {item.description}
                                 </p>
                             </div>
-                            <span className="btn btn-secondary" style={{ textAlign: 'center' }}>
+                            <span className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
                                 Seleccionar
                             </span>
                         </Link>
@@ -65,7 +65,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="payments">
                 <div>
                     <strong>{tab === 'social' ? '💳 Importación: Cuota Social / Actividad' : '🏅 Importación: Seguro / Federación'}</strong>
 
@@ -79,7 +79,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                                 Columnas esperadas del reporte de Administración:
                             </p>
 
-                            <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <table className="ui-mayusculas" style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse', border: '1px solid rgba(255,255,255,0.1)' }}>
                                 <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
                                     <tr>
                                         <th style={{ padding: '8px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.1)' }}>Columna en el Excel</th>
@@ -131,8 +131,8 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
             </PageGuide>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2 style={{ margin: 0 }}>{tab === 'social' ? '💳 Carga de Cuota Social' : '🏅 Carga de Seguro/Federación'}</h2>
-                <Link href="/dashboard/payments" className="btn btn-secondary">← Volver al selector</Link>
+                <h2 className="ui-mayusculas" style={{ margin: 0 }}>{tab === 'social' ? '💳 Carga de Cuota Social' : '🏅 Carga de Seguro/Federación'}</h2>
+                <Link href="/dashboard/payments" className="btn btn-secondary ui-mayusculas">← Volver al selector</Link>
             </div>
 
             {/* Tab Content */}

@@ -70,14 +70,14 @@ export default function FederationPaymentImporter() {
         return (
             <div className="space-y-8 pb-20">
                 <div className="flex justify-between items-center flex-wrap gap-4">
-                    <h2 className="text-2xl font-bold">Resultados del Análisis — Federación/Seguro</h2>
+                    <h2 className="text-2xl font-bold ui-mayusculas">Resultados del Análisis — Federación/Seguro</h2>
                     <button onClick={handleRetry} className="btn btn-secondary" disabled={saving}>
                         🔄 Analizar otro archivo
                     </button>
                 </div>
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ui-mayusculas">
                     <div className="card p-4 text-center border-l-4 border-purple-500">
                         <div className="text-3xl font-bold">{result.stats.total}</div>
                         <div className="text-sm text-gray-500 font-medium tracking-wide">TOTAL FILAS</div>
@@ -150,8 +150,8 @@ export default function FederationPaymentImporter() {
                                     {matched.map((item, idx) => (
                                         <tr key={idx} className="hover:bg-gray-50">
                                             <td className="p-3">
-                                                <div className="font-medium text-gray-900">{item.player?.name}</div>
-                                                <div className="text-xs text-gray-500">{item.player?.category} — {item.player?.tira}</div>
+                                                <div className="font-medium text-gray-900 ui-mayusculas">{item.player?.name}</div>
+                                                <div className="text-xs text-gray-500 ui-mayusculas">{item.player?.category} — {item.player?.tira}</div>
                                             </td>
                                             <td className="p-3">
                                                 <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${item.player?.playerStatus === 'REVISAR'
@@ -220,7 +220,7 @@ export default function FederationPaymentImporter() {
 
     return (
         <div className="card max-w-2xl mx-auto mt-8 relative">
-            <h2 className="text-xl font-bold mb-4">🏅 Importar Pagos de Seguro / Federación</h2>
+            <h2 className="text-xl font-bold mb-4 ui-mayusculas">🏅 Importar Pagos de Seguro / Federación</h2>
 
             {successMessage && (
                 <div className="p-4 mb-6 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200 shadow-sm">

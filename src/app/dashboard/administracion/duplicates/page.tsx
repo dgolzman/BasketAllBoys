@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { findDuplicates, deletePlayerById, deleteDuplicatesByDate, dismissDuplicate } from '@/lib/duplicates-actions';
-import PageGuide from '@/components/page-guide';
+import PageGuide from '@/components/ui/page-guide';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -77,7 +77,7 @@ export default function DuplicatesPage() {
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="administracion-duplicates">
                 <div>
                     <strong>🔍 Buscador de Duplicados</strong>
                     <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>

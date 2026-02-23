@@ -3,7 +3,7 @@
 import { useActionState, useState, useEffect } from 'react';
 import { importData, resolveConflict } from '@/lib/import-action';
 import { getPlayerById } from '@/lib/player-actions-helpers';
-import PageGuide from '@/components/page-guide';
+import PageGuide from '@/components/ui/page-guide';
 import Link from 'next/link';
 
 interface State {
@@ -236,7 +236,7 @@ export default function ImportPage() {
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="administracion-import">
                 <div>
                     <strong>📥 Importación de Datos desde Excel</strong>
 

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 import { getAllRolePermissions } from "@/lib/role-permission-actions";
 import RolesManager from "./roles-manager";
 
@@ -17,7 +17,7 @@ export default async function RolesPage() {
 
     return (
         <div>
-            <PageGuide title="ℹ️ Gestión de Roles">
+            <PageGuide guideId="administracion-roles" title="ℹ️ Gestión de Roles">
                 <div>
                     <strong>🎭 Configuración de Permisos por Rol</strong>
                     <p style={{ margin: '0.3rem 0 0 0', opacity: 0.8 }}>

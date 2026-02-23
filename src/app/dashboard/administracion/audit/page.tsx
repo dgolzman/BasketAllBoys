@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import ConsistencyAudit from "./consistency-audit";
 import Link from "next/link";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
     const params = await searchParams;
@@ -110,7 +110,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
 
     return (
         <div style={{ paddingBottom: '4rem' }}>
-            <PageGuide>
+            <PageGuide guideId="administracion-audit">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     <div>
                         <strong>🔍 Auditoría de Datos</strong>

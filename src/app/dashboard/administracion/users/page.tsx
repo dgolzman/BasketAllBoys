@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { deleteUser } from "@/lib/user-actions";
 import { auth } from "@/auth";
 import DeleteUserButton from "./delete-user-button";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 
 export default async function UsersPage() {
     const session = await auth();
@@ -16,7 +16,7 @@ export default async function UsersPage() {
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="administracion-users">
                 <div>
                     <strong>👥 Gestión de Usuarios</strong>
                     <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>

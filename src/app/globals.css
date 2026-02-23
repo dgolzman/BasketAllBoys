@@ -79,6 +79,11 @@ a {
 }
 
 /* Utilities */
+.ui-mayusculas {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .container {
   max-width: 1400px;
   margin: 0 auto;

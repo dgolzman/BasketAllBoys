@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import SortableHeader from '@/components/sortable-header';
+import SortableHeader from '@/components/ui/sortable-header';
 import DeleteCoachButton from "./delete-coach-button";
 
 export default function CoachList({ coaches, currentSort, currentOrder, role, canSeeSalary }: { coaches: any[], currentSort: string, currentOrder: string, role: string, canSeeSalary?: boolean }) {
@@ -17,21 +17,31 @@ export default function CoachList({ coaches, currentSort, currentOrder, role, ca
         <>
             <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
                 <table className="coaches-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
+                    <thead className="ui-mayusculas">
                         <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                             <SortableHeader label="NOMBRE" value="name" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader className="coach-col-rol" label="ROL" value="role" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader className="coach-col-contacto" label="CONTACTO" value="email" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader className="coach-col-alta" label="ALTA" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="ESTADO" value="status" currentSort={currentSort} currentOrder={currentOrder} />
-                            <th style={{ padding: '1rem' }}></th>
                         </tr>
                     </thead>
                     <tbody>
                         {coaches.map((coach: any) => (
                             <tr key={coach.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ fontWeight: 600 }}>{coach.name}</div>
+                                    <Link
+                                        href={`/dashboard/coaches/${coach.id}/edit`}
+                                        style={{
+                                            fontWeight: 600,
+                                            color: 'var(--foreground)',
+                                            textDecoration: 'none',
+                                            display: 'block'
+                                        }}
+                                        className="ui-mayusculas"
+                                    >
+                                        {coach.name}
+                                    </Link>
                                 </td>
                                 <td className="coach-col-rol" style={{ padding: '1rem' }}>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold' }}>
@@ -66,7 +76,10 @@ export default function CoachList({ coaches, currentSort, currentOrder, role, ca
                                     )}
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                    <div className="ui-mayusculas" style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                        {coach.role && (
+                                            <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600 }}>{coach.role}</span>
+                                        )}
                                         {coach.status === 'REVISAR' && (
                                             <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>REVISAR</span>
                                         )}
@@ -76,15 +89,6 @@ export default function CoachList({ coaches, currentSort, currentOrder, role, ca
                                             <span style={{ background: '#450a0a', color: '#fca5a5', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>INACTIVO</span>
                                         ) : null}
                                     </div>
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    {canEdit && (
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <Link href={`/dashboard/coaches/${coach.id}/edit`} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
-                                                Editar
-                                            </Link>
-                                        </div>
-                                    )}
                                 </td>
                             </tr>
                         ))}

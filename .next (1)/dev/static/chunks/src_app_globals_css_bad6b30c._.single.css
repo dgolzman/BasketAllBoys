@@ -54,6 +54,11 @@ a {
   text-decoration: none;
 }
 
+.ui-mayusculas {
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
 .container {
   max-width: 1400px;
   margin: 0 auto;

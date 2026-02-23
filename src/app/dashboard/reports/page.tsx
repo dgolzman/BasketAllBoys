@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCategory } from "@/lib/utils";
 import Link from "next/link";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
 import ReportsTable from "./reports-table";
 import CoachSalaryReport from "./coach-salary-report";
 import PaymentStatusReport from "./payment-status-report";
@@ -9,6 +9,7 @@ import { auth } from "@/auth";
 import { format } from "date-fns";
 import { hasPermission } from "@/lib/role-permission-actions";
 import { PERMISSIONS } from "@/lib/roles";
+import FilterWrapper from "@/components/ui/filter-wrapper";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -42,7 +43,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="reports">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     <div>
                         <strong>📊 Centro de Informes</strong>
@@ -222,8 +223,8 @@ async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any
 
     return (
         <div>
-            <div className="card" style={{ marginBottom: '2rem', padding: '1.25rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)' }}>
-                <form style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <FilterWrapper pageId="reports-attendance" title="Filtros de Asistencia">
+                <form className="ui-mayusculas" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                     <input type="hidden" name="tab" value="attendance" />
                     <div>
                         <label className="label">Categoría</label>
@@ -243,16 +244,16 @@ async function AttendanceView({ categoryFilter, dateFrom, dateTo, groupBy }: any
                     </div>
                     <div>
                         <label className="label">Desde</label>
-                        <input name="from" type="date" className="input" defaultValue={dateFrom} />
+                        <input name="from" type="date" className="input" defaultValue={dateFrom} style={{ textTransform: 'none' }} />
                     </div>
                     <div>
                         <label className="label">Hasta</label>
-                        <input name="to" type="date" className="input" defaultValue={dateTo} />
+                        <input name="to" type="date" className="input" defaultValue={dateTo} style={{ textTransform: 'none' }} />
                     </div>
                     <button type="submit" className="btn btn-primary" style={{ height: '38px' }}>Filtrar</button>
                     <Link href="/dashboard/reports?tab=attendance" className="btn btn-secondary" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>Limpiar</Link>
                 </form>
-            </div>
+            </FilterWrapper>
             <ReportsTable data={sortedReport as any} groupBy={groupBy} />
         </div>
     );
@@ -291,8 +292,8 @@ async function SalaryView({ year }: { year: number }) {
 
     return (
         <div>
-            <div className="card" style={{ marginBottom: '2rem', padding: '1.25rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)' }}>
-                <form style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+            <FilterWrapper pageId="reports-salaries" title="Proyección de Sueldos">
+                <form className="ui-mayusculas" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
                     <input type="hidden" name="tab" value="salaries" />
                     <div>
                         <label className="label">Año</label>
@@ -304,7 +305,7 @@ async function SalaryView({ year }: { year: number }) {
                     </div>
                     <button type="submit" className="btn btn-primary" style={{ height: '38px' }}>Ver Reporte</button>
                 </form>
-            </div>
+            </FilterWrapper>
             <CoachSalaryReport coaches={data} year={year} />
         </div>
     );

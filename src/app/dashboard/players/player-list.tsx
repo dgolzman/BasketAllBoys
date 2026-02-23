@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { getCategory } from '@/lib/utils';
 import { bulkUpdatePlayers, bulkDeletePlayers } from '@/lib/bulk-actions';
-import SortableHeader from '@/components/sortable-header';
+import SortableHeader from '@/components/ui/sortable-header';
 
 export default function PlayerList({
     initialPlayers,
@@ -195,7 +195,7 @@ export default function PlayerList({
 
             <div className="card" style={{ overflowX: 'auto', maxHeight: 'calc(100vh - 250px)', overflowY: 'auto', padding: 0 }}>
                 <table className="players-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ position: 'sticky', top: 0, background: 'var(--secondary)', zIndex: 10 }}>
+                    <thead className="ui-mayusculas" style={{ position: 'sticky', top: 0, background: 'var(--secondary)', zIndex: 10 }}>
                         <tr style={{ borderBottom: '2px solid var(--border)' }}>
                             <th className="col-checkbox" style={{ padding: '1rem', width: '40px', color: 'var(--foreground)' }}>
                                 <input
@@ -214,7 +214,6 @@ export default function PlayerList({
                             <SortableHeader className="col-contacto" label="Contacto" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader className="col-alta" label="Alta" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Estado" value="status" currentSort={currentSort} currentOrder={currentOrder} />
-                            <th style={{ padding: '1rem', color: 'var(--foreground)' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -238,12 +237,23 @@ export default function PlayerList({
                                         />
                                     </td>
                                     <td style={{ padding: '1rem' }}>
-                                        <div style={{ fontWeight: 'bold', color: 'var(--foreground)' }}>{player.lastName}, {player.firstName}</div>
+                                        <Link
+                                            href={getEditLink(player.id)}
+                                            style={{
+                                                fontWeight: 'bold',
+                                                color: 'var(--foreground)',
+                                                textDecoration: 'none',
+                                                display: 'block'
+                                            }}
+                                            className="player-name-link ui-mayusculas"
+                                        >
+                                            {player.lastName}, {player.firstName}
+                                        </Link>
                                     </td>
                                     <td className="col-dni" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>{player.dni}</td>
-                                    <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--foreground)' }}>{calculatedCat}</td>
+                                    <td className="ui-mayusculas" style={{ padding: '1rem', fontWeight: 600, color: 'var(--foreground)' }}>{calculatedCat}</td>
                                     <td className="col-primera" style={{ padding: '1rem', textAlign: 'center', color: 'var(--foreground)' }}>{player.playsPrimera ? '✅' : '-'}</td>
-                                    <td style={{ padding: '1rem' }}>
+                                    <td className="ui-mayusculas" style={{ padding: '1rem' }}>
                                         <span style={{
                                             fontSize: '0.75rem',
                                             padding: '0.2rem 0.5rem',
@@ -305,10 +315,6 @@ export default function PlayerList({
                                                 <span style={{ background: '#450a0a', color: '#fca5a5', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>INACTIVO</span>
                                             ) : null}
                                         </div>
-                                    </td>
-
-                                    <td style={{ padding: '1rem' }}>
-                                        <Link href={getEditLink(player.id)} style={{ color: 'var(--accent)', fontWeight: 500, fontSize: '0.85rem' }}>Editar</Link>
                                     </td>
                                 </tr>
                             );

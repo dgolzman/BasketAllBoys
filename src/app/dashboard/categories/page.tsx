@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getCategory } from "@/lib/utils";
 import Link from "next/link";
-import PageGuide from "@/components/page-guide";
+import PageGuide from "@/components/ui/page-guide";
+import FilterWrapper from "@/components/ui/filter-wrapper";
 
 export default async function CategoriesPage({ searchParams }: { searchParams: Promise<{ tira?: string, cat?: string }> }) {
     const rawSearchParams = await searchParams;
@@ -95,7 +96,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
 
     return (
         <div>
-            <PageGuide>
+            <PageGuide guideId="categories">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     <div>
                         <strong>🏅 Organización Deportiva</strong>
@@ -114,12 +115,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                 </div>
             </PageGuide>
 
-            <div style={{ marginBottom: '2rem', background: 'rgba(23, 23, 23, 0.9)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', backdropFilter: 'blur(8px)' }}>
-                <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem', color: 'var(--primary)' }}>Filtros Rapidos</h2>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <FilterWrapper pageId="categories" title="Filtros Rápidos">
+                <div className="ui-mayusculas" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
                     <div>
-                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: 'bold', textTransform: 'uppercase' }}>Por Tira</p>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: 'bold' }}>Por Tira</p>
                         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                             <Link href="/dashboard/categories" className={`btn ${!filterTira ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
                             <Link href="/dashboard/categories?tira=A" className={`btn ${filterTira === 'A' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC A</Link>
@@ -130,24 +129,24 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                     </div>
 
                     <div>
-                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: 'bold', textTransform: 'uppercase' }}>Por Categoría</p>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: 'bold' }}>Por Categoría</p>
                         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                             <Link href="/dashboard/categories" className={`btn ${!filterCat ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
                             {categoriesList.map(c => (
-                                <Link key={c} href={`/dashboard/categories?cat=${c}`} className={`btn ${filterCat === c ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{c.toUpperCase()}</Link>
+                                <Link key={c} href={`/dashboard/categories?cat=${c}`} className={`btn ${filterCat === c ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{c}</Link>
                             ))}
                         </div>
                     </div>
                 </div>
-            </div>
+            </FilterWrapper>
 
-            <h2 style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)', paddingLeft: '1rem', color: 'var(--foreground)' }}>Vistas por Categoría</h2>
+            <h2 className="ui-mayusculas" style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--accent)', paddingLeft: '1rem', color: 'var(--foreground)' }}>Vistas por Categoría</h2>
 
             <div style={{ display: 'grid', gap: '2rem' }}>
                 {sortedKeys.map(cat => (
-                    <div key={cat} className="card">
+                    <div key={cat} className="card ui-mayusculas">
                         <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
-                            <h3 style={{ color: 'var(--primary)', margin: 0 }}>{cat}</h3>
+                            <h3 className="ui-mayusculas" style={{ color: 'var(--primary)', margin: 0 }}>{cat}</h3>
                         </div>
 
                         {cat === "Mosquitos" ? (
@@ -155,9 +154,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                 <div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <h4 style={{ margin: 0, color: '#6366f1' }}>Grupo Mixto <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].Mixed.length})</span></h4>
+                                            <h4 className="ui-mayusculas" style={{ margin: 0, color: '#6366f1' }}>Grupo Mixto <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].Mixed.length})</span></h4>
                                             {getCoachFor(cat, 'Mixed') && (
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--foreground)', marginTop: '0.2rem' }}>👔 {getCoachFor(cat, 'Mixed')?.name}</span>
+                                                <span className="ui-mayusculas" style={{ fontSize: '0.75rem', color: 'var(--foreground)', marginTop: '0.2rem' }}>👔 {getCoachFor(cat, 'Mixed')?.name}</span>
                                             )}
                                         </div>
                                         <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance`} className="btn btn-secondary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}>
@@ -180,9 +179,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                     <div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <h4 style={{ margin: 0, color: '#db2777' }}>Femenino <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].Fem.length})</span></h4>
+                                                <h4 className="ui-mayusculas" style={{ margin: 0, color: '#db2777' }}>Femenino <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].Fem.length})</span></h4>
                                                 {getCoachFor(cat, 'Femenino') && (
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'Femenino')?.name}</span>
+                                                    <span className="ui-mayusculas" style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'Femenino')?.name}</span>
                                                 )}
                                             </div>
                                             <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance?tira=Femenino`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
@@ -204,9 +203,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                     <div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <h4 style={{ margin: 0, color: '#0369a1' }}>Masculino A <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].MascA.length})</span></h4>
+                                                <h4 className="ui-mayusculas" style={{ margin: 0, color: '#0369a1' }}>Masculino A <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].MascA.length})</span></h4>
                                                 {getCoachFor(cat, 'A') && (
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'A')?.name}</span>
+                                                    <span className="ui-mayusculas" style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'A')?.name}</span>
                                                 )}
                                             </div>
                                             <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance?tira=A`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
@@ -228,9 +227,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                     <div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <h4 style={{ margin: 0, color: '#15803d' }}>Masculino B <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].MascB.length})</span></h4>
+                                                <h4 className="ui-mayusculas" style={{ margin: 0, color: '#15803d' }}>Masculino B <span style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>({grouped[cat].MascB.length})</span></h4>
                                                 {getCoachFor(cat, 'B') && (
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'B')?.name}</span>
+                                                    <span className="ui-mayusculas" style={{ fontSize: '0.7rem', color: 'var(--foreground)', marginTop: '0.1rem' }}>👔 {getCoachFor(cat, 'B')?.name}</span>
                                                 )}
                                             </div>
                                             <Link href={`/dashboard/categories/${encodeURIComponent(cat)}/attendance?tira=B`} className="btn btn-secondary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
