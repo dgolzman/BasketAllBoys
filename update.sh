@@ -25,6 +25,37 @@ else
     export VERSION="$VERSION_INPUT"
 fi
 
+if [ "$1" = "--reconfig-smtp" ]; then
+    echo "🔧 Modo RECONFIGURACIÓN SMTP detectado..."
+    if [ -f .env ]; then
+        # Logic to reconfigure SMTP (similar to setup.sh but optimized for update)
+        SMTP_HOST=$(printf "Servidor SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+        if [ -n "$SMTP_HOST" ]; then
+            SMTP_PORT=$(printf "Puerto SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            SMTP_SECURE=$(printf "¿Usar TLS/SSL? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            [ "$SMTP_SECURE" = "s" ] || [ "$SMTP_SECURE" = "S" ] && SMTP_SECURE="true" || SMTP_SECURE="false"
+            
+            SMTP_AUTH=$(printf "¿Requiere Autenticación? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            if [ "$SMTP_AUTH" = "s" ] || [ "$SMTP_AUTH" = "S" ]; then
+                SMTP_USER=$(printf "Usuario SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                SMTP_PASS=$(printf "Contraseña SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            fi
+            SMTP_FROM=$(printf "Email de origen: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+
+            sed -i '/SMTP_/d' .env
+            {
+              echo "SMTP_HOST=$SMTP_HOST"
+              echo "SMTP_PORT=$SMTP_PORT"
+              echo "SMTP_SECURE=$SMTP_SECURE"
+              [ -n "$SMTP_USER" ] && echo "SMTP_USER=$SMTP_USER"
+              [ -n "$SMTP_PASS" ] && echo "SMTP_PASS=$SMTP_PASS"
+              echo "SMTP_FROM=$SMTP_FROM"
+            } >> .env
+            echo "✅ Configuración SMTP actualizada."
+        fi
+    fi
+fi
+
 echo "📥 Usando versión: $VERSION"
 
 # 1. Bajar la versión seleccionada

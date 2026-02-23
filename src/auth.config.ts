@@ -14,7 +14,19 @@ export const authConfig = {
             console.log('Middleware Authorized Check:', { pathname: nextUrl.pathname, isLoggedIn });
 
             if (isOnDashboard) {
-                if (isLoggedIn) return true;
+                if (isLoggedIn) {
+                    const forceChange = (auth.user as any)?.forcePasswordChange;
+                    const isForcePage = nextUrl.pathname === '/dashboard/force-password';
+
+                    if (forceChange && !isForcePage) {
+                        return Response.redirect(new URL('/dashboard/force-password', nextUrl));
+                    }
+                    if (!forceChange && isForcePage) {
+                        return Response.redirect(new URL('/dashboard', nextUrl));
+                    }
+
+                    return true;
+                }
                 return false; // Redirect unauthenticated users to login page
             } else if (isLoggedIn && (isLoginPage || isRootPage)) {
                 return Response.redirect(new URL('/dashboard', nextUrl));

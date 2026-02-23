@@ -129,19 +129,60 @@ else
     info ".env existente conservado. Si tenés problemas de redirección, asegurate de tener AUTH_URL y NEXTAUTH_URL definidos."
 fi
 
-# ── Paso 7: Permisos de datos ───────────────────────────────
+# ── Paso 7: Configuración SMTP (Opcional) ────────────────────
+step "Configuración de Email (SMTP)"
+echo "   Esto es necesario para el Resumen de Auditoría y alertas."
+if grep -q "SMTP_HOST" .env; then
+    info "Configuración SMTP ya existe en .env."
+    CONFIRM_SMTP=$(ask "¿Desea reconfigurar el servidor de Email? (s/N):")
+else
+    CONFIRM_SMTP="s"
+fi
+
+if [ "$CONFIRM_SMTP" = "s" ] || [ "$CONFIRM_SMTP" = "S" ]; then
+    SMTP_HOST=$(ask "Servidor SMTP (ej: smtp.gmail.com o relay.local):")
+    if [ -n "$SMTP_HOST" ]; then
+        SMTP_PORT=$(ask "Puerto SMTP (ej: 587, 465, 25):")
+        SMTP_SECURE=$(ask "¿Usar TLS/SSL? (s/N):")
+        [ "$SMTP_SECURE" = "s" ] || [ "$SMTP_SECURE" = "S" ] && SMTP_SECURE="true" || SMTP_SECURE="false"
+        
+        SMTP_AUTH=$(ask "¿Requiere Autenticación (User/Pass)? (s/N):")
+        if [ "$SMTP_AUTH" = "s" ] || [ "$SMTP_AUTH" = "S" ]; then
+            SMTP_USER=$(ask "Usuario SMTP:")
+            SMTP_PASS=$(ask "Contraseña SMTP:")
+        fi
+        SMTP_FROM=$(ask "Email de origen (ej: Basket AllBoys <noreply@tudominio.com>):")
+
+        # Limpiar variables SMTP viejas si existen
+        sed -i '/SMTP_/d' .env
+        
+        {
+          echo "SMTP_HOST=$SMTP_HOST"
+          echo "SMTP_PORT=$SMTP_PORT"
+          echo "SMTP_SECURE=$SMTP_SECURE"
+          [ -n "$SMTP_USER" ] && echo "SMTP_USER=$SMTP_USER"
+          [ -n "$SMTP_PASS" ] && echo "SMTP_PASS=$SMTP_PASS"
+          echo "SMTP_FROM=$SMTP_FROM"
+        } >> .env
+        ok "Configuración SMTP guardada."
+    else
+        info "Configuración SMTP omitida."
+    fi
+fi
+
+# ── Paso 8: Directorio de datos y permisos ───────────────────
 step "Preparando directorio de datos"
 mkdir -p data
 chmod 777 data
 ok "Permisos OK"
 
-# ── Paso 8: Descargar imagen y levantar contenedor ──────────
+# ── Paso 9: Descargar imagen y levantar contenedor ──────────
 step "Descargando imagen Docker y levantando el contenedor"
 if ! ./update.sh < /dev/null; then
     fail "Fallo al levantar el contenedor" "./update.sh"
 fi
 
-# ── Paso 9: Verificar que el contenedor esté corriendo ──────
+# ── Paso 10: Verificar que el contenedor esté corriendo ─────
 step "Verificando ejecución"
 sleep 5
 MAX=10; COUNT=0
@@ -157,14 +198,39 @@ if [ "$STATUS" != "running" ]; then
 fi
 ok "Contenedor corriendo"
 
-# ── Paso 10: Correr migraciones ─────────────────────────────
+# ── Paso 11: Validar Conexión SMTP ──────────────────────────
+if grep -q "SMTP_HOST" .env; then
+    step "Validando conexión SMTP de salida"
+    cat << 'EOF_SMTP_TEST' > smtp_test.js
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE === 'true',
+    ...(process.env.SMTP_USER && { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } })
+});
+transporter.verify((error, success) => {
+    if (error) { console.error('FAILED:' + error.message); process.exit(1); }
+    else { console.log('OK'); process.exit(0); }
+});
+EOF_SMTP_TEST
+    docker compose cp smtp_test.js app:/app/smtp_test.js < /dev/null
+    if docker compose exec -T app node smtp_test.js < /dev/null; then
+        ok "Conexión SMTP validada con éxito."
+    else
+        warn "La conexión SMTP falló. Revisa tus credenciales o el firewall del servidor."
+    fi
+    rm smtp_test.js
+fi
+
+# ── Paso 12: Correr migraciones ─────────────────────────────
 step "Ejecutando migraciones"
 if ! docker compose exec -T app npx prisma@5.22.0 migrate deploy < /dev/null; then
     fail "Fallo en migraciones" "docker compose exec app npx prisma migrate deploy"
 fi
 ok "Migraciones aplicadas"
 
-# ── Paso 11: Seeding ────────────────────────────────────────
+# ── Paso 13: Seeding y datos iniciales ──────────────────────
 step "Creando datos iniciales y reseteando admin"
 
 cat << 'EOF_JS_SEED_V38' > seed_robust.js
@@ -209,7 +275,7 @@ else
 fi
 rm seed_robust.js
 
-# ── Paso 12: Importar backup ────────────────────────────────
+# ── Paso 14: Importar backup ────────────────────────────────
 step "Importar backup JSON (opcional)"
 BACKUP_PATH=$(ask "Ruta del backup (Enter para omitir):")
 

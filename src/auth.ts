@@ -33,9 +33,15 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         async jwt({ token, user, trigger, session }) {
             if (user) {
                 // Initial login
-                const dbUser = await prisma.user.findUnique({ where: { email: user.email as string } });
+                const dbUser = await (prisma as any).user.findUnique({ where: { email: user.email as string } });
                 token.id = dbUser?.id || user.id;
                 token.role = dbUser?.role || 'VIEWER';
+                token.forcePasswordChange = dbUser?.forcePasswordChange || false;
+            }
+            if (trigger === "update" && session !== undefined) {
+                if (session.forcePasswordChange !== undefined) {
+                    token.forcePasswordChange = session.forcePasswordChange;
+                }
             }
             return token;
         },
@@ -43,6 +49,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             if (session.user) {
                 session.user.id = token.id as string;
                 (session.user as any).role = token.role as string;
+                (session.user as any).forcePasswordChange = token.forcePasswordChange as boolean;
             }
             return session;
         },

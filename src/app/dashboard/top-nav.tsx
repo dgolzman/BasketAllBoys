@@ -1,6 +1,7 @@
 'use client';
 
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import Link from "next/link";
 
 export default function TopNav({ userName, role }: { userName?: string | null, role: string }) {
     return (
@@ -26,7 +27,22 @@ export default function TopNav({ userName, role }: { userName?: string | null, r
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <span style={{ fontWeight: 600, fontSize: 'clamp(0.7rem, 2vw, 0.9rem)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>{userName}</span>
-                    <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--foreground)' }}>{role}</span>
+                    <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: 'var(--foreground)', opacity: 0.7 }}>{role}</span>
+                    <Link
+                        href="/dashboard/perfil/password"
+                        style={{
+                            fontSize: '0.65rem',
+                            color: 'var(--primary)',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            marginTop: '2px',
+                            fontWeight: 600
+                        }}
+                    >
+                        🔑 Cambiar Clave
+                    </Link>
                 </div>
                 <ThemeToggle />
             </div>

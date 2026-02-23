@@ -7,11 +7,38 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 
+const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+
 const UserSchema = z.object({
     name: z.string().min(1, "Nombre es obligatorio"),
     email: z.string().email("Email inválido"),
-    password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").optional().or(z.literal("")),
+    password: z.string().optional().or(z.literal("")).superRefine((val, ctx) => {
+        if (val && val.length > 0) {
+            if (!passwordRegex.test(val)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo (@$!%*?&.)",
+                });
+            }
+        }
+    }),
     role: z.enum(["ADMIN", "SUB_COMISION", "COORDINADOR", "ENTRENADOR"]),
+});
+
+const ChangePasswordSchema = z.object({
+    currentPassword: z.string().min(1, "Password actual requerida"),
+    newPassword: z.string().superRefine((val, ctx) => {
+        if (!passwordRegex.test(val)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo (@$!%*?&.)",
+            });
+        }
+    }),
+    confirmPassword: z.string().min(1, "Confirme su password"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
 });
 
 function generateId(): string {
@@ -53,6 +80,7 @@ export async function createUser(prevState: any, formData: FormData) {
                 email,
                 password: hashedPassword,
                 role,
+                forcePasswordChange: true, // Requerimiento: Cambio en el 1er login
                 updatedAt: new Date(),
             },
         });
@@ -119,4 +147,55 @@ export async function deleteUser(id: string) {
     } catch (error: any) {
         return { message: "Error al eliminar usuario: " + error.message };
     }
+}
+
+export async function updatePassword(prevState: any, formData: FormData) {
+    const session = await auth() as any;
+    if (!session?.user) return { message: "No autenticado" };
+
+    const rawData = {
+        currentPassword: formData.get("currentPassword"),
+        newPassword: formData.get("newPassword"),
+        confirmPassword: formData.get("confirmPassword"),
+    };
+
+    const validatedFields = ChangePasswordSchema.safeParse(rawData);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: "Error de validación",
+        };
+    }
+
+    const { currentPassword, newPassword } = validatedFields.data;
+
+    try {
+        const user = await (prisma as any).user.findUnique({ where: { id: session.user.id } });
+        if (!user || !user.password) return { message: "Usuario no encontrado o sin contraseña local" };
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return { message: "La contraseña actual es incorrecta", errors: { currentPassword: ["Password incorrecta"] } };
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await (prisma as any).user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                forcePasswordChange: false,
+                updatedAt: new Date(),
+            },
+        });
+
+        // Revalidate to update session in middleware
+        revalidatePath("/");
+
+    } catch (error: any) {
+        return { message: "Error al cambiar contraseña: " + error.message };
+    }
+
+    redirect("/dashboard");
 }

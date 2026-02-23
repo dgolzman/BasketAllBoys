@@ -12,8 +12,10 @@ export default async function DashboardLayout({
     const userName = session?.user?.name;
     const permissions = await getPermissionsForRole(role);
 
+    const forceChange = (session?.user as any)?.forcePasswordChange === true;
+
     return (
-        <DashboardLayoutClient role={role} userName={userName} permissions={permissions}>
+        <DashboardLayoutClient role={role} userName={userName} permissions={permissions} showNav={!forceChange}>
             {children}
         </DashboardLayoutClient>
     );
