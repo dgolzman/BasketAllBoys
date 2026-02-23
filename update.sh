@@ -5,6 +5,21 @@ set -e
 # Script para actualizar la aplicación BasketAllBoys
 echo "🚀 Iniciando actualización manual..."
 
+# --- Autoupdate del propio script ---
+if [ "$1" != "--no-self-update" ]; then
+    echo "🔄 Buscando actualizaciones del script de gestión..."
+    if wget -q -O update.sh.tmp https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/update.sh; then
+        if ! cmp -s update.sh update.sh.tmp; then
+            echo "✨ Nueva versión del script detectada. Actualizando..."
+            mv update.sh.tmp update.sh
+            chmod +x update.sh
+            echo "✅ Script actualizado. Reiniciando proceso..."
+            exec ./update.sh --no-self-update "$@"
+        fi
+    fi
+    rm -f update.sh.tmp
+fi
+
 # Selección de versión
 DEFAULT_VERSION="main"
 
@@ -25,34 +40,45 @@ else
     export VERSION="$VERSION_INPUT"
 fi
 
-if [ "$1" = "--reconfig-smtp" ]; then
-    echo "🔧 Modo RECONFIGURACIÓN SMTP detectado..."
-    if [ -f .env ]; then
-        # Logic to reconfigure SMTP (similar to setup.sh but optimized for update)
-        SMTP_HOST=$(printf "Servidor SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-        if [ -n "$SMTP_HOST" ]; then
-            SMTP_PORT=$(printf "Puerto SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-            SMTP_SECURE=$(printf "¿Usar TLS/SSL? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-            [ "$SMTP_SECURE" = "s" ] || [ "$SMTP_SECURE" = "S" ] && SMTP_SECURE="true" || SMTP_SECURE="false"
-            
-            SMTP_AUTH=$(printf "¿Requiere Autenticación? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-            if [ "$SMTP_AUTH" = "s" ] || [ "$SMTP_AUTH" = "S" ]; then
-                SMTP_USER=$(printf "Usuario SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-                SMTP_PASS=$(printf "Contraseña SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-            fi
-            SMTP_FROM=$(printf "Email de origen: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-
-            sed -i '/SMTP_/d' .env
-            {
-              echo "SMTP_HOST=$SMTP_HOST"
-              echo "SMTP_PORT=$SMTP_PORT"
-              echo "SMTP_SECURE=$SMTP_SECURE"
-              [ -n "$SMTP_USER" ] && echo "SMTP_USER=$SMTP_USER"
-              [ -n "$SMTP_PASS" ] && echo "SMTP_PASS=$SMTP_PASS"
-              echo "SMTP_FROM=$SMTP_FROM"
-            } >> .env
-            echo "✅ Configuración SMTP actualizada."
+# Configuración SMTP (Proactiva)
+if [ -f .env ]; then
+    if ! grep -q "SMTP_HOST" .env || [ "$1" = "--reconfig-smtp" ]; then
+        if ! grep -q "SMTP_HOST" .env; then
+            echo "⚠️  No se detectó configuración SMTP. Es necesaria para los reportes de auditoría."
+            CONFIRM_SMTP="s"
+        else
+            echo "🔧 Modo RECONFIGURACIÓN SMTP detectado..."
+            CONFIRM_SMTP=$(printf "¿Desea reconfigurar el servidor de Email? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
         fi
+
+        if [ "$CONFIRM_SMTP" = "s" ] || [ "$CONFIRM_SMTP" = "S" ]; then
+            SMTP_HOST=$(printf "Servidor SMTP (ej: smtp.gmail.com): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            if [ -n "$SMTP_HOST" ]; then
+                SMTP_PORT=$(printf "Puerto SMTP (ej: 587): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                SMTP_SECURE=$(printf "¿Usar TLS/SSL? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                [ "$SMTP_SECURE" = "s" ] || [ "$SMTP_SECURE" = "S" ] && SMTP_SECURE="true" || SMTP_SECURE="false"
+                
+                SMTP_AUTH=$(printf "¿Requiere Autenticación? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                if [ "$SMTP_AUTH" = "s" ] || [ "$SMTP_AUTH" = "S" ]; then
+                    SMTP_USER=$(printf "Usuario SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                    SMTP_PASS=$(printf "Contraseña SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                fi
+                SMTP_FROM=$(printf "Email de origen: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+
+                sed -i '/SMTP_/d' .env
+                {
+                  echo "SMTP_HOST=$SMTP_HOST"
+                  echo "SMTP_PORT=$SMTP_PORT"
+                  echo "SMTP_SECURE=$SMTP_SECURE"
+                  [ -n "$SMTP_USER" ] && echo "SMTP_USER=$SMTP_USER"
+                  [ -n "$SMTP_PASS" ] && echo "SMTP_PASS=$SMTP_PASS"
+                  echo "SMTP_FROM=$SMTP_FROM"
+                } >> .env
+                echo "✅ Configuración SMTP guardada en .env"
+            fi
+        fi
+    else
+        echo "ℹ️  SMTP ya configurado. (Usá --reconfig-smtp si necesitás cambiarlo)"
     fi
 fi
 
