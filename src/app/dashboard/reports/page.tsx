@@ -40,8 +40,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
     const dateFrom = typeof params?.from === 'string' ? params.from : '';
     const dateTo = typeof params?.to === 'string' ? params.to : '';
     const groupBy = typeof params?.groupBy === 'string' ? params.groupBy : 'day';
-    const year = typeof params?.year === 'string' ? parseInt(params.year) : new Date().getFullYear();
-    const month = typeof params?.month === 'string' ? parseInt(params.month) : new Date().getMonth() + 1;
+    let year = typeof params?.year === 'string' ? parseInt(params.year) : new Date().getFullYear();
+    let month = typeof params?.month === 'string' ? parseInt(params.month) : new Date().getMonth() + 1;
+    if (isNaN(year)) year = new Date().getFullYear();
+    if (isNaN(month)) month = new Date().getMonth() + 1;
 
     return (
         <div>

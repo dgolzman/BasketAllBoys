@@ -92,7 +92,11 @@ docker compose pull
 echo "🔄 Reiniciando servicios con versión $VERSION..."
 docker compose up -d --remove-orphans
 
-# 3. Limpiar imágenes viejas
+# 3. Aplicar migraciones si existen
+echo "🚀 Aplicando cambios en la base de datos..."
+docker compose exec -T app npx prisma migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
+
+# 4. Limpiar imágenes viejas
 echo "🧹 Limpiando imágenes antiguas..."
 docker image prune -f
 
