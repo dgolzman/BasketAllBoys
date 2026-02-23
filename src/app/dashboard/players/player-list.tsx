@@ -205,15 +205,12 @@ export default function PlayerList({
                                 />
                             </th>
                             <SortableHeader label="Jugador" value="lastName" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="col-dni" label="DNI" value="dni" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Categoría" value="category" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="col-primera" label="Primera" value="playsPrimera" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="Tira" value="tira" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="col-socio" label="Socio" value="partnerNumber" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="col-camiseta" label="Camiseta" value="shirtNumber" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader className="col-contacto" label="Contacto" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="col-alta" label="Alta" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader label="Estado" value="status" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader label="Tira" value="tira" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-camiseta" label="Camiseta" value="shirtNumber" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="col-socio" label="Socio" value="partnerNumber" currentSort={currentSort} currentOrder={currentOrder} />
                         </tr>
                     </thead>
                     <tbody>
@@ -250,27 +247,7 @@ export default function PlayerList({
                                             {player.lastName}, {player.firstName}
                                         </Link>
                                     </td>
-                                    <td className="col-dni" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)' }}>{player.dni}</td>
                                     <td className="ui-mayusculas" style={{ padding: '1rem', fontWeight: 600, color: 'var(--foreground)' }}>{calculatedCat}</td>
-                                    <td className="col-primera" style={{ padding: '1rem', textAlign: 'center', color: 'var(--foreground)' }}>{player.playsPrimera ? '✅' : '-'}</td>
-                                    <td className="ui-mayusculas" style={{ padding: '1rem' }}>
-                                        <span style={{
-                                            fontSize: '0.75rem',
-                                            padding: '0.2rem 0.5rem',
-                                            borderRadius: '4px',
-                                            background: 'var(--secondary)',
-                                            border: '1px solid var(--border)',
-                                            color: 'var(--foreground)'
-                                        }}>
-                                            {player.tira}
-                                        </span>
-                                    </td>
-                                    <td className="col-socio" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)', textAlign: 'center' }}>
-                                        {player.partnerNumber || '-'}
-                                    </td>
-                                    <td className="col-camiseta" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)', textAlign: 'center' }}>
-                                        {player.shirtNumber || '-'}
-                                    </td>
                                     <td className="col-contacto" style={{ padding: '1rem' }}>
                                         <div style={{ fontSize: '0.8rem', color: 'var(--foreground)' }}>
                                             {player.phone && (
@@ -289,9 +266,6 @@ export default function PlayerList({
                                             )}
                                             {player.email && <div style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={player.email}>✉️ {player.email}</div>}
                                         </div>
-                                    </td>
-                                    <td className="col-alta" style={{ padding: '1rem', whiteSpace: 'nowrap', fontSize: '0.85rem', color: 'var(--foreground)' }}>
-                                        {player.registrationDate ? format(new Date(player.registrationDate), 'dd/MM/yyyy') : '-'}
                                     </td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
@@ -315,6 +289,24 @@ export default function PlayerList({
                                                 <span style={{ background: '#450a0a', color: '#fca5a5', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>INACTIVO</span>
                                             ) : null}
                                         </div>
+                                    </td>
+                                    <td className="ui-mayusculas" style={{ padding: '1rem' }}>
+                                        <span style={{
+                                            fontSize: '0.75rem',
+                                            padding: '0.2rem 0.5rem',
+                                            borderRadius: '4px',
+                                            background: 'var(--secondary)',
+                                            border: '1px solid var(--border)',
+                                            color: 'var(--foreground)'
+                                        }}>
+                                            {player.tira}
+                                        </span>
+                                    </td>
+                                    <td className="col-camiseta" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)', textAlign: 'center' }}>
+                                        {player.shirtNumber || '-'}
+                                    </td>
+                                    <td className="col-socio" style={{ padding: '1rem', fontSize: '0.9rem', color: 'var(--foreground)', textAlign: 'center' }}>
+                                        {player.partnerNumber || '-'}
                                     </td>
                                 </tr>
                             );

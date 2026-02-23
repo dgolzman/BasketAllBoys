@@ -341,12 +341,14 @@ export async function searchPlayers(query: string) {
 
     if (!query || query.length < 2) return [];
 
+    const normalizedQuery = query.toUpperCase();
+
     return await prisma.player.findMany({
         where: {
             OR: [
-                { firstName: { contains: query } },
-                { lastName: { contains: query } },
-                { dni: { contains: query } },
+                { firstName: { contains: normalizedQuery } },
+                { lastName: { contains: normalizedQuery } },
+                { dni: { contains: normalizedQuery } },
             ],
             status: "ACTIVO"
         },

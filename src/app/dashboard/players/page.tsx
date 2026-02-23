@@ -15,7 +15,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
     const params = await searchParams;
 
     // Parse filters
-    const query = typeof params?.query === 'string' ? params.query : '';
+    const query = typeof params?.query === 'string' ? params.query.toUpperCase() : '';
     const tira = typeof params?.tira === 'string' ? params.tira : '';
     const categoryFilter = typeof params?.category === 'string' ? params.category : '';
     const statusFilter = typeof params?.status === 'string' ? params.status : 'DEFAULT';
