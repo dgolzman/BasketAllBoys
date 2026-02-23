@@ -34,7 +34,7 @@ fail() {
 }
 
 ask() {
-    printf "👉 $1 "
+    printf "👉 %s " "$1" > /dev/tty
     read -r REPLY < /dev/tty
     echo "$REPLY"
 }
@@ -56,7 +56,7 @@ if [ -z "$GH_TOKEN" ]; then
     fail "Token vacío" "Volvé a correr el instalador e ingresá un token válido."
 fi
 
-if ! echo "$GH_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin 2>&1 | grep -q "Login Succeeded"; then
+if ! echo "$GH_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin; then
     fail "No se pudo autenticar con GHCR.io" \
          "echo 'TU_TOKEN' | docker login ghcr.io -u dgolzman --password-stdin"
 fi
