@@ -55,6 +55,7 @@ chmod +x update.sh
 # Crear .env con secretos
 echo "AUTH_SECRET=$(openssl rand -base64 32)" > .env
 echo "NEXTAUTH_URL=http://IP_DEL_SERVIDOR:3000" >> .env
+echo "AUTH_URL=http://IP_DEL_SERVIDOR:3000" >> .env
 echo "AUTH_TRUST_HOST=true" >> .env
 
 # Crear carpeta de datos y dar permisos
@@ -90,6 +91,17 @@ El script de instalación (`setup.sh`) maneja esto automáticamente. Si usás `u
    echo "TU_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin
    ```
 3. Volvé a correr `./update.sh`.
+
+### Problemas de redirección al Login (Zoraxy / Nginx / Proxy Reverso)
+
+Si pusiste la app detrás de un proxy reverso y al hacer login te redirige a una IP interna en vez de tu dominio (ej: `http://192.168.0.x:3000`), asegurate de configurar esto en tu archivo `.env`:
+
+```env
+NEXTAUTH_URL=https://tudominio.com
+AUTH_URL=https://tudominio.com
+AUTH_TRUST_HOST=true
+```
+Y en tu prexy (ej: Zoraxy) **verificá tener activada la opción de pasar el "Host Header"** para que Next.js detecte el dominio original.
 
 ### Comandos útiles
 
