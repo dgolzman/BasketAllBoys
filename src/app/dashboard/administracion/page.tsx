@@ -122,6 +122,34 @@ export default async function AdministrationPage() {
                     </div>
                 )}
 
+                {canManageDuplicates && (
+                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                        <div>
+                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Familiares (Hermanos)</h3>
+                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                                Buscar jugadores con mismo apellido para vincularlos automáticamente.
+                            </p>
+                        </div>
+                        <Link href="/dashboard/administracion/siblings" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                            Revisar Familias
+                        </Link>
+                    </div>
+                )}
+
+                {canManageDuplicates && (
+                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                        <div>
+                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Configuración de Cuotas</h3>
+                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                                Configurar los valores mensuales de las cuotas. La proyección se visualiza desde Informes.
+                            </p>
+                        </div>
+                        <Link href="/dashboard/administracion/fees" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                            Gestionar Valores
+                        </Link>
+                    </div>
+                )}
+
                 {canBackup && (
                     <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
                         <div>

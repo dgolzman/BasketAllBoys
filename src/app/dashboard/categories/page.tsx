@@ -3,6 +3,7 @@ import { getCategory } from "@/lib/utils";
 import Link from "next/link";
 import PageGuide from "@/components/ui/page-guide";
 import FilterWrapper from "@/components/ui/filter-wrapper";
+import CategoryPlayerSearch from "@/components/ui/category-player-search";
 
 export default async function CategoriesPage({ searchParams }: { searchParams: Promise<{ tira?: string, cat?: string }> }) {
     const rawSearchParams = await searchParams;
@@ -171,6 +172,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                         ))}
                                     </div>
                                     {grouped[cat].Mixed.length === 0 && <p style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>Sin jugadores</p>}
+                                    <div style={{ marginTop: '0.75rem' }}>
+                                        <CategoryPlayerSearch category={cat} tira="Mosquitos" />
+                                    </div>
                                 </div>
                             ) : null
                         ) : (
@@ -196,6 +200,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                             ))}
                                             {grouped[cat].Fem.length === 0 && <li style={{ color: 'var(--foreground)', fontSize: '0.8rem' }}>-</li>}
                                         </ul>
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <CategoryPlayerSearch category={cat} tira="Femenino" />
+                                        </div>
                                     </div>
                                 )}
 
@@ -220,6 +227,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                             ))}
                                             {grouped[cat].MascA.length === 0 && <li style={{ color: 'var(--foreground)', fontSize: '0.8rem' }}>-</li>}
                                         </ul>
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <CategoryPlayerSearch category={cat} tira="Masculino A" />
+                                        </div>
                                     </div>
                                 )}
 
@@ -244,6 +254,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                             ))}
                                             {grouped[cat].MascB.length === 0 && <li style={{ color: 'var(--foreground)', fontSize: '0.8rem' }}>-</li>}
                                         </ul>
+                                        <div style={{ marginTop: '0.75rem' }}>
+                                            <CategoryPlayerSearch category={cat} tira="Masculino B" />
+                                        </div>
                                     </div>
                                 )}
                             </div>

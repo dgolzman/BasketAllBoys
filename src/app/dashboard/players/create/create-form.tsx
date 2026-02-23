@@ -1,16 +1,46 @@
 'use client';
 
 import { createPlayer } from "@/lib/actions";
-import { useActionState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import SiblingSearch from "../sibling-search";
+import { getCategory } from "@/lib/utils";
 
 const initialState = {
     message: '',
     errors: undefined,
 };
 
-export default function CreatePlayerForm({ categories }: { categories: string[] }) {
+export default function CreatePlayerForm({
+    categories,
+    mappings,
+    initialData
+}: {
+    categories: string[],
+    mappings: any[],
+    initialData?: {
+        firstName: string;
+        lastName: string;
+        category: string;
+        tira: string;
+        returnTo: string;
+    }
+}) {
     const [state, formAction, isPending] = useActionState(createPlayer, initialState);
+    const [birthDate, setBirthDate] = useState('');
+    const [categoryWarning, setCategoryWarning] = useState('');
+
+    useEffect(() => {
+        if (birthDate && initialData?.category) {
+            const calcCat = getCategory({ birthDate }, mappings);
+            if (calcCat !== initialData.category) {
+                setCategoryWarning(`⚠️ Atención: La fecha registrada corresponde a ${calcCat}, pero se asignará a ${initialData.category}.`);
+            } else {
+                setCategoryWarning('');
+            }
+        } else {
+            setCategoryWarning('');
+        }
+    }, [birthDate, initialData?.category, mappings]);
 
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -18,6 +48,7 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
 
             <div className="card">
                 <form action={formAction}>
+                    {initialData?.returnTo && <input type="hidden" name="returnTo" value={initialData.returnTo} />}
                     <div style={{ padding: '1.25rem', background: 'var(--secondary)', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
                         <label className="label" style={{ color: '#fff' }}>Estado Inicial</label>
                         <select
@@ -39,12 +70,12 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                         <div>
                             <label className="label">Nombre <span style={{ color: 'red' }}>*</span></label>
-                            <input name="firstName" type="text" className="input" required placeholder="JUAN" />
+                            <input name="firstName" type="text" className="input" required placeholder="JUAN" defaultValue={initialData?.firstName} />
                             {state.errors?.firstName && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.firstName.join(', ')}</p>}
                         </div>
                         <div>
                             <label className="label">Apellido <span style={{ color: 'red' }}>*</span></label>
-                            <input name="lastName" type="text" className="input" required placeholder="PEREZ" />
+                            <input name="lastName" type="text" className="input" required placeholder="PEREZ" defaultValue={initialData?.lastName} />
                             {state.errors?.lastName && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.lastName.join(', ')}</p>}
                         </div>
                     </div>
@@ -78,7 +109,8 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
 
                         <div>
                             <label className="label">Fecha de Nacimiento <span style={{ color: 'red' }}>*</span></label>
-                            <input name="birthDate" type="date" className="input" required />
+                            <input name="birthDate" type="date" className="input" required value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                            {categoryWarning && <p style={{ color: '#fbbf24', fontSize: '0.75rem', marginTop: '0.25rem', fontWeight: 'bold' }}>{categoryWarning}</p>}
                             {state.errors?.birthDate && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.birthDate.join(', ')}</p>}
                         </div>
                     </div>
@@ -86,7 +118,7 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                         <div>
                             <label className="label">Tira</label>
-                            <select name="tira" className="input" required defaultValue="Masculino A">
+                            <select name="tira" className="input" required defaultValue={initialData?.tira || "Masculino A"}>
                                 <option value="Masculino A">Masculino A</option>
                                 <option value="Masculino B">Masculino B</option>
                                 <option value="Femenino">Femenino</option>
@@ -95,7 +127,7 @@ export default function CreatePlayerForm({ categories }: { categories: string[] 
                         </div>
                         <div>
                             <label className="label">Categoría (Manual)</label>
-                            <select name="category" className="input">
+                            <select name="category" className="input" defaultValue={initialData?.category || ""}>
                                 <option value="">Auto (por año)</option>
                                 {categories.map(c => (
                                     <option key={c} value={c}>{c}</option>

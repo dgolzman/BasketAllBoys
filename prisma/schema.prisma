@@ -163,3 +163,12 @@ model RolePermission {
 
   @@unique([role, permission])
 }
+
+model ActivityFee {
+  id       String   @id @default(cuid())
+  year     Int
+  month    Int
+  amount   Float
+  category String   // "GLOBAL" or a specific category name
+  @@unique([year, month, category])
+}

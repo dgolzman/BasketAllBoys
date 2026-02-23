@@ -194,7 +194,13 @@ export async function createPlayer(prevState: any, formData: FormData) {
     }
 
     revalidatePath("/dashboard/players");
-    redirect("/dashboard/players");
+
+    const returnTo = formData.get("returnTo")?.toString();
+    if (returnTo) {
+        redirect(returnTo);
+    } else {
+        redirect("/dashboard/players");
+    }
 }
 
 export type ActionState = {
@@ -381,6 +387,116 @@ export async function getPlayersByNames(names: string[]) {
             dni: true
         }
     });
+}
+
+export async function assignPlayerToTeam(playerId: string, category: string, tira: string) {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+    if (!session || (role !== 'ADMIN' && role !== 'OPERADOR')) {
+        return { message: "No autorizado" };
+    }
+
+    try {
+        await prisma.player.update({
+            where: { id: playerId },
+            data: { category, tira }
+        });
+
+        await createAuditLog("UPDATE", "Player", playerId, { action: "Assigned to team", category, tira });
+        revalidatePath("/dashboard/categories");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Assign Player Error:", error);
+        return { message: "Error al asignar jugador: " + error.message };
+    }
+}
+
+export async function linkSiblings(playerIds: string[]) {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+    if (!session || (role !== 'ADMIN' && role !== 'OPERADOR')) {
+        return { message: "No autorizado" };
+    }
+
+    try {
+        const players = await prisma.player.findMany({
+            where: { id: { in: playerIds } }
+        });
+
+        for (const p of players) {
+            const currentSiblings = p.siblings ? p.siblings.split(';').map(s => s.trim()) : [];
+            const newSiblings = new Set(currentSiblings);
+
+            // Add all other players in the group to this player's siblings list
+            players.forEach(other => {
+                if (other.id !== p.id) {
+                    newSiblings.add(`${other.lastName}, ${other.firstName}`);
+                }
+            });
+
+            const updatedSiblings = Array.from(newSiblings).join('; ');
+            await prisma.player.update({
+                where: { id: p.id },
+                data: { siblings: updatedSiblings }
+            });
+            await createAuditLog("UPDATE", "Player", p.id, { action: "Linked Sibling", siblings: updatedSiblings });
+        }
+        revalidatePath("/dashboard/administracion/siblings");
+        revalidatePath("/dashboard/players");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Link Siblings Error:", error);
+        return { message: "Error al vincular hermanos: " + error.message };
+    }
+}
+
+export async function saveActivityFee(formData: FormData) {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+    if (!session || (role !== 'ADMIN' && role !== 'OPERADOR')) {
+        return { message: "No autorizado" };
+    }
+
+    const year = parseInt(formData.get("year") as string);
+    const month = parseInt(formData.get("month") as string);
+    const category = formData.get("category") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+
+    if (isNaN(year) || isNaN(month) || !category || isNaN(amount)) {
+        return { message: "Faltan campos obligatorios o son incorrectos" };
+    }
+
+    try {
+        await prisma.activityFee.upsert({
+            where: {
+                year_month_category: { year, month, category }
+            },
+            update: { amount },
+            create: { year, month, category, amount }
+        });
+
+        await createAuditLog("CREATE/UPDATE", "ActivityFee", "FEE", { year, month, category, amount });
+        revalidatePath("/dashboard/administracion/fees");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Save Fee Error:", error);
+        return { message: "Error al guardar cuota: " + error.message };
+    }
+}
+
+export async function deleteActivityFee(id: string) {
+    const session = await auth();
+    const role = (session?.user as any)?.role || 'VIEWER';
+    if (role !== 'ADMIN') return { message: "No autorizado" };
+
+    try {
+        await prisma.activityFee.delete({ where: { id } });
+        await createAuditLog("DELETE", "ActivityFee", id);
+        revalidatePath("/dashboard/administracion/fees");
+        return { success: true };
+    } catch (error: any) {
+        return { message: "Error al eliminar cuota: " + error.message };
+    }
 }
 
 export async function deleteAllPlayers() {
