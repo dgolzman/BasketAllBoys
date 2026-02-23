@@ -31,13 +31,19 @@ if command -v git >/dev/null 2>&1; then
     fi
 fi
 
-printf "📦 Ingresá la versión a descargar (default: $DEFAULT_VERSION): "
-read VERSION_INPUT
+if [ -z "$VERSION" ]; then
+    printf "📦 Ingresá la versión a descargar (default: $DEFAULT_VERSION): "
+    if [ -t 0 ]; then
+        read VERSION_INPUT
+    else
+        VERSION_INPUT=""
+    fi
 
-if [ -z "$VERSION_INPUT" ]; then
-    export VERSION="$DEFAULT_VERSION"
-else
-    export VERSION="$VERSION_INPUT"
+    if [ -z "$VERSION_INPUT" ]; then
+        export VERSION="$DEFAULT_VERSION"
+    else
+        export VERSION="$VERSION_INPUT"
+    fi
 fi
 
 # Configuración SMTP (Proactiva)

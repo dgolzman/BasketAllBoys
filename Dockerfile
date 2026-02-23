@@ -23,28 +23,15 @@ RUN npm run build
 
 # Stage 3: Runner
 FROM node:20-alpine AS runner
-RUN apk add --no-cache openssl
+# Add docker and git for update.sh
+RUN apk add --no-cache openssl docker-cli git
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy essential files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-
-# Copy bcryptjs explicitly so it's available for seeding (not bundled by webpack)
-COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
-
 # Ensure permissions for the data directory (SQLite)
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
-
-USER nextjs
+RUN mkdir -p /app/data
 
 EXPOSE 3000
 

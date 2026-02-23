@@ -165,6 +165,20 @@ export default async function AdministrationPage() {
                     </div>
                 )}
 
+                {isAdmin && (
+                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--primary)', background: 'rgba(124, 58, 237, 0.05)' }}>
+                        <div>
+                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>🚀 Actualizaciones</h3>
+                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                                Actualizar el sistema a la última versión disponible en GitHub sin usar terminal.
+                            </p>
+                        </div>
+                        <Link href="/dashboard/administracion/updates" className="btn btn-primary ui-mayusculas" style={{ textAlign: 'center' }}>
+                            Gestionar Versiones
+                        </Link>
+                    </div>
+                )}
+
                 {isAdmin && <DangerZone />}
             </div>
         </div>

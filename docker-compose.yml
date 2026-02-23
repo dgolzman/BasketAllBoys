@@ -7,10 +7,13 @@ services:
       - "3000:3000"
     volumes:
       - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/app/project-root
     env_file:
       - .env
     environment:
       - DATABASE_URL=file:/app/data/prod.db
+      - PROJECT_ROOT=/app/project-root
       - NODE_ENV=production
       - AUTH_TRUST_HOST=true
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
