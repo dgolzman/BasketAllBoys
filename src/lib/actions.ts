@@ -468,18 +468,30 @@ export async function saveActivityFee(formData: FormData) {
         return { message: "Faltan campos obligatorios o son incorrectos" };
     }
 
+    console.log(`[FEE] Saving fee rule: ${year}/${month} - ${category} - $${amount}`);
+
     try {
-        await prisma.activityFee.upsert({
+        const result = await (prisma as any).activityFee.upsert({
             where: {
                 year_month_category: { year, month, category }
             },
             update: { amount },
-            create: { year, month, category, amount }
+            create: {
+                id: generateId(),
+                year,
+                month,
+                category,
+                amount
+            }
         });
 
+        console.log(`[FEE] Rule saved successfully: ${result.id}`);
+
         await createAuditLog("CREATE/UPDATE", "ActivityFee", "FEE", { year, month, category, amount });
+
+        console.log(`[FEE] Audit log created, revalidating path...`);
         revalidatePath("/dashboard/administracion/fees");
-        return { success: true };
+        return { success: true, message: "Regla de cuota guardada correctamente." };
     } catch (error: any) {
         console.error("Save Fee Error:", error);
         return { message: "Error al guardar cuota: " + error.message };
@@ -492,10 +504,10 @@ export async function deleteActivityFee(id: string) {
     if (role !== 'ADMIN') return { message: "No autorizado" };
 
     try {
-        await prisma.activityFee.delete({ where: { id } });
+        await (prisma as any).activityFee.delete({ where: { id } });
         await createAuditLog("DELETE", "ActivityFee", id);
         revalidatePath("/dashboard/administracion/fees");
-        return { success: true };
+        return { success: true, message: "Cuota eliminada correctamente." };
     } catch (error: any) {
         return { message: "Error al eliminar cuota: " + error.message };
     }

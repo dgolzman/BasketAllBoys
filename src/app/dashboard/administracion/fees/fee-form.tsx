@@ -8,15 +8,23 @@ export default function FeeForm({ categories, currentYear, currentMonth }: { cat
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        console.log("[FEE] Submitting form...");
         setIsPending(true);
-        const formData = new FormData(e.currentTarget);
-        const res = await saveActivityFee(formData);
-        if (res?.message) {
-            alert(res.message);
-        } else {
-            e.currentTarget.reset();
+        try {
+            const formData = new FormData(e.currentTarget);
+            const res = await saveActivityFee(formData);
+            console.log("[FEE] Action finished:", res);
+            if (res?.message) {
+                alert(res.message);
+            } else {
+                e.currentTarget.reset();
+            }
+        } catch (error) {
+            console.error("[FEE] Error submitting form:", error);
+            alert("Error de conexión al guardar.");
+        } finally {
+            setIsPending(false);
         }
-        setIsPending(false);
     };
 
     return (

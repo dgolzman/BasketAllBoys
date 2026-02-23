@@ -12,7 +12,15 @@ export default async function UpdatesPage() {
         redirect('/dashboard/administracion');
     }
 
-    const versions = await getAvailableVersions();
+    let versions: string[] = [];
+    let error: string | null = null;
+
+    try {
+        versions = await getAvailableVersions() || [];
+    } catch (e) {
+        console.error("Failed to fetch versions:", e);
+        error = "No se pudo conectar con el servicio de actualizaciones.";
+    }
 
     return (
         <div>
@@ -35,7 +43,14 @@ export default async function UpdatesPage() {
             <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)', maxWidth: '800px' }}>
                 <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', color: 'var(--accent)' }}>Versiones Disponibles (GitHub)</h3>
 
-                {versions.length === 0 ? (
+                {error ? (
+                    <div style={{ padding: '1rem', background: 'rgba(220,38,38,0.1)', border: '1px solid #dc2626', color: '#dc2626', borderRadius: '8px', textAlign: 'center' }}>
+                        {error}
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                            Por favor, intenta recargar la página en unos momentos.
+                        </div>
+                    </div>
+                ) : versions.length === 0 ? (
                     <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
                         No se pudieron obtener etiquetas de GitHub o no hay versiones disponibles.
                     </div>
