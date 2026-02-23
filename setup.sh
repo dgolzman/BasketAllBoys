@@ -1,8 +1,8 @@
 #!/bin/sh
 # ============================================================
-# BasketAllBoys - Instalador Interactivo v3.6
+# BasketAllBoys - Instalador Interactivo v3.7
 # ============================================================
-# Manejo robusto de errores y protección contra consumo de stdin.
+# Soluciona errores de resolución de módulos y asegura credenciales.
 
 APP_DIR="/opt/basket-app"
 REPO_RAW="https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main"
@@ -33,7 +33,6 @@ fail() {
 }
 
 ask() {
-    # Redirigimos explícitamente a /dev/tty para que funcione con pipes
     printf "👉 %s " "$1" > /dev/tty
     read -r REPLY < /dev/tty
     echo "$REPLY"
@@ -42,7 +41,7 @@ ask() {
 # ── Inicio ───────────────────────────────────────────────────
 echo ""
 echo "🏀 ==========================================="
-echo "   BasketAllBoys - Instalador v3.6"
+echo "   BasketAllBoys - Instalador v3.7"
 echo "============================================="
 
 # ── Paso 1: Autenticación ────────────────────────────────────
@@ -79,7 +78,7 @@ step "Verificando instalación previa"
 DB_FILE="$APP_DIR/data/prod.db"
 if [ -f "$DB_FILE" ]; then
     warn "Se encontró una base de datos existente."
-    echo "   ¿Querés [s] Borrar todo o [n] Solo actualizar?"
+    echo "   ¿Querés [s] Borrar todo o [n] Solo actualizar e intentar login?"
     CONFIRM=$(ask "Opción (s/N):")
     if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
         docker compose down < /dev/null || true
@@ -150,33 +149,27 @@ fi
 ok "Migraciones aplicadas"
 
 # ── Paso 11: Seeding ────────────────────────────────────────
-step "Creando datos iniciales"
-cat << 'EOF_JS_COUNT' > count_users.js
-const { PrismaClient } = require('@prisma/client');
-const p = new PrismaClient();
-p.user.count().then(n => { process.stdout.write(String(n)); p.$disconnect(); }).catch(() => { process.stdout.write('0'); p.$disconnect(); });
-EOF_JS_COUNT
+step "Creando datos iniciales y reseteando admin"
 
-docker compose cp count_users.js app:/tmp/count_users.js < /dev/null
-USER_COUNT=$(docker compose exec -T app node /tmp/count_users.js < /dev/null | tr -dc '0-9')
-rm count_users.js
-
-if [ -z "$USER_COUNT" ]; then USER_COUNT=0; fi
-
-if [ "$USER_COUNT" -eq 0 ] 2>/dev/null || [ "$USER_COUNT" = "0" ]; then
-    info "Inicializando datos base (admin/categorías)..."
-    cat << 'EOF_JS_SEED' > seed.js
+# Para asegurar que los módulos se encuentran, corremos desde el root del app
+# y usamos un script JS que no dependa de rutas externas.
+cat << 'EOF_JS_SEED_ROBUST' > seed_robust.js
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 async function main() {
+  console.log('--- Iniciando Sincronización de Datos ---');
   const hash = await bcrypt.hash('admin123', 10);
   const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-  await prisma.user.upsert({ 
+  
+  // Siempre actualizamos la password a 'admin123' para evitar bloqueos
+  const admin = await prisma.user.upsert({ 
     where: { email: 'admin@allboys.com' }, 
-    update: {}, 
+    update: { password: hash, role: 'ADMIN' }, 
     create: { id, email: 'admin@allboys.com', name: 'Administrador', password: hash, role: 'ADMIN', updatedAt: new Date() }
   });
+  console.log('✅ Usuario admin configurado (admin@allboys.com / admin123)');
+
   const cats = [
     { category: 'Mosquitos', minYear: 2018, maxYear: 2030 },
     { category: 'Pre-Mini', minYear: 2016, maxYear: 2017 },
@@ -189,19 +182,27 @@ async function main() {
   ];
   for (const cat of cats) {
     const cid = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    await prisma.categoryMapping.upsert({ where: { category: cat.category }, update: { ...cat, updatedAt: new Date() }, create: { id: cid, ...cat, updatedAt: new Date() }});
+    await prisma.categoryMapping.upsert({ 
+        where: { category: cat.category }, 
+        update: { ...cat, updatedAt: new Date() }, 
+        create: { id: cid, ...cat, updatedAt: new Date() }
+    });
   }
+  console.log('✅ Categorías configuradas');
 }
-main().then(() => prisma.$disconnect()).catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
-EOF_JS_SEED
+main()
+  .then(() => { prisma.$disconnect(); process.exit(0); })
+  .catch(e => { console.error('Error en seed:', e); prisma.$disconnect(); process.exit(1); });
+EOF_JS_SEED_ROBUST
 
-    docker compose cp seed.js app:/tmp/seed.js < /dev/null
-    docker compose exec -T app node /tmp/seed.js < /dev/null
-    rm seed.js
-    ok "Datos base creados."
+# Copiamos al root del app para que el 'require' funcione bien
+docker compose cp seed_robust.js app:/app/seed_robust.js < /dev/null
+if docker compose exec -T app node seed_robust.js < /dev/null; then
+    ok "Datos base y admin reseteados correctamente."
 else
-    info "Ya existen usuarios ($USER_COUNT). Seed omitido."
+    warn "Hubo un problema con el seed automático."
 fi
+rm seed_robust.js
 
 # ── Paso 12: Importar backup ────────────────────────────────
 step "Importar backup JSON (opcional)"
@@ -209,13 +210,13 @@ BACKUP_PATH=$(ask "Ruta del backup (Enter para omitir):")
 
 if [ -n "$BACKUP_PATH" ] && [ -f "$BACKUP_PATH" ]; then
     info "Importando backup..."
-    docker compose cp "$BACKUP_PATH" app:/tmp/backup.json < /dev/null
-    cat << 'EOF_JS_IMPORT' > import_backup.js
+    docker compose cp "$BACKUP_PATH" app:/app/backup.json < /dev/null
+    cat << 'EOF_JS_IMPORT_ROBUST' > import_robust.js
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const prisma = new PrismaClient();
 async function main() {
-  const data = JSON.parse(fs.readFileSync('/tmp/backup.json','utf8'));
+  const data = JSON.parse(fs.readFileSync('/app/backup.json','utf8'));
   const entities = Array.isArray(data.exportedEntities) && data.exportedEntities.length > 0 ? data.exportedEntities : ['users','players','coaches','attendance','payments','categoryMappings','auditLogs','dismissedIssues'];
   const inc = e => entities.includes(e) && Array.isArray(data[e]) && data[e].length > 0;
   await prisma.$transaction(async tx => {
@@ -238,11 +239,14 @@ async function main() {
   });
 }
 main().then(() => { prisma.$disconnect(); process.exit(0); }).catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
-EOF_JS_IMPORT
-    docker compose cp import_backup.js app:/tmp/import_backup.js < /dev/null
-    docker compose exec -T app node /tmp/import_backup.js < /dev/null
-    rm import_backup.js
-    ok "Backup importado."
+EOF_JS_IMPORT_ROBUST
+    docker compose cp import_robust.js app:/app/import_robust.js < /dev/null
+    if docker compose exec -T app node import_robust.js < /dev/null; then
+        ok "Backup importado."
+    else
+        warn "Error importando backup."
+    fi
+    rm import_robust.js
 fi
 
 # ── Fin ───────────────────────────────────────────────────────
