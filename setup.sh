@@ -169,16 +169,17 @@ ok "Migraciones aplicadas"
 
 # ── Paso 11: Seeding ────────────────────────────────────────
 step "Creando datos iniciales (admin y categorías)"
-SEED_CMD="docker compose -f $APP_DIR/docker-compose.yml exec app node -e \"...\""
 
+# Verificamos si ya existen usuarios de forma segura
 USER_COUNT=$(docker compose exec -T app node -e "
 const { PrismaClient } = require('@prisma/client');
 const p = new PrismaClient();
-p.user.count().then(n => { process.stdout.write(String(n)); p.\$disconnect(); }).catch(() => process.stdout.write('0'));
-" 2>/dev/null | tr -d '[:space:]')
+p.user.count().then(n => { process.stdout.write(String(n)); p.\$disconnect(); }).catch(() => { process.stdout.write('0'); p.\$disconnect(); });
+" 2>/dev/null | tr -d '[:space:]' | tr -dc '0-9')
 
 if [ "$USER_COUNT" = "0" ] || [ -z "$USER_COUNT" ]; then
-    if ! docker compose exec -T app node -e "
+    info "Inicializando datos base..."
+    if docker compose exec -T app node -e "
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
@@ -200,24 +201,12 @@ async function main() {
     const cid = Math.random().toString(36).slice(2) + Date.now().toString(36);
     await prisma.categoryMapping.upsert({ where: { category: cat.category }, update: { ...cat, updatedAt: new Date() }, create: { id: cid, ...cat, updatedAt: new Date() }});
   }
-  await prisma.\$disconnect();
 }
-main().catch(e => { console.error(e); process.exit(1); });
+main().then(() => prisma.\$disconnect()).catch(e => { console.error(e); prisma.\$disconnect(); process.exit(1); });
 "; then
-        echo ""
-        warn "El seed falló. Podés ejecutarlo manualmente con:"
-        echo "   docker compose -f $APP_DIR/docker-compose.yml exec app node -e \"$(cat <<'JS'
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
-const prisma = new PrismaClient();
-bcrypt.hash('admin123', 10).then(hash => {
-  const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-  return prisma.user.upsert({ where: { email: 'admin@allboys.com' }, update: {}, create: { id, email: 'admin@allboys.com', name: 'Administrador', password: hash, role: 'ADMIN', updatedAt: new Date() }});
-}).then(() => prisma.\$disconnect());
-JS
-)\""
-    else
         ok "Datos iniciales creados (admin + categorías)"
+    else
+        warn "El seed automático falló. El sistema puede estar listo pero sin usuario admin."
     fi
 else
     info "Ya existen $USER_COUNT usuarios — seed omitido."
