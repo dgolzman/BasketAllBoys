@@ -20,10 +20,8 @@ export default function CoachList({ coaches, currentSort, currentOrder, role, ca
                     <thead className="ui-mayusculas">
                         <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
                             <SortableHeader label="NOMBRE" value="name" currentSort={currentSort} currentOrder={currentOrder} />
+                            <SortableHeader className="coach-col-contacto" label="CONTACTO" value="phone" currentSort={currentSort} currentOrder={currentOrder} />
                             <SortableHeader className="coach-col-rol" label="ROL" value="role" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="coach-col-contacto" label="CONTACTO" value="email" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader className="coach-col-alta" label="ALTA" value="registrationDate" currentSort={currentSort} currentOrder={currentOrder} />
-                            <SortableHeader label="ESTADO" value="status" currentSort={currentSort} currentOrder={currentOrder} />
                         </tr>
                     </thead>
                     <tbody>
@@ -43,11 +41,6 @@ export default function CoachList({ coaches, currentSort, currentOrder, role, ca
                                         {coach.name}
                                     </Link>
                                 </td>
-                                <td className="coach-col-rol" style={{ padding: '1rem' }}>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold' }}>
-                                        {coach.role?.toUpperCase() || 'SIN ROL'}
-                                    </div>
-                                </td>
                                 <td className="coach-col-contacto" style={{ padding: '1rem', fontSize: '0.9rem' }}>
                                     {coach.email && <div style={{ color: 'var(--foreground)' }}>📧 {coach.email}</div>}
                                     {coach.phone && (
@@ -65,21 +58,11 @@ export default function CoachList({ coaches, currentSort, currentOrder, role, ca
                                         </div>
                                     )}
                                 </td>
-                                <td className="coach-col-alta" style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                                    <div style={{ color: 'var(--foreground)' }}>
-                                        <strong>Alta:</strong> {coach.registrationDate ? new Date(coach.registrationDate).toLocaleDateString() : '-'}
+                                <td className="coach-col-rol" style={{ padding: '1rem' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold' }}>
+                                        {coach.role?.toUpperCase() || 'SIN ROL'}
                                     </div>
-                                    {coach.withdrawalDate && (
-                                        <div style={{ color: '#f87171', fontSize: '0.75rem' }}>
-                                            <strong>Baja:</strong> {new Date(coach.withdrawalDate).toLocaleDateString()}
-                                        </div>
-                                    )}
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <div className="ui-mayusculas" style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                                        {coach.role && (
-                                            <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600 }}>{coach.role}</span>
-                                        )}
+                                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
                                         {coach.status === 'REVISAR' && (
                                             <span style={{ background: '#78350f', color: '#fcd34d', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 'bold' }}>REVISAR</span>
                                         )}

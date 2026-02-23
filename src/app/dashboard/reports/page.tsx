@@ -318,159 +318,174 @@ async function SalaryView({ year }: { year: number }) {
 }
 
 async function ActivityFeesView({ year, month }: { year: number, month: number }) {
-    const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } });
+    try {
+        const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } });
 
-    const fees = await (prisma as any).activityFee.findMany({
-        where: { year, month },
-        orderBy: { category: 'asc' }
-    });
+        const fees = await (prisma as any).activityFee.findMany({
+            where: { year, month },
+            orderBy: { category: 'asc' }
+        });
 
-    const players = await prisma.player.findMany({
-        where: { status: 'ACTIVO', scholarship: false },
-        select: { id: true, firstName: true, lastName: true, category: true, birthDate: true, dni: true, tira: true }
-    });
+        const players = await prisma.player.findMany({
+            where: { status: 'ACTIVO', scholarship: false },
+            select: { id: true, firstName: true, lastName: true, category: true, birthDate: true, dni: true, tira: true }
+        });
 
-    const payments = await (prisma as any).payment.findMany({
-        where: { year, month }
-    });
+        const payments = await (prisma as any).payment.findMany({
+            where: { year, month }
+        });
 
-    const feeMap = new Map<string, number>();
-    let globalFee = 0;
-    fees.forEach((f: any) => {
-        if (f.category === 'GLOBAL') globalFee = f.amount;
-        else feeMap.set(f.category, f.amount);
-    });
+        const feeMap = new Map<string, number>();
+        let globalFee = 0;
+        fees.forEach((f: any) => {
+            if (f.category === 'GLOBAL') globalFee = f.amount;
+            else feeMap.set(f.category, f.amount);
+        });
 
-    let projectedTotal = 0;
-    let playersWithMissingFees = 0;
+        let projectedTotal = 0;
+        let playersWithMissingFees = 0;
 
-    const categoryStats: Record<string, { expected: number, actual: number, count: number }> = {};
-    const initCategoryStats = (cat: string) => {
-        if (!categoryStats[cat]) categoryStats[cat] = { expected: 0, actual: 0, count: 0 };
-    };
+        const categoryStats: Record<string, { expected: number, actual: number, count: number }> = {};
+        const initCategoryStats = (cat: string) => {
+            if (!categoryStats[cat]) categoryStats[cat] = { expected: 0, actual: 0, count: 0 };
+        };
 
-    const playerDetails = players.map(p => {
-        const cat = getCategory(p, mappings);
-        initCategoryStats(cat);
+        const playerDetails = players.map(p => {
+            const cat = getCategory(p, mappings);
+            initCategoryStats(cat);
 
-        let applicableFee = feeMap.get(cat) ?? feeMap.get(p.category || "") ?? globalFee;
+            let applicableFee = feeMap.get(cat) ?? feeMap.get(p.category || "") ?? globalFee;
 
-        categoryStats[cat].count++;
+            categoryStats[cat].count++;
 
-        if (applicableFee === 0 && globalFee === 0) {
-            playersWithMissingFees++;
-        } else {
-            projectedTotal += applicableFee;
-            categoryStats[cat].expected += applicableFee;
-        }
+            if (applicableFee === 0 && globalFee === 0) {
+                playersWithMissingFees++;
+            } else {
+                projectedTotal += applicableFee;
+                categoryStats[cat].expected += applicableFee;
+            }
 
-        return { ...p, calculatedCategory: cat, applicableFee };
-    });
+            return { ...p, calculatedCategory: cat, applicableFee };
+        });
 
-    let actualCollected = 0;
-    payments.forEach((pymt: any) => {
-        const p = playerDetails.find(pl => pl.id === pymt.playerId);
-        if (p) {
-            actualCollected += pymt.amount;
-            categoryStats[p.calculatedCategory].actual += pymt.amount;
-        } else {
-            actualCollected += pymt.amount;
-            initCategoryStats("OTROS (Inactivos/Becados)");
-            categoryStats["OTROS (Inactivos/Becados)"].actual += pymt.amount;
-        }
-    });
+        let actualCollected = 0;
+        payments.forEach((pymt: any) => {
+            const p = playerDetails.find(pl => pl.id === pymt.playerId);
+            if (p) {
+                actualCollected += pymt.amount;
+                categoryStats[p.calculatedCategory].actual += pymt.amount;
+            } else {
+                actualCollected += pymt.amount;
+                initCategoryStats("OTROS (Inactivos/Becados)");
+                categoryStats["OTROS (Inactivos/Becados)"].actual += pymt.amount;
+            }
+        });
 
-    const gap = projectedTotal - actualCollected;
-    const gapPercentage = projectedTotal > 0 ? (actualCollected / projectedTotal) * 100 : 0;
+        const gap = projectedTotal - actualCollected;
+        const gapPercentage = projectedTotal > 0 ? (actualCollected / projectedTotal) * 100 : 0;
 
-    return (
-        <div>
-            <FilterWrapper pageId="reports-activity-fees" title="Proyección Mensual">
-                <form className="ui-mayusculas" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <input type="hidden" name="tab" value="activity_fees" />
-                    <div>
-                        <label className="label">Mes</label>
-                        <select name="month" className="input" defaultValue={month}>
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                                <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString('es-AR', { month: 'long' })}</option>
-                            ))}
-                        </select>
+        return (
+            <div>
+                <FilterWrapper pageId="reports-activity-fees" title="Proyección Mensual">
+                    <form className="ui-mayusculas" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                        <input type="hidden" name="tab" value="activity_fees" />
+                        <div>
+                            <label className="label">Mes</label>
+                            <select name="month" className="input" defaultValue={month}>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                                    <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString('es-AR', { month: 'long' })}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="label">Año</label>
+                            <select name="year" className="input" defaultValue={year}>
+                                {[year - 1, year, year + 1].map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <button type="submit" className="btn btn-primary" style={{ height: '38px' }}>Ver Proyección</button>
+                        <Link href={`/dashboard/administracion/fees?year=${year}&month=${month}`} className="btn btn-secondary" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>⚙️ Configurar Cuotas</Link>
+                    </form>
+                </FilterWrapper>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(3, 105, 161, 0.1)', border: '1px solid #0369a1' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#7dd3fc', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Proyección Ideal</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#38bdf8', marginTop: '0.5rem' }}>De {playerDetails.length} jugadores activos s/beca</div>
+                        </div>
+
+                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Recaudado Real</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
+                            <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: '0.5rem' }}>{payments.length} recibos importados</div>
+                        </div>
+
+                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: gap > 0 ? 'rgba(153, 27, 27, 0.2)' : 'rgba(5, 150, 105, 0.1)', border: '1px solid ' + (gap > 0 ? '#b91c1c' : '#059669') }}>
+                            <div style={{ fontSize: '0.8rem', color: gap > 0 ? '#fca5a5' : '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Brecha / Faltante</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${Math.max(0, gap).toLocaleString('es-AR')}</div>
+                            <div style={{ fontSize: '0.75rem', color: gap > 0 ? '#f87171' : '#34d399', marginTop: '0.5rem' }}>
+                                {projectedTotal > 0 ? gapPercentage.toFixed(1) : 0}% de efectividad
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label className="label">Año</label>
-                        <select name="year" className="input" defaultValue={year}>
-                            {[year - 1, year, year + 1].map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <button type="submit" className="btn btn-primary" style={{ height: '38px' }}>Ver Proyección</button>
-                    <Link href={`/dashboard/administracion/fees?year=${year}&month=${month}`} className="btn btn-secondary" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>⚙️ Configurar Cuotas</Link>
-                </form>
-            </FilterWrapper>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                    <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(3, 105, 161, 0.1)', border: '1px solid #0369a1' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#7dd3fc', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Proyección Ideal</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#38bdf8', marginTop: '0.5rem' }}>De {playerDetails.length} jugadores activos s/beca</div>
-                    </div>
+                    {playersWithMissingFees > 0 && (
+                        <div style={{ padding: '1rem', background: '#450a0a', color: '#fca5a5', border: '1px solid #7f1d1d', borderRadius: '8px' }}>
+                            ⚠️ Hay {playersWithMissingFees} jugadores a los que no se les pudo proyectar cuota porque no existe una regla GLOBAL ni específica para su categoría en este mes.
+                        </div>
+                    )}
 
-                    <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Recaudado Real</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: '0.5rem' }}>{payments.length} recibos importados</div>
-                    </div>
-
-                    <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: gap > 0 ? 'rgba(153, 27, 27, 0.2)' : 'rgba(5, 150, 105, 0.1)', border: '1px solid ' + (gap > 0 ? '#b91c1c' : '#059669') }}>
-                        <div style={{ fontSize: '0.8rem', color: gap > 0 ? '#fca5a5' : '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Brecha / Faltante</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${Math.max(0, gap).toLocaleString('es-AR')}</div>
-                        <div style={{ fontSize: '0.75rem', color: gap > 0 ? '#f87171' : '#34d399', marginTop: '0.5rem' }}>
-                            {projectedTotal > 0 ? gapPercentage.toFixed(1) : 0}% de efectividad
+                    <div className="card" style={{ padding: '1.5rem' }}>
+                        <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--accent)' }}>Desglose por Categoría</h3>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--secondary)' }}>
+                                        <th style={{ padding: '0.75rem' }}>Categoría</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Activos (s/beca)</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Proyectado</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Recaudado</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Efectividad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.entries(categoryStats).sort(([a], [b]) => a.localeCompare(b)).map(([cat, stats]) => {
+                                        const p = stats.expected > 0 ? (stats.actual / stats.expected) * 100 : 0;
+                                        return (
+                                            <tr key={cat} style={{ borderBottom: '1px dashed var(--border)' }}>
+                                                <td style={{ padding: '0.75rem' }} className="ui-mayusculas">{cat}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right' }}>{stats.count}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#38bdf8' }}>${stats.expected.toLocaleString('es-AR')}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#34d399' }}>${stats.actual.toLocaleString('es-AR')}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: p >= 90 ? '#34d399' : p >= 50 ? '#fbbf24' : '#f87171' }}>
+                                                    {stats.expected > 0 ? p.toFixed(1) + '%' : '-'}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-
-                {playersWithMissingFees > 0 && (
-                    <div style={{ padding: '1rem', background: '#450a0a', color: '#fca5a5', border: '1px solid #7f1d1d', borderRadius: '8px' }}>
-                        ⚠️ Hay {playersWithMissingFees} jugadores a los que no se les pudo proyectar cuota porque no existe una regla GLOBAL ni específica para su categoría en este mes.
-                    </div>
-                )}
-
-                <div className="card" style={{ padding: '1.5rem' }}>
-                    <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--accent)' }}>Desglose por Categoría</h3>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--secondary)' }}>
-                                    <th style={{ padding: '0.75rem' }}>Categoría</th>
-                                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Activos (s/beca)</th>
-                                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Proyectado</th>
-                                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Recaudado</th>
-                                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Efectividad</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(categoryStats).sort(([a], [b]) => a.localeCompare(b)).map(([cat, stats]) => {
-                                    const p = stats.expected > 0 ? (stats.actual / stats.expected) * 100 : 0;
-                                    return (
-                                        <tr key={cat} style={{ borderBottom: '1px dashed var(--border)' }}>
-                                            <td style={{ padding: '0.75rem' }} className="ui-mayusculas">{cat}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'right' }}>{stats.count}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'right', color: '#38bdf8' }}>${stats.expected.toLocaleString('es-AR')}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'right', color: '#34d399' }}>${stats.actual.toLocaleString('es-AR')}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'right', color: p >= 90 ? '#34d399' : p >= 50 ? '#fbbf24' : '#f87171' }}>
-                                                {stats.expected > 0 ? p.toFixed(1) + '%' : '-'}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+            </div>
+        );
+    } catch (error: any) {
+        console.error("CRITICAL REPORT ERROR:", error);
+        return (
+            <div className="card" style={{ padding: '2rem', border: '1px solid #7f1d1d', background: 'rgba(127, 29, 29, 0.1)' }}>
+                <h3 style={{ color: '#ef4444', marginBottom: '1rem' }}>⚠️ Error en el Informe de Recaudación</h3>
+                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>
+                    No se pudieron cargar los datos. Esto suele ocurrir por una desincronía en la base de datos o modelos faltantes.
+                </p>
+                <div style={{ marginTop: '1rem', padding: '1rem', background: '#000', borderRadius: '4px', fontSize: '0.8rem', color: '#f87171', fontFamily: 'monospace' }}>
+                    {error.message || "Error desconocido"}
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
 }

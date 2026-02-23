@@ -392,19 +392,11 @@ input[type="date"] {
   .players-table {
     min-width: 700px;
   }
-
-  .col-primera, .col-alta {
-    display: none;
-  }
 }
 
 @media (max-width: 768px) {
   .players-table {
     min-width: 520px;
-  }
-
-  .col-dni, .col-contacto {
-    display: none;
   }
 }
 
