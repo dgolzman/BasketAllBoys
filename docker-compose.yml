@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/dgolzman/basketallboys:main
+    image: ghcr.io/dgolzman/basketallboys:${VERSION:-main}
     container_name: basket-app
     restart: always
     ports:
