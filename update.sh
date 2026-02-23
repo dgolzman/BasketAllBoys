@@ -88,6 +88,29 @@ if [ -f .env ]; then
     fi
 fi
 
+# 0. Automating infrastructure changes (Fix for Web-Update)
+if [ -f docker-compose.yml ]; then
+    echo "🔧 Verificando configuración de infraestructura..."
+    
+    # Check if docker.sock is mounted
+    if ! grep -q "docker.sock" docker-compose.yml; then
+        echo "➕ Agregando montura de docker.sock..."
+        sed -i '/volumes:/a \      - /var/run/docker.sock:/var/run/docker.sock' docker-compose.yml
+    fi
+
+    # Check if project-root is mounted
+    if ! grep -q "project-root" docker-compose.yml; then
+        echo "➕ Agregando montura de raíz del proyecto..."
+        sed -i '/volumes:/a \      - ./:/app/project-root' docker-compose.yml
+    fi
+
+    # Check for PROJECT_ROOT env
+    if ! grep -q "PROJECT_ROOT" docker-compose.yml; then
+        echo "➕ Agregando variable PROJECT_ROOT..."
+        sed -i '/environment:/a \      - PROJECT_ROOT=/app/project-root' docker-compose.yml
+    fi
+fi
+
 echo "📥 Usando versión: $VERSION"
 
 # 1. Bajar la versión seleccionada
@@ -98,8 +121,20 @@ docker compose pull
 echo "🔄 Reiniciando servicios con versión $VERSION..."
 docker compose up -d --remove-orphans
 
-# 3. Aplicar migraciones si existen
-echo "🚀 Aplicando cambios en la base de datos..."
+# 3. Aplicar migraciones con espera proactiva
+echo "🚀 Preparando base de datos..."
+# Esperar a que el contenedor esté 'running' (max 30s)
+RETRIES=10
+while [ $RETRIES -gt 0 ]; do
+    STATUS=$(docker inspect -f '{{.State.Status}}' basket-app 2>/dev/null || echo "notfound")
+    if [ "$STATUS" = "running" ]; then
+        break
+    fi
+    echo "⏳ Esperando a que el sistema inicie ($STATUS)..."
+    sleep 3
+    RETRIES=$((RETRIES-1))
+done
+
 docker compose exec -T app npx prisma migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
 
 # 4. Limpiar imágenes viejas

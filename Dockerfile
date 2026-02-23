@@ -30,6 +30,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Copy essential files from builder
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
+
+# Copy bcryptjs explicitly so it's available for seeding (not bundled by webpack)
+COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
 # Ensure permissions for the data directory (SQLite)
 RUN mkdir -p /app/data
 
