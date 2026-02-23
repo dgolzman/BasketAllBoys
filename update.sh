@@ -111,6 +111,13 @@ if [ -f docker-compose.yml ]; then
     fi
 fi
 
+# 0.5 Persistir versión en .env
+if [ -f .env ]; then
+    echo "📝 Guardando versión $VERSION en .env..."
+    sed -i "/VERSION=/d" .env
+    echo "VERSION=$VERSION" >> .env
+fi
+
 echo "📥 Usando versión: $VERSION"
 
 # 1. Bajar la versión seleccionada
@@ -135,7 +142,8 @@ while [ $RETRIES -gt 0 ]; do
     RETRIES=$((RETRIES-1))
 done
 
-docker compose exec -T app npx prisma migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
+# Fijamos la versión de prisma a la del proyecto (5.22.0) para evitar que npx baje la v7 (breaking change)
+docker compose exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
 
 # 4. Limpiar imágenes viejas
 echo "🧹 Limpiando imágenes antiguas..."
