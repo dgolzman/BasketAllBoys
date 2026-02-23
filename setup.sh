@@ -1,8 +1,8 @@
 #!/bin/sh
 # ============================================================
-# BasketAllBoys - Instalador Interactivo v3.5
+# BasketAllBoys - Instalador Interactivo v3.6
 # ============================================================
-# Manejo robusto de errores y compatibilidad con Alpine/BusyBox.
+# Manejo robusto de errores y protección contra consumo de stdin.
 
 APP_DIR="/opt/basket-app"
 REPO_RAW="https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main"
@@ -33,6 +33,7 @@ fail() {
 }
 
 ask() {
+    # Redirigimos explícitamente a /dev/tty para que funcione con pipes
     printf "👉 %s " "$1" > /dev/tty
     read -r REPLY < /dev/tty
     echo "$REPLY"
@@ -41,14 +42,12 @@ ask() {
 # ── Inicio ───────────────────────────────────────────────────
 echo ""
 echo "🏀 ==========================================="
-echo "   BasketAllBoys - Instalador v3.5"
+echo "   BasketAllBoys - Instalador v3.6"
 echo "============================================="
 
 # ── Paso 1: Autenticación ────────────────────────────────────
 step "Autenticación con GitHub (GHCR.io)"
 echo "   Necesitamos tu Token de GitHub para descargar la imagen."
-echo "   Creálo en: Settings > Developer Settings > Tokens (classic)"
-echo "   con el permiso 'read:packages'."
 GH_TOKEN=$(ask "Token de GitHub:")
 
 if [ -z "$GH_TOKEN" ]; then
@@ -65,7 +64,7 @@ ok "Login exitoso"
 step "Verificando dependencias del sistema"
 if [ -f /etc/alpine-release ] && ! command -v openssl >/dev/null; then
     info "Alpine detectado — instalando openssl..."
-    apk add --no-cache openssl || warn "No se pudo instalar openssl, continuando..."
+    apk add --no-cache openssl < /dev/null || warn "No se pudo instalar openssl."
 fi
 ok "Dependencias OK"
 
@@ -79,31 +78,24 @@ ok "Directorio listo"
 step "Verificando instalación previa"
 DB_FILE="$APP_DIR/data/prod.db"
 if [ -f "$DB_FILE" ]; then
-    warn "Se encontró una base de datos existente en: $DB_FILE"
-    echo ""
-    echo "   ¿Qué querés hacer?"
-    echo "   [s] Borrar todo y empezar de cero (PERDÉS LOS DATOS)"
-    echo "   [n] Mantener la instalación actual y solo actualizar la imagen"
+    warn "Se encontró una base de datos existente."
+    echo "   ¿Querés [s] Borrar todo o [n] Solo actualizar?"
     CONFIRM=$(ask "Opción (s/N):")
     if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
-        docker compose down 2>/dev/null || true
+        docker compose down < /dev/null || true
         rm -rf "$APP_DIR/data"
         ok "Instalación anterior eliminada."
     else
-        info "Manteniendo datos existentes. Solo se actualizará la imagen."
+        info "Manteniendo datos existentes."
     fi
 else
-    info "No hay instalación previa. Instalación limpia."
+    info "Instalación limpia."
 fi
 
 # ── Paso 5: Archivos de configuración ───────────────────────
 step "Descargando archivos de configuración"
-wget -q "$REPO_RAW/docker-compose.yml" -O docker-compose.yml || \
-    fail "No se pudo descargar docker-compose.yml" \
-         "wget $REPO_RAW/docker-compose.yml -O $APP_DIR/docker-compose.yml"
-wget -q "$REPO_RAW/update.sh" -O update.sh || \
-    fail "No se pudo descargar update.sh" \
-         "wget $REPO_RAW/update.sh -O $APP_DIR/update.sh"
+wget -q "$REPO_RAW/docker-compose.yml" -O docker-compose.yml || fail "Error bajando docker-compose"
+wget -q "$REPO_RAW/update.sh" -O update.sh || fail "Error bajando update.sh"
 chmod +x update.sh
 ok "Archivos descargados"
 
@@ -117,80 +109,63 @@ if [ ! -f .env ]; then
     fi
     [ -z "$IP_ADDR" ] && IP_ADDR="localhost"
     printf "AUTH_SECRET=%s\nNEXTAUTH_URL=http://%s:3000\nAUTH_TRUST_HOST=true\n" "$AUTH_SECRET" "$IP_ADDR" > .env
-    ok ".env creado (URL: http://$IP_ADDR:3000)"
+    ok ".env creado."
 else
-    IP_ADDR=$(grep NEXTAUTH_URL .env | cut -d= -f2 | sed 's|http://||;s|:3000||')
-    info ".env existente conservado (URL: http://$IP_ADDR:3000)"
+    info ".env existente conservado."
 fi
 
 # ── Paso 7: Permisos de datos ───────────────────────────────
-step "Preparando directorio de datos (SQLite)"
+step "Preparando directorio de datos"
 mkdir -p data
 chmod 777 data
 ok "Permisos OK"
 
 # ── Paso 8: Descargar imagen y levantar contenedor ──────────
 step "Descargando imagen Docker y levantando el contenedor"
-if ! ./update.sh; then
-    fail "No se pudo descargar o levantar el contenedor" \
-         "cd $APP_DIR && ./update.sh"
+if ! ./update.sh < /dev/null; then
+    fail "Fallo al levantar el contenedor" "./update.sh"
 fi
 
 # ── Paso 9: Verificar que el contenedor esté corriendo ──────
-step "Verificando que el contenedor esté en ejecución"
-echo "   Esperando inicialización (10s)..."
-sleep 10
+step "Verificando ejecución"
+sleep 5
 MAX=10; COUNT=0
 while [ $COUNT -lt $MAX ]; do
     STATUS=$(docker inspect --format='{{.State.Status}}' basket-app 2>/dev/null || echo "not_found")
     [ "$STATUS" = "running" ] && break
-    info "Estado actual: $STATUS — reintentando ($((COUNT+1))/$MAX)..."
     sleep 3
     COUNT=$((COUNT + 1))
 done
 
 if [ "$STATUS" != "running" ]; then
-    echo ""
-    echo "   Logs del contenedor:"
-    docker compose logs --tail=20 2>/dev/null || true
-    fail "El contenedor no está corriendo" \
-         "docker compose -f $APP_DIR/docker-compose.yml up -d && docker compose -f $APP_DIR/docker-compose.yml logs"
+    fail "El contenedor no está corriendo" "docker compose logs"
 fi
 ok "Contenedor corriendo"
 
 # ── Paso 10: Correr migraciones ─────────────────────────────
-step "Ejecutando migraciones de base de datos"
-MIGRATE_CMD="docker compose -f $APP_DIR/docker-compose.yml exec app npx prisma@5.22.0 migrate deploy"
-if ! docker compose exec -T app npx prisma@5.22.0 migrate deploy; then
-    fail "Las migraciones fallaron" "$MIGRATE_CMD"
+step "Ejecutando migraciones"
+if ! docker compose exec -T app npx prisma@5.22.0 migrate deploy < /dev/null; then
+    fail "Fallo en migraciones" "docker compose exec app npx prisma migrate deploy"
 fi
 ok "Migraciones aplicadas"
 
 # ── Paso 11: Seeding ────────────────────────────────────────
-step "Creando datos iniciales (admin y categorías)"
-
-# Creamos script JS temporal para contar usuarios
-cat << 'EOF' > count_users.js
+step "Creando datos iniciales"
+cat << 'EOF_JS_COUNT' > count_users.js
 const { PrismaClient } = require('@prisma/client');
 const p = new PrismaClient();
-p.user.count().then(n => { 
-    process.stdout.write(String(n)); 
-    p.$disconnect(); 
-}).catch(e => { 
-    process.stderr.write(e.message);
-    p.$disconnect(); 
-    process.exit(1); 
-});
-EOF
+p.user.count().then(n => { process.stdout.write(String(n)); p.$disconnect(); }).catch(() => { process.stdout.write('0'); p.$disconnect(); });
+EOF_JS_COUNT
 
-docker compose cp count_users.js app:/tmp/count_users.js
-USER_COUNT=$(docker compose exec -T app node /tmp/count_users.js 2>/dev/null | tr -d '[:space:]' | tr -dc '0-9')
+docker compose cp count_users.js app:/tmp/count_users.js < /dev/null
+USER_COUNT=$(docker compose exec -T app node /tmp/count_users.js < /dev/null | tr -dc '0-9')
 rm count_users.js
 
-if [ "$USER_COUNT" = "0" ] || [ -z "$USER_COUNT" ]; then
-    info "Inicializando datos base..."
-    
-    cat << 'EOF' > seed.js
+if [ -z "$USER_COUNT" ]; then USER_COUNT=0; fi
+
+if [ "$USER_COUNT" -eq 0 ] 2>/dev/null || [ "$USER_COUNT" = "0" ]; then
+    info "Inicializando datos base (admin/categorías)..."
+    cat << 'EOF_JS_SEED' > seed.js
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
@@ -214,53 +189,36 @@ async function main() {
   ];
   for (const cat of cats) {
     const cid = Math.random().toString(36).slice(2) + Date.now().toString(36);
-    await prisma.categoryMapping.upsert({ 
-        where: { category: cat.category }, 
-        update: { ...cat, updatedAt: new Date() }, 
-        create: { id: cid, ...cat, updatedAt: new Date() }
-    });
+    await prisma.categoryMapping.upsert({ where: { category: cat.category }, update: { ...cat, updatedAt: new Date() }, create: { id: cid, ...cat, updatedAt: new Date() }});
   }
 }
-main()
-  .then(() => { prisma.$disconnect(); process.exit(0); })
-  .catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
-EOF
+main().then(() => prisma.$disconnect()).catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
+EOF_JS_SEED
 
-    docker compose cp seed.js app:/tmp/seed.js
-    if docker compose exec -T app node /tmp/seed.js; then
-        ok "Datos iniciales creados (admin + categorías)"
-    else
-        warn "El seed automático falló. El sistema puede estar listo pero sin usuario admin."
-    fi
+    docker compose cp seed.js app:/tmp/seed.js < /dev/null
+    docker compose exec -T app node /tmp/seed.js < /dev/null
     rm seed.js
+    ok "Datos base creados."
 else
-    info "Ya existen $USER_COUNT usuarios — seed omitido."
+    info "Ya existen usuarios ($USER_COUNT). Seed omitido."
 fi
 
-# ── Paso 12: Importar backup (opcional) ─────────────────────
+# ── Paso 12: Importar backup ────────────────────────────────
 step "Importar backup JSON (opcional)"
-echo "   Si tenés un archivo de backup (.json), podés restaurarlo ahora."
 BACKUP_PATH=$(ask "Ruta del backup (Enter para omitir):")
 
 if [ -n "$BACKUP_PATH" ] && [ -f "$BACKUP_PATH" ]; then
-    info "Copiando backup al contenedor..."
-    docker compose cp "$BACKUP_PATH" app:/tmp/backup.json
-    
-    cat << 'EOF' > import_backup.js
+    info "Importando backup..."
+    docker compose cp "$BACKUP_PATH" app:/tmp/backup.json < /dev/null
+    cat << 'EOF_JS_IMPORT' > import_backup.js
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const prisma = new PrismaClient();
 async function main() {
-  const rawData = fs.readFileSync('/tmp/backup.json','utf8');
-  const data = JSON.parse(rawData);
-  const entities = Array.isArray(data.exportedEntities) && data.exportedEntities.length > 0
-    ? data.exportedEntities
-    : ['users','players','coaches','attendance','payments','categoryMappings','auditLogs','dismissedIssues'];
-  
+  const data = JSON.parse(fs.readFileSync('/tmp/backup.json','utf8'));
+  const entities = Array.isArray(data.exportedEntities) && data.exportedEntities.length > 0 ? data.exportedEntities : ['users','players','coaches','attendance','payments','categoryMappings','auditLogs','dismissedIssues'];
   const inc = e => entities.includes(e) && Array.isArray(data[e]) && data[e].length > 0;
-  
   await prisma.$transaction(async tx => {
-    // Delete in reverse dependency order
     if (inc('dismissedIssues')) await tx.dismissedAuditIssue.deleteMany();
     if (inc('auditLogs')) await tx.auditLog.deleteMany();
     if (inc('attendance')) await tx.attendance.deleteMany();
@@ -269,8 +227,6 @@ async function main() {
     if (inc('coaches')) await tx.coach.deleteMany();
     if (inc('categoryMappings')) await tx.categoryMapping.deleteMany();
     if (inc('users')) await tx.user.deleteMany();
-
-    // Create in dependency order
     if (inc('users')) await tx.user.createMany({ data: data.users });
     if (inc('categoryMappings')) await tx.categoryMapping.createMany({ data: data.categoryMappings });
     if (inc('coaches')) await tx.coach.createMany({ data: data.coaches });
@@ -280,35 +236,18 @@ async function main() {
     if (inc('auditLogs')) await tx.auditLog.createMany({ data: data.auditLogs });
     if (inc('dismissedIssues')) await tx.dismissedAuditIssue.createMany({ data: data.dismissedIssues });
   });
-  console.log('Entidades restauradas: ' + entities.join(', '));
 }
-main()
-  .then(() => { prisma.$disconnect(); process.exit(0); })
-  .catch(e => { console.error('Error al importar:', e); prisma.$disconnect(); process.exit(1); });
-EOF
-
-    docker compose cp import_backup.js app:/tmp/import_backup.js
-    if docker compose exec -T app node /tmp/import_backup.js; then
-        ok "Backup importado exitosamente"
-    else
-        warn "El backup falló. Podés intentarlo desde la UI en Administración > Backup."
-    fi
+main().then(() => { prisma.$disconnect(); process.exit(0); }).catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
+EOF_JS_IMPORT
+    docker compose cp import_backup.js app:/tmp/import_backup.js < /dev/null
+    docker compose exec -T app node /tmp/import_backup.js < /dev/null
     rm import_backup.js
-elif [ -n "$BACKUP_PATH" ]; then
-    warn "Archivo no encontrado: $BACKUP_PATH — Importación omitida."
-else
-    info "Sin backup. Instalación limpia."
+    ok "Backup importado."
 fi
 
 # ── Fin ───────────────────────────────────────────────────────
 echo ""
-echo "🎉 ============================================="
-echo "   ¡Instalación completada con éxito!"
-echo "============================================="
-echo "   📍 URL:      http://$IP_ADDR:3000"
-echo "   🔑 Usuario:  admin@allboys.com"
-echo "   🔑 Password: admin123"
-echo ""
-echo "   💡 Cambiá la contraseña después del primer login."
-echo "============================================="
+echo "🎉 ¡Instalación completada con éxito!"
+echo "📍 URL: http://$(grep NEXTAUTH_URL .env | cut -d= -f2 | sed 's|http://||;s|:3000||'):3000"
+echo "🔑 admin@allboys.com / admin123"
 echo ""
