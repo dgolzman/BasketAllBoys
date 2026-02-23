@@ -112,10 +112,21 @@ if [ ! -f .env ]; then
         IP_ADDR=$(ip addr show 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n1)
     fi
     [ -z "$IP_ADDR" ] && IP_ADDR="localhost"
-    printf "AUTH_SECRET=%s\nNEXTAUTH_URL=http://%s:3000\nAUTH_TRUST_HOST=true\n" "$AUTH_SECRET" "$IP_ADDR" > .env
-    ok ".env creado."
+    
+    echo "   Si usás un Proxy Reverso (como Zoraxy, Nginx) ingresá la URL final externa (ej: https://basket.allboys.com)."
+    echo "   Si es local o prueba directa, podés dejarlo vacío para usar la IP por defecto ($IP_ADDR)."
+    USER_DOMAIN=$(ask "URL Pública (Enter para IP local):")
+
+    if [ -z "$USER_DOMAIN" ]; then
+         APP_URL="http://$IP_ADDR:3000"
+    else
+         APP_URL="$USER_DOMAIN"
+    fi
+
+    printf "AUTH_SECRET=%s\nNEXTAUTH_URL=%s\nAUTH_URL=%s\nAUTH_TRUST_HOST=true\n" "$AUTH_SECRET" "$APP_URL" "$APP_URL" > .env
+    ok ".env creado con URL: $APP_URL"
 else
-    info ".env existente conservado."
+    info ".env existente conservado. Si tenés problemas de redirección, asegurate de tener AUTH_URL y NEXTAUTH_URL definidos."
 fi
 
 # ── Paso 7: Permisos de datos ───────────────────────────────
@@ -246,7 +257,7 @@ fi
 # ── Fin ───────────────────────────────────────────────────────
 echo ""
 echo "🎉 ¡Instalación completada con éxito!"
-echo "📍 URL: http://$(grep NEXTAUTH_URL .env | cut -d= -f2 | sed 's|http://||;s|:3000||'):3000"
+echo "📍 URL Configurada: $(grep NEXTAUTH_URL .env | cut -d= -f2-)"
 echo "🔑 admin@allboys.com / admin123"
 
 if [ -n "$WARNINGS" ]; then
