@@ -21,6 +21,11 @@ export async function exportDatabase() {
             coaches: await (prisma as any).coach.findMany(),
             auditLogs: await prisma.auditLog.findMany(),
             dismissedIssues: await prisma.dismissedAuditIssue.findMany(),
+            activityFees: await (prisma as any).activityFee.findMany(),
+            salaryHistory: await (prisma as any).salaryHistory.findMany(),
+            rolePermissions: await (prisma as any).rolePermission.findMany(),
+            importSummaries: await (prisma as any).importSummary.findMany(),
+            importDetails: await (prisma as any).importDetail.findMany(),
             exportedAt: new Date().toISOString()
         };
         await createAuditLog("EXPORT", "Database", "FULL_BACKUP");
@@ -34,7 +39,8 @@ export async function exportDatabase() {
 /** Partial export: only fetches the requested entities */
 export type ExportEntity =
     | 'players' | 'coaches' | 'users' | 'attendance'
-    | 'payments' | 'categoryMappings' | 'auditLogs' | 'dismissedIssues';
+    | 'payments' | 'categoryMappings' | 'auditLogs' | 'dismissedIssues'
+    | 'activityFees' | 'salaryHistory' | 'rolePermissions' | 'importSummaries' | 'importDetails';
 
 export async function exportSelected(entities: ExportEntity[]) {
     const session = await auth();
@@ -54,6 +60,11 @@ export async function exportSelected(entities: ExportEntity[]) {
         categoryMappings: () => prisma.categoryMapping.findMany(),
         auditLogs: () => prisma.auditLog.findMany(),
         dismissedIssues: () => prisma.dismissedAuditIssue.findMany(),
+        activityFees: () => (prisma as any).activityFee.findMany(),
+        salaryHistory: () => (prisma as any).salaryHistory.findMany(),
+        rolePermissions: () => (prisma as any).rolePermission.findMany(),
+        importSummaries: () => (prisma as any).importSummary.findMany(),
+        importDetails: () => (prisma as any).importDetail.findMany(),
     };
 
     for (const entity of entities) {
@@ -86,16 +97,23 @@ export async function importDatabase(data: any) {
             // We only delete a table if it's included in this backup AND contains data
             const incAndHasData = (e: string) => entities.includes(e) && Array.isArray(data[e]) && data[e].length > 0;
 
-            // Tier 3 – depends on players/users/coaches
+            // Tier 4 - details
+            if (incAndHasData('importDetails')) await (tx as any).importDetail.deleteMany();
+
+            // Tier 3 – depends on players/users/coaches/summaries
             if (incAndHasData('dismissedIssues')) await tx.dismissedAuditIssue.deleteMany();
             if (incAndHasData('auditLogs')) await tx.auditLog.deleteMany();
             if (incAndHasData('attendance')) await tx.attendance.deleteMany();
             if (incAndHasData('payments')) await tx.payment.deleteMany();
+            if (incAndHasData('salaryHistory')) await (tx as any).salaryHistory.deleteMany();
+            if (incAndHasData('importSummaries')) await (tx as any).importSummary.deleteMany();
 
-            // Tier 2 – depends on users
+            // Tier 2 – dependants of root
             if (incAndHasData('players')) await tx.player.deleteMany();
             if (incAndHasData('coaches')) await (tx as any).coach.deleteMany();
             if (incAndHasData('categoryMappings')) await tx.categoryMapping.deleteMany();
+            if (incAndHasData('activityFees')) await (tx as any).activityFee.deleteMany();
+            if (incAndHasData('rolePermissions')) await (tx as any).rolePermission.deleteMany();
 
             // Tier 1 – root
             if (incAndHasData('users')) await tx.user.deleteMany();
@@ -107,11 +125,20 @@ export async function importDatabase(data: any) {
             if (incAndHasData('categoryMappings'))
                 await tx.categoryMapping.createMany({ data: data.categoryMappings });
 
+            if (incAndHasData('rolePermissions'))
+                await (tx as any).rolePermission.createMany({ data: data.rolePermissions });
+
+            if (incAndHasData('activityFees'))
+                await (tx as any).activityFee.createMany({ data: data.activityFees });
+
             if (incAndHasData('coaches'))
                 await (tx as any).coach.createMany({ data: data.coaches });
 
             if (incAndHasData('players'))
                 await tx.player.createMany({ data: data.players });
+
+            if (incAndHasData('salaryHistory'))
+                await (tx as any).salaryHistory.createMany({ data: data.salaryHistory });
 
             if (incAndHasData('payments'))
                 await tx.payment.createMany({ data: data.payments });
@@ -124,6 +151,12 @@ export async function importDatabase(data: any) {
 
             if (incAndHasData('dismissedIssues'))
                 await tx.dismissedAuditIssue.createMany({ data: data.dismissedIssues });
+
+            if (incAndHasData('importSummaries'))
+                await (tx as any).importSummary.createMany({ data: data.importSummaries });
+
+            if (incAndHasData('importDetails'))
+                await (tx as any).importDetail.createMany({ data: data.importDetails });
 
 
             console.log("[BackupAction] Restauración finalizada.");

@@ -19,6 +19,11 @@ const ENTITIES: EntityDef[] = [
     { id: 'attendance', label: 'Asistencia', emoji: '📋', description: 'Registros de presencia', group: 'activity' },
     { id: 'payments', label: 'Pagos', emoji: '💳', description: 'Historial de cuotas', group: 'activity' },
     { id: 'categoryMappings', label: 'Categorías', emoji: '📐', description: 'Configuración de tiras y años', group: 'system' },
+    { id: 'activityFees', label: 'Aranceles', emoji: '💰', description: 'Cuotas por categoría y mes', group: 'system' },
+    { id: 'salaryHistory', label: 'Historial Salarios', emoji: '💸', description: 'Pagos a entrenadores', group: 'activity' },
+    { id: 'rolePermissions', label: 'Permisos', emoji: '🔐', description: 'Roles y accesos', group: 'system' },
+    { id: 'importSummaries', label: 'Logs Importación', emoji: '📥', description: 'Resumen de subidas Excel', group: 'system' },
+    { id: 'importDetails', label: 'Detalle Importación', emoji: '📄', description: 'Conflictos y resoluciones', group: 'system' },
     { id: 'auditLogs', label: 'Log de auditoría', emoji: '📝', description: 'Historial de cambios', group: 'system' },
     { id: 'dismissedIssues', label: 'Incidencias conocidas', emoji: '✅', description: 'Auditoría: descartados', group: 'system' },
 ];
@@ -111,6 +116,8 @@ export default function BackupClient({ canRestore }: { canRestore: boolean }) {
         players: '🏀 Jugadores', coaches: '👨‍🏫 Entrenadores', users: '👤 Usuarios',
         attendance: '📋 Asistencia', payments: '💳 Pagos',
         categoryMappings: '📐 Categorías', auditLogs: '📝 Audit Log', dismissedIssues: '✅ Incidencias',
+        activityFees: '💰 Aranceles', salaryHistory: '💸 Salarios', rolePermissions: '🔐 Permisos',
+        importSummaries: '📥 Logs Imp.', importDetails: '📄 Detalles Imp.'
     };
 
     const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
