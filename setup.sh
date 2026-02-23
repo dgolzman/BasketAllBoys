@@ -1,12 +1,13 @@
 #!/bin/sh
 # ============================================================
-# BasketAllBoys - Instalador Interactivo v3.7
+# BasketAllBoys - Instalador Interactivo v3.8
 # ============================================================
-# Soluciona errores de resolución de módulos y asegura credenciales.
+# Incluye resumen de warnings al final y fixes de módulos.
 
 APP_DIR="/opt/basket-app"
 REPO_RAW="https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main"
 STEP=0
+WARNINGS=""
 
 # ── Helpers ─────────────────────────────────────────────────
 step() {
@@ -19,7 +20,11 @@ step() {
 
 ok()   { echo "✅ $1"; }
 info() { echo "ℹ️  $1"; }
-warn() { echo "⚠️  $1"; }
+
+warn() { 
+    echo "⚠️  $1"
+    WARNINGS="$WARNINGS\n  - Paso $STEP: $1"
+}
 
 fail() {
     echo ""
@@ -41,7 +46,7 @@ ask() {
 # ── Inicio ───────────────────────────────────────────────────
 echo ""
 echo "🏀 ==========================================="
-echo "   BasketAllBoys - Instalador v3.7"
+echo "   BasketAllBoys - Instalador v3.8"
 echo "============================================="
 
 # ── Paso 1: Autenticación ────────────────────────────────────
@@ -151,25 +156,18 @@ ok "Migraciones aplicadas"
 # ── Paso 11: Seeding ────────────────────────────────────────
 step "Creando datos iniciales y reseteando admin"
 
-# Para asegurar que los módulos se encuentran, corremos desde el root del app
-# y usamos un script JS que no dependa de rutas externas.
-cat << 'EOF_JS_SEED_ROBUST' > seed_robust.js
+cat << 'EOF_JS_SEED_V38' > seed_robust.js
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 async function main() {
-  console.log('--- Iniciando Sincronización de Datos ---');
   const hash = await bcrypt.hash('admin123', 10);
   const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
-  
-  // Siempre actualizamos la password a 'admin123' para evitar bloqueos
-  const admin = await prisma.user.upsert({ 
+  await prisma.user.upsert({ 
     where: { email: 'admin@allboys.com' }, 
     update: { password: hash, role: 'ADMIN' }, 
     create: { id, email: 'admin@allboys.com', name: 'Administrador', password: hash, role: 'ADMIN', updatedAt: new Date() }
   });
-  console.log('✅ Usuario admin configurado (admin@allboys.com / admin123)');
-
   const cats = [
     { category: 'Mosquitos', minYear: 2018, maxYear: 2030 },
     { category: 'Pre-Mini', minYear: 2016, maxYear: 2017 },
@@ -188,19 +186,15 @@ async function main() {
         create: { id: cid, ...cat, updatedAt: new Date() }
     });
   }
-  console.log('✅ Categorías configuradas');
 }
-main()
-  .then(() => { prisma.$disconnect(); process.exit(0); })
-  .catch(e => { console.error('Error en seed:', e); prisma.$disconnect(); process.exit(1); });
-EOF_JS_SEED_ROBUST
+main().then(() => { prisma.$disconnect(); process.exit(0); }).catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
+EOF_JS_SEED_V38
 
-# Copiamos al root del app para que el 'require' funcione bien
 docker compose cp seed_robust.js app:/app/seed_robust.js < /dev/null
 if docker compose exec -T app node seed_robust.js < /dev/null; then
-    ok "Datos base y admin reseteados correctamente."
+    ok "Datos base y admin reseteados."
 else
-    warn "Hubo un problema con el seed automático."
+    warn "No se pudo resetear el admin (posible error de módulos)."
 fi
 rm seed_robust.js
 
@@ -211,7 +205,7 @@ BACKUP_PATH=$(ask "Ruta del backup (Enter para omitir):")
 if [ -n "$BACKUP_PATH" ] && [ -f "$BACKUP_PATH" ]; then
     info "Importando backup..."
     docker compose cp "$BACKUP_PATH" app:/app/backup.json < /dev/null
-    cat << 'EOF_JS_IMPORT_ROBUST' > import_robust.js
+    cat << 'EOF_JS_IMPORT_V38' > import_robust.js
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const prisma = new PrismaClient();
@@ -239,7 +233,7 @@ async function main() {
   });
 }
 main().then(() => { prisma.$disconnect(); process.exit(0); }).catch(e => { console.error(e); prisma.$disconnect(); process.exit(1); });
-EOF_JS_IMPORT_ROBUST
+EOF_JS_IMPORT_V38
     docker compose cp import_robust.js app:/app/import_robust.js < /dev/null
     if docker compose exec -T app node import_robust.js < /dev/null; then
         ok "Backup importado."
@@ -254,4 +248,13 @@ echo ""
 echo "🎉 ¡Instalación completada con éxito!"
 echo "📍 URL: http://$(grep NEXTAUTH_URL .env | cut -d= -f2 | sed 's|http://||;s|:3000||'):3000"
 echo "🔑 admin@allboys.com / admin123"
+
+if [ -n "$WARNINGS" ]; then
+    echo ""
+    echo "⚠️  ATENCIÓN — Hubo advertencias durante la instalación:"
+    printf "$WARNINGS\n"
+    echo ""
+    echo "   Se recomienda revisar los logs con: docker compose logs app"
+fi
 echo ""
+echo "============================================="
