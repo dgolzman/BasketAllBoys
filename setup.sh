@@ -1,142 +1,184 @@
 #!/bin/sh
-set -e
-
 # ============================================================
-# Script de instalación inicial para BasketAllBoys
-# Optimizado para Alpine Linux y Debian/Ubuntu
+# BasketAllBoys - Instalador Interactivo v3.4
 # ============================================================
-echo ""
-echo "🏀 ==========================================="
-echo "   BasketAllBoys - Instalador v3.3"
-echo "============================================="
-echo ""
-
-# 1. Autenticación con GitHub
-echo "🔑 Paso 1: Autenticación con GitHub (GHCR.io)"
-echo "--------------------------------------------------------"
-echo "Necesitamos tu Token de GitHub para descargar la imagen."
-echo "Creálo en: Settings > Developer Settings > Tokens (classic)"
-echo "con el permiso 'read:packages'."
-echo "--------------------------------------------------------"
-printf "👉 Ingresá tu Token de GitHub: "
-read -r GH_TOKEN < /dev/tty
-echo ""
-
-if [ -z "$GH_TOKEN" ]; then
-    echo "❌ Error: El token no puede estar vacío."
-    exit 1
-fi
-
-echo "🔐 Logueando en GitHub Container Registry..."
-echo "$GH_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin
-echo "✅ Login exitoso"
-echo ""
-
-# 2. Instalar dependencias si faltan (Alpine)
-if [ -f /etc/alpine-release ] && ! command -v openssl >/dev/null; then
-    echo "📦 Detectado Alpine Linux. Instalando openssl..."
-    apk add --no-cache openssl
-fi
+# NO usamos "set -e" aquí – manejamos errores paso a paso
+# para dar mensajes claros y permitir recuperación.
 
 APP_DIR="/opt/basket-app"
 REPO_RAW="https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main"
+STEP=0
 
-# 3. Crear directorio
-echo "📂 Preparando directorio en $APP_DIR..."
-mkdir -p "$APP_DIR" && cd "$APP_DIR"
+# ── Helpers ─────────────────────────────────────────────────
+step() {
+    STEP=$((STEP + 1))
+    echo ""
+    echo "──────────────────────────────────────────────"
+    echo "  Paso $STEP: $1"
+    echo "──────────────────────────────────────────────"
+}
 
-# 4. Verificar si ya existe una instalación previa
+ok()   { echo "✅ $1"; }
+info() { echo "ℹ️  $1"; }
+warn() { echo "⚠️  $1"; }
+
+fail() {
+    echo ""
+    echo "❌ ERROR en Paso $STEP: $1"
+    echo ""
+    echo "   Para continuar manualmente desde acá, corré:"
+    echo "   $2"
+    echo ""
+    echo "   Luego podés re-ejecutar el instalador o continuar manualmente."
+    exit 1
+}
+
+ask() {
+    printf "👉 $1 "
+    read -r REPLY < /dev/tty
+    echo "$REPLY"
+}
+
+# ── Inicio ───────────────────────────────────────────────────
+echo ""
+echo "🏀 ==========================================="
+echo "   BasketAllBoys - Instalador v3.4"
+echo "============================================="
+
+# ── Paso 1: Autenticación ────────────────────────────────────
+step "Autenticación con GitHub (GHCR.io)"
+echo "   Necesitamos tu Token de GitHub para descargar la imagen."
+echo "   Creálo en: Settings > Developer Settings > Tokens (classic)"
+echo "   con el permiso 'read:packages'."
+GH_TOKEN=$(ask "Token de GitHub:")
+
+if [ -z "$GH_TOKEN" ]; then
+    fail "Token vacío" "Volvé a correr el instalador e ingresá un token válido."
+fi
+
+if ! echo "$GH_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin 2>&1 | grep -q "Login Succeeded"; then
+    fail "No se pudo autenticar con GHCR.io" \
+         "echo 'TU_TOKEN' | docker login ghcr.io -u dgolzman --password-stdin"
+fi
+ok "Login exitoso"
+
+# ── Paso 2: Dependencias ─────────────────────────────────────
+step "Verificando dependencias del sistema"
+if [ -f /etc/alpine-release ] && ! command -v openssl >/dev/null; then
+    info "Alpine detectado — instalando openssl..."
+    apk add --no-cache openssl || warn "No se pudo instalar openssl, continuando..."
+fi
+ok "Dependencias OK"
+
+# ── Paso 3: Directorio ───────────────────────────────────────
+step "Preparando directorio $APP_DIR"
+mkdir -p "$APP_DIR"
+cd "$APP_DIR" || fail "No se pudo acceder a $APP_DIR" "mkdir -p $APP_DIR && cd $APP_DIR"
+ok "Directorio listo"
+
+# ── Paso 4: Instalación existente ───────────────────────────
+step "Verificando instalación previa"
 DB_FILE="$APP_DIR/data/prod.db"
 if [ -f "$DB_FILE" ]; then
+    warn "Se encontró una base de datos existente en: $DB_FILE"
     echo ""
-    echo "⚠️  ¡ATENCIÓN! Se encontró una instalación existente."
-    echo "   Base de datos: $DB_FILE"
-    echo ""
-    echo "   Si borrás la instalación, perderás TODOS los datos."
-    printf "   ¿Querés borrar la instalación anterior y empezar de cero? (s/N): "
-    read -r CONFIRM_RESET < /dev/tty
-    echo ""
-    if [ "$CONFIRM_RESET" = "s" ] || [ "$CONFIRM_RESET" = "S" ]; then
-        echo "🗑️  Borrando instalación anterior..."
+    echo "   ¿Qué querés hacer?"
+    echo "   [s] Borrar todo y empezar de cero (PERDÉS LOS DATOS)"
+    echo "   [n] Mantener la instalación actual y solo actualizar la imagen"
+    CONFIRM=$(ask "Opción (s/N):")
+    if [ "$CONFIRM" = "s" ] || [ "$CONFIRM" = "S" ]; then
         docker compose down 2>/dev/null || true
         rm -rf "$APP_DIR/data"
-        echo "✅ Instalación anterior borrada."
+        ok "Instalación anterior eliminada."
     else
-        echo "ℹ️  Manteniendo instalación existente. Se actualizará la imagen."
+        info "Manteniendo datos existentes. Solo se actualizará la imagen."
     fi
-    echo ""
+else
+    info "No hay instalación previa. Instalación limpia."
 fi
 
-# 5. Descargar archivos de configuración
-echo "📥 Descargando archivos desde GitHub..."
-wget -q "$REPO_RAW/docker-compose.yml" -O docker-compose.yml
-wget -q "$REPO_RAW/update.sh" -O update.sh
+# ── Paso 5: Archivos de configuración ───────────────────────
+step "Descargando archivos de configuración"
+wget -q "$REPO_RAW/docker-compose.yml" -O docker-compose.yml || \
+    fail "No se pudo descargar docker-compose.yml" \
+         "wget $REPO_RAW/docker-compose.yml -O $APP_DIR/docker-compose.yml"
+wget -q "$REPO_RAW/update.sh" -O update.sh || \
+    fail "No se pudo descargar update.sh" \
+         "wget $REPO_RAW/update.sh -O $APP_DIR/update.sh"
 chmod +x update.sh
+ok "Archivos descargados"
 
-# 6. Configurar entorno (.env)
+# ── Paso 6: Entorno (.env) ───────────────────────────────────
+step "Configurando entorno (.env)"
 if [ ! -f .env ]; then
-    echo "⚙️  Generando configuración de entorno (.env)..."
     AUTH_SECRET=$(openssl rand -base64 32)
-    IP_ADDR=$(hostname -i | awk '{print $1}')
+    IP_ADDR=$(hostname -i 2>/dev/null | awk '{print $1}')
     if [ -z "$IP_ADDR" ] || [ "$IP_ADDR" = "127.0.0.1" ]; then
-        IP_ADDR=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n1)
+        IP_ADDR=$(ip addr show 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n1)
     fi
     [ -z "$IP_ADDR" ] && IP_ADDR="localhost"
-    echo "AUTH_SECRET=$AUTH_SECRET" > .env
-    echo "NEXTAUTH_URL=http://$IP_ADDR:3000" >> .env
-    echo "AUTH_TRUST_HOST=true" >> .env
-    echo "✅ Archivo .env creado (URL: http://$IP_ADDR:3000)"
+    printf "AUTH_SECRET=%s\nNEXTAUTH_URL=http://%s:3000\nAUTH_TRUST_HOST=true\n" "$AUTH_SECRET" "$IP_ADDR" > .env
+    ok ".env creado (URL: http://$IP_ADDR:3000)"
 else
-    IP_ADDR=$(grep NEXTAUTH_URL .env | cut -d= -f2 | sed 's|http://||' | cut -d: -f1)
-    echo "ℹ️  Usando configuración .env existente."
+    IP_ADDR=$(grep NEXTAUTH_URL .env | cut -d= -f2 | sed 's|http://||;s|:3000||')
+    info ".env existente conservado (URL: http://$IP_ADDR:3000)"
 fi
 
-# 7. Preparar directorio de datos con permisos correctos
+# ── Paso 7: Permisos de datos ───────────────────────────────
+step "Preparando directorio de datos (SQLite)"
 mkdir -p data
 chmod 777 data
+ok "Permisos OK"
 
-# 8. Descargar imagen y levantar contenedor
-echo ""
-echo "🐳 Descargando imagen y levantando contenedor..."
-./update.sh
+# ── Paso 8: Descargar imagen y levantar contenedor ──────────
+step "Descargando imagen Docker y levantando el contenedor"
+if ! ./update.sh; then
+    fail "No se pudo descargar o levantar el contenedor" \
+         "cd $APP_DIR && ./update.sh"
+fi
 
-# 9. Esperar a que el servicio esté listo
-echo "⏳ Esperando que el servicio esté listo..."
-sleep 5
-MAX_RETRIES=10
-COUNT=0
-while [ $COUNT -lt $MAX_RETRIES ]; do
+# ── Paso 9: Verificar que el contenedor esté corriendo ──────
+step "Verificando que el contenedor esté en ejecución"
+echo "   Esperando inicialización (10s)..."
+sleep 10
+MAX=10; COUNT=0
+while [ $COUNT -lt $MAX ]; do
     STATUS=$(docker inspect --format='{{.State.Status}}' basket-app 2>/dev/null || echo "not_found")
-    if [ "$STATUS" = "running" ]; then
-        echo "✅ Contenedor corriendo."
-        break
-    fi
-    echo "   Intento $((COUNT+1))/$MAX_RETRIES - Estado: $STATUS"
+    [ "$STATUS" = "running" ] && break
+    info "Estado actual: $STATUS — reintentando ($((COUNT+1))/$MAX)..."
     sleep 3
     COUNT=$((COUNT + 1))
 done
 
 if [ "$STATUS" != "running" ]; then
-    echo "❌ ERROR: El contenedor no inició correctamente."
-    echo "   Revisá los logs con: docker compose -f $APP_DIR/docker-compose.yml logs"
-    exit 1
+    echo ""
+    echo "   Logs del contenedor:"
+    docker compose logs --tail=20 2>/dev/null || true
+    fail "El contenedor no está corriendo" \
+         "docker compose -f $APP_DIR/docker-compose.yml up -d && docker compose -f $APP_DIR/docker-compose.yml logs"
 fi
+ok "Contenedor corriendo"
 
-# 10. Correr migraciones
-echo ""
-echo "💾 Ejecutando migraciones de base de datos..."
-docker compose exec -T app npx prisma@5.22.0 migrate deploy
+# ── Paso 10: Correr migraciones ─────────────────────────────
+step "Ejecutando migraciones de base de datos"
+MIGRATE_CMD="docker compose -f $APP_DIR/docker-compose.yml exec app npx prisma@5.22.0 migrate deploy"
+if ! docker compose exec -T app npx prisma@5.22.0 migrate deploy; then
+    fail "Las migraciones fallaron" "$MIGRATE_CMD"
+fi
+ok "Migraciones aplicadas"
 
-# 11. Seeding inicial (solo si no hay datos)
+# ── Paso 11: Seeding ────────────────────────────────────────
+step "Creando datos iniciales (admin y categorías)"
+SEED_CMD="docker compose -f $APP_DIR/docker-compose.yml exec app node -e \"...\""
+
 USER_COUNT=$(docker compose exec -T app node -e "
 const { PrismaClient } = require('@prisma/client');
 const p = new PrismaClient();
-p.user.count().then(n => { console.log(n); p.\$disconnect(); });
-" 2>/dev/null | tail -1)
+p.user.count().then(n => { process.stdout.write(String(n)); p.\$disconnect(); }).catch(() => process.stdout.write('0'));
+" 2>/dev/null | tr -d '[:space:]')
 
 if [ "$USER_COUNT" = "0" ] || [ -z "$USER_COUNT" ]; then
-    echo "🌱 Inicializando datos base (admin y categorías)..."
-    docker compose exec -T app node -e "
+    if ! docker compose exec -T app node -e "
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
@@ -158,37 +200,49 @@ async function main() {
     const cid = Math.random().toString(36).slice(2) + Date.now().toString(36);
     await prisma.categoryMapping.upsert({ where: { category: cat.category }, update: { ...cat, updatedAt: new Date() }, create: { id: cid, ...cat, updatedAt: new Date() }});
   }
-  console.log('✅ Datos base creados');
   await prisma.\$disconnect();
 }
 main().catch(e => { console.error(e); process.exit(1); });
-"
+"; then
+        echo ""
+        warn "El seed falló. Podés ejecutarlo manualmente con:"
+        echo "   docker compose -f $APP_DIR/docker-compose.yml exec app node -e \"$(cat <<'JS'
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+bcrypt.hash('admin123', 10).then(hash => {
+  const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return prisma.user.upsert({ where: { email: 'admin@allboys.com' }, update: {}, create: { id, email: 'admin@allboys.com', name: 'Administrador', password: hash, role: 'ADMIN', updatedAt: new Date() }});
+}).then(() => prisma.\$disconnect());
+JS
+)\""
+    else
+        ok "Datos iniciales creados (admin + categorías)"
+    fi
 else
-    echo "ℹ️  Ya existen usuarios en la base de datos, saltando seed inicial."
+    info "Ya existen $USER_COUNT usuarios — seed omitido."
 fi
 
-# 12. Preguntar si importar backup JSON
-echo ""
-echo "📦 ¿Tenés un backup JSON para importar?"
-printf "   Ingresá la ruta del archivo (o Enter para omitir): "
-read -r BACKUP_PATH < /dev/tty
-echo ""
+# ── Paso 12: Importar backup (opcional) ─────────────────────
+step "Importar backup JSON (opcional)"
+echo "   Si tenés un archivo de backup (.json), podés restaurarlo ahora."
+BACKUP_PATH=$(ask "Ruta del backup (Enter para omitir):")
 
 if [ -n "$BACKUP_PATH" ] && [ -f "$BACKUP_PATH" ]; then
-    echo "📂 Copiando backup al contenedor..."
+    info "Copiando backup al contenedor..."
     docker compose cp "$BACKUP_PATH" app:/tmp/backup.json
-    echo "🔄 Importando datos desde el backup..."
-    docker compose exec -T app node -e "
+    info "Importando datos..."
+    if docker compose exec -T app node -e "
 const { PrismaClient } = require('@prisma/client');
 const fs = require('fs');
 const prisma = new PrismaClient();
 async function main() {
-  const raw = fs.readFileSync('/tmp/backup.json', 'utf8');
-  const data = JSON.parse(raw);
-  const isPartial = Array.isArray(data.exportedEntities) && data.exportedEntities.length > 0;
-  const entities = isPartial ? data.exportedEntities : ['users','players','coaches','attendance','payments','categoryMappings','auditLogs','dismissedIssues'];
-  const inc = (e) => entities.includes(e) && Array.isArray(data[e]) && data[e].length > 0;
-  await prisma.\$transaction(async (tx) => {
+  const data = JSON.parse(fs.readFileSync('/tmp/backup.json','utf8'));
+  const entities = Array.isArray(data.exportedEntities) && data.exportedEntities.length > 0
+    ? data.exportedEntities
+    : ['users','players','coaches','attendance','payments','categoryMappings','auditLogs','dismissedIssues'];
+  const inc = e => entities.includes(e) && Array.isArray(data[e]) && data[e].length > 0;
+  await prisma.\$transaction(async tx => {
     if (inc('dismissedIssues')) await tx.dismissedAuditIssue.deleteMany();
     if (inc('auditLogs')) await tx.auditLog.deleteMany();
     if (inc('attendance')) await tx.attendance.deleteMany();
@@ -206,23 +260,30 @@ async function main() {
     if (inc('auditLogs')) await tx.auditLog.createMany({ data: data.auditLogs });
     if (inc('dismissedIssues')) await tx.dismissedAuditIssue.createMany({ data: data.dismissedIssues });
   });
-  console.log('✅ Backup importado exitosamente. Entidades: ' + entities.join(', '));
+  console.log('Entidades restauradas: ' + entities.join(', '));
   await prisma.\$disconnect();
 }
-main().catch(e => { console.error('❌ Error al importar:', e.message); process.exit(1); });
-"
+main().catch(e => { console.error(e); process.exit(1); });
+"; then
+        ok "Backup importado exitosamente"
+    else
+        warn "El backup falló. Podés intentarlo desde la UI en Administración > Backup."
+    fi
 elif [ -n "$BACKUP_PATH" ]; then
-    echo "⚠️  No se encontró el archivo: $BACKUP_PATH — Saltando importación."
+    warn "Archivo no encontrado: $BACKUP_PATH — Importación omitida."
+else
+    info "Sin backup. Instalación limpia."
 fi
 
+# ── Fin ───────────────────────────────────────────────────────
 echo ""
 echo "🎉 ============================================="
 echo "   ¡Instalación completada con éxito!"
 echo "============================================="
-echo "📍 URL:      http://$IP_ADDR:3000"
-echo "🔑 Usuario:  admin@allboys.com"
-echo "🔑 Password: admin123"
+echo "   📍 URL:      http://$IP_ADDR:3000"
+echo "   🔑 Usuario:  admin@allboys.com"
+echo "   🔑 Password: admin123"
 echo ""
-echo "  (Cambiá la contraseña después del primer login)"
+echo "   💡 Cambiá la contraseña después del primer login."
 echo "============================================="
 echo ""
