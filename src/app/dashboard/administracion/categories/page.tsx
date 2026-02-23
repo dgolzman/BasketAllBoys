@@ -32,10 +32,16 @@ export default function CategoryMappingPage() {
         }
     }
 
-    const handleInputChange = (category: string, field: 'minYear' | 'maxYear', value: string) => {
-        setMappings(prev => prev.map(m =>
-            m.category === category ? { ...m, [field]: parseInt(value) || 0 } : m
-        ));
+    const handleInputChange = (category: string, field: 'minYear' | 'maxYear' | 'isOpen', value: string | boolean) => {
+        setMappings(prev => prev.map(m => {
+            if (m.category !== category) return m;
+
+            if (field === 'isOpen') {
+                return { ...m, minYear: value ? 0 : 2010, maxYear: value ? 0 : 2011 };
+            }
+
+            return { ...m, [field]: parseInt(value as string) || 0 };
+        }));
     };
 
     const handleSave = async (m: any) => {
@@ -188,26 +194,47 @@ export default function CategoryMappingPage() {
                             </div>
 
                             <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <label className="label" style={{ margin: 0, fontWeight: 800 }}>DESDE</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: m.minYear === 0 && m.maxYear === 0 ? 'rgba(3, 105, 161, 0.1)' : 'transparent', padding: '0.5rem', borderRadius: '4px', border: m.minYear === 0 && m.maxYear === 0 ? '1px solid #0369a1' : '1px solid transparent' }}>
                                     <input
-                                        type="number"
-                                        className="input"
-                                        style={{ width: '80px', margin: 0, fontWeight: 800, textAlign: 'center' }}
-                                        value={m.minYear}
-                                        onChange={(e) => handleInputChange(m.category, 'minYear', e.target.value)}
+                                        type="checkbox"
+                                        id={`open_${m.category}`}
+                                        checked={m.minYear === 0 && m.maxYear === 0}
+                                        onChange={(e) => handleInputChange(m.category, 'isOpen', e.target.checked)}
+                                        style={{ width: '1.25rem', height: '1.25rem', cursor: 'pointer' }}
                                     />
+                                    <label htmlFor={`open_${m.category}`} style={{ cursor: 'pointer', fontWeight: 'bold', color: m.minYear === 0 && m.maxYear === 0 ? '#38bdf8' : 'var(--foreground)' }}>
+                                        Categoría Abierta (Sin límite de edad)
+                                    </label>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <label className="label" style={{ margin: 0, fontWeight: 800 }}>HASTA</label>
-                                    <input
-                                        type="number"
-                                        className="input"
-                                        style={{ width: '80px', margin: 0, fontWeight: 800, textAlign: 'center' }}
-                                        value={m.maxYear}
-                                        onChange={(e) => handleInputChange(m.category, 'maxYear', e.target.value)}
-                                    />
-                                </div>
+
+                                {m.minYear !== 0 || m.maxYear !== 0 ? (
+                                    <>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <label className="label" style={{ margin: 0, fontWeight: 800 }}>DESDE</label>
+                                            <input
+                                                type="number"
+                                                className="input"
+                                                style={{ width: '80px', margin: 0, fontWeight: 800, textAlign: 'center' }}
+                                                value={m.minYear}
+                                                onChange={(e) => handleInputChange(m.category, 'minYear', e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <label className="label" style={{ margin: 0, fontWeight: 800 }}>HASTA</label>
+                                            <input
+                                                type="number"
+                                                className="input"
+                                                style={{ width: '80px', margin: 0, fontWeight: 800, textAlign: 'center' }}
+                                                value={m.maxYear}
+                                                onChange={(e) => handleInputChange(m.category, 'maxYear', e.target.value)}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--secondary)', fontStyle: 'italic' }}>
+                                        Requiere asignación manual por jugador.
+                                    </div>
+                                )}
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.75rem', marginLeft: 'auto' }}>
