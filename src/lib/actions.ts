@@ -55,15 +55,20 @@ function generateId(): string {
 }
 
 
+import { sendEmail } from "./email";
+
 export async function createAuditLog(action: string, entity: string, entityId: string, details?: any) {
     const session = await auth();
-    const userId = session?.user?.id;
+    const user = session?.user as any;
+    const userId = user?.id;
+    const userEmail = user?.email;
+    const userRole = user?.role;
 
     if (userId) {
         // Double check if user exists in DB to avoid FK violations (e.g. after DB reset)
         const userExists = await prisma.user.findUnique({ where: { id: userId } });
 
-        await prisma.auditLog.create({
+        const logEntry = await prisma.auditLog.create({
             data: {
                 id: generateId(),
                 action,
@@ -73,6 +78,27 @@ export async function createAuditLog(action: string, entity: string, entityId: s
                 userId: userExists ? userId : null,
             },
         });
+
+        // Send real-time notification to administrator
+        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SMTP_USER;
+        if (adminEmail) {
+            const subject = `[AUDIT] ${action} en ${entity} - Basket AllBoys`;
+            const html = `
+                <h2>Notificación de Cambio Administrativo</h2>
+                <p><strong>Acción:</strong> ${action}</p>
+                <p><strong>Entidad:</strong> ${entity} (ID: ${entityId})</p>
+                <p><strong>Usuario:</strong> ${userEmail} (${userRole})</p>
+                <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-AR')}</p>
+                ${details ? `<pre style="background: #f4f4f4; padding: 10px; border-radius: 5px;">${JSON.stringify(details, null, 2)}</pre>` : ''}
+                <hr />
+                <p style="font-size: 0.8rem; color: #666;">Este es un mensaje automático del sistema de gestión AllBoys Basket.</p>
+            `;
+
+            // Fire and forget email to not block the UI response
+            sendEmail({ to: adminEmail, subject, html }).catch(err => {
+                console.error("[AUDIT-EMAIL] Error sending notification:", err);
+            });
+        }
     }
 }
 
