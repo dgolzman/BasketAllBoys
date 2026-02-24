@@ -123,12 +123,30 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
         logs.push(`Leyendo hoja: ${sheetName}`);
 
         const sheet = workbook.Sheets[sheetName];
-        const rawData = XLSX.utils.sheet_to_json(sheet);
-        logs.push(`Filas encontradas: ${rawData.length}`);
+
+        // --- DETECCIÓN INTELIGENTE DE CABECERAS ---
+        // Convertimos a matriz de arrays para encontrar la fila real de cabeceras
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+        const headerRowIndex = rows.findIndex(row =>
+            row.some(cell => {
+                const s = normalizeString(String(cell || ''));
+                return s.includes('DNI') || s.includes('DOCUMENTO') || s.includes('APELLIDO') || s.includes('SOCIO');
+            })
+        );
+
+        if (headerRowIndex !== -1) {
+            logs.push(`Cabeceras detectadas en la fila ${headerRowIndex + 1}`);
+        }
+
+        const rawData = headerRowIndex !== -1
+            ? XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex })
+            : XLSX.utils.sheet_to_json(sheet);
+
+        logs.push(`Filas de datos encontradas: ${rawData.length}`);
 
         if (rawData.length > 0) {
             const detectedColumns = Object.keys(rawData[0] as any);
-            logs.push(`Columnas detectadas en el Excel: ${detectedColumns.join(' | ')}`);
+            logs.push(`Columnas mapeadas: ${detectedColumns.join(' | ')}`);
         }
 
         // Fetch ALL players to check for inactive ones too
@@ -136,54 +154,79 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
             select: { id: true, firstName: true, lastName: true, dni: true, partnerNumber: true, tira: true, category: true, status: true }
         });
         const activePlayers = dbPlayers.filter((p: any) => p.status === 'ACTIVO' || p.status === 'REVISAR');
-        logs.push(`Jugadores (ACTIVO + REVISAR) en DB: ${activePlayers.length} (Total con inactivos: ${dbPlayers.length})`);
+        logs.push(`Jugadores (ACTIVO + REVISAR) en DB: ${activePlayers.length}`);
 
         const results: PlayerMatchResult[] = [];
         let matchedCount = 0;
 
         for (const [index, row] of rawData.entries()) {
             const r = row as any;
-            const rowNum = index + 2;
+            const rowNum = (headerRowIndex !== -1 ? headerRowIndex + index + 2 : index + 2);
             const notes: string[] = [];
 
-            // Flexible column detection - handles: documento, DNI
-            const dniKey = findColumn(r, ['documento', 'dni']);
-            // nrosocio (sin espacio), nro. socio, nro socio
-            const socioKey = findColumn(r, ['nrosocio', 'nro. socio', 'nro socio', 'socio']);
-            const apellidoKey = findColumn(r, ['apellido']);
-            const nombreKey = findColumn(r, ['nombre']);
-            // "Ultima cuota social abonada" / "Ultoma cuota Social Abonada"
-            const socialKey = findColumn(r, ['ultima cuota social abonada', 'ultima cuota social', 'cuota social']);
-            const activityKey = findColumn(r, ['ultima cuota actividad abonada', 'ultima cuota actividad', 'cuota actividad']);
+            // --- MAPEADO FLEXIBLE DE COLUMNAS ---
+            const dniKey = findColumn(r, ['documento', 'dni', 'dni_nro', 'documento_nro', 'numero documento']);
+            const socioKey = findColumn(r, ['nrosocio', 'nro. socio', 'nro socio', 'socio', 'nro_socio']);
 
-            const dni = dniKey ? r[dniKey]?.toString().trim() : undefined;
+            // Columnas de Nombre/Apellido (pueden ser separadas o juntas)
+            const apellidoKey = findColumn(r, ['apellido', 'apellidos']);
+            const nombreKey = findColumn(r, ['nombre', 'nombres', 'cliente', 'nombre y apellido', 'nombre completo', 'apellido / nombre', 'apellido y nombre']);
+
+            // Columnas de Pago
+            const socialKey = findColumn(r, ['ultima cuota social abonada', 'ultima cuota social', 'cuota social', 'social']);
+            const activityKey = findColumn(r, ['ultima cuota actividad abonada', 'ultima cuota actividad', 'cuota actividad', 'actividad']);
+
+            const dniVal = dniKey ? r[dniKey]?.toString().trim() : undefined;
+            const dniClean = (dniVal && /\d+/.test(dniVal)) ? dniVal.replace(/\D/g, '') : undefined;
             const socio = socioKey ? r[socioKey]?.toString().trim() : undefined;
-            const apellido = apellidoKey ? normalizeString(r[apellidoKey]?.toString()) : '';
-            const nombre = nombreKey ? normalizeString(r[nombreKey]?.toString()) : '';
+
+            let apellido = apellidoKey ? normalizeString(r[apellidoKey]?.toString()) : '';
+            let nombre = nombreKey ? normalizeString(r[nombreKey]?.toString()) : '';
+
+            // Lógica de separación de nombre/apellido si vienen pegados
+            if (nombre && !apellido) {
+                if (nombre.includes('/') || nombre.includes(',') || nombre.includes('-')) {
+                    const separator = nombre.includes('/') ? '/' : (nombre.includes(',') ? ',' : '-');
+                    const parts = nombre.split(separator);
+                    apellido = normalizeString(parts[0]);
+                    nombre = normalizeString(parts[1]);
+                }
+            }
+
             const lastSocial = socialKey ? r[socialKey]?.toString().trim() : undefined;
             const lastActivity = activityKey ? r[activityKey]?.toString().trim() : undefined;
 
             let match: typeof dbPlayers[0] | undefined;
             let method: 'DNI' | 'PARTNER_NUMBER' | 'NAME_FUZZY' | undefined;
 
-            // 1. Try DNI / Documento
-            if (dni && dni.length > 4) {
-                match = activePlayers.find((p: any) => p.dni === dni);
+            // 1. Prioridad: DNI
+            if (dniClean && dniClean.length > 4) {
+                match = activePlayers.find((p: any) => p.dni === dniClean);
                 if (match) method = 'DNI';
             }
 
-            // 2. Try Nro. Socio
+            // 2. Prioridad: Nro. Socio
             if (!match && socio) {
                 match = activePlayers.find((p: any) => p.partnerNumber === socio);
                 if (match) method = 'PARTNER_NUMBER';
             }
 
-            // 3. Try Name Fuzzy (exact clean match)
-            if (!match && nombre && apellido) {
-                match = activePlayers.find((p: any) =>
-                    normalizeString(p.firstName) === nombre &&
-                    normalizeString(p.lastName) === apellido
-                );
+            // 3. Prioridad: Nombre Combinado (Fuzzy)
+            if (!match && nombre) {
+                const fullSearch = normalizeString(nombre + (apellido ? ' ' + apellido : ''));
+                const searchParts = fullSearch.split(' ').filter(p => p.length > 2);
+
+                match = activePlayers.find((p: any) => {
+                    const dbFull = normalizeString(`${p.firstName} ${p.lastName}`);
+                    const dbFullRev = normalizeString(`${p.lastName} ${p.firstName}`);
+
+                    if (dbFull === fullSearch || dbFullRev === fullSearch) return true;
+                    if (searchParts.length >= 2) {
+                        return searchParts.every(part => dbFull.includes(part));
+                    }
+                    if (apellido && normalizeString(p.firstName) === nombre && normalizeString(p.lastName) === apellido) return true;
+                    return false;
+                });
                 if (match) method = 'NAME_FUZZY';
             }
 
@@ -196,7 +239,6 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
 
             if (match) {
                 matchedCount++;
-                logs.push(`Fila ${rowNum}: Encontrado ${match.firstName} ${match.lastName} por ${method}`);
                 results.push({
                     status: 'MATCHED',
                     matchMethod: method,
@@ -212,22 +254,16 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                     notes
                 });
             } else {
-                // Secondary check: is it an INACTIVE player?
+                // Verificación de inactivos para dar aviso
                 let inactiveMatch: any = null;
-                if (dni && dni.length > 4) inactiveMatch = dbPlayers.find((p: any) => p.dni === dni && p.status === 'INACTIVO');
+                if (dniClean && dniClean.length > 4) inactiveMatch = dbPlayers.find((p: any) => p.dni === dniClean && p.status === 'INACTIVO');
                 if (!inactiveMatch && socio) inactiveMatch = dbPlayers.find((p: any) => p.partnerNumber === socio && p.status === 'INACTIVO');
-                if (!inactiveMatch && nombre && apellido) {
-                    inactiveMatch = dbPlayers.find((p: any) =>
-                        normalizeString(p.firstName) === nombre &&
-                        normalizeString(p.lastName) === apellido &&
-                        p.status === 'INACTIVO'
-                    );
-                }
 
                 if (inactiveMatch) {
-                    notes.push(`⚠️ Jugador encontrado pero está INACTIVO (Dada de baja): ${inactiveMatch.lastName}, ${inactiveMatch.firstName}`);
+                    notes.push(`⚠️ Jugador encontrado pero está INACTIVO: ${inactiveMatch.lastName}, ${inactiveMatch.firstName}`);
                 } else {
-                    notes.push(`No se pudo encontrar jugador: ${apellido}, ${nombre} (DNI: ${dni})`);
+                    const displayLabel = nombre ? `${apellido}, ${nombre}` : (dniClean || socio || 'S/D');
+                    notes.push(`No se pudo encontrar jugador: ${displayLabel}`);
                 }
 
                 results.push({
@@ -240,7 +276,7 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
         }
 
         logs.push(`Proceso de ANÁLISIS finalizado. Coincidencias: ${matchedCount}/${rawData.length}`);
-        logs.push(`NOTA: No se han guardado cambios en la base de datos. Revise y confirme.`);
+        logs.push(`NOTA: No se han guardado cambios. Revise los resultados y confirme.`);
 
         return {
             success: true,

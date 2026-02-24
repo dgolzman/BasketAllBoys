@@ -72,46 +72,43 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                     {tab === 'social' ? (
                         <div style={{ marginTop: '1rem' }}>
                             <p style={{ margin: '0.5rem 0', opacity: 0.9, fontSize: '0.95rem' }}>
-                                El sistema busca automáticamente una hoja llamada <strong>"Basquet"</strong> (o la primera hoja del archivo).
+                                <strong>✅ Soporte para Reporte de Administración:</strong> El sistema ahora detecta automáticamente las cabeceras aunque el Excel tenga títulos al inicio (como el reporte de Tesorería).
+                            </p>
+                            <p style={{ margin: '0.5rem 0', opacity: 0.9, fontSize: '0.95rem' }}>
+                                <strong>🔍 Búsqueda Inteligente:</strong> Se busca por DNI, Nro de Socio o Nombre. Si el nombre viene en una sola columna (ej: <code>Apellido / Nombre</code>), el sistema lo separa solo.
                             </p>
 
                             <p style={{ margin: '0.8rem 0 0.5rem 0', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                                Columnas esperadas del reporte de Administración:
+                                Columnas compatibles (se detectan solas):
                             </p>
 
                             <table className="ui-mayusculas" style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse', border: '1px solid rgba(255,255,255,0.1)' }}>
                                 <thead style={{ background: 'rgba(255,255,255,0.05)' }}>
                                     <tr>
-                                        <th style={{ padding: '8px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.1)' }}>Columna en el Excel</th>
-                                        <th style={{ padding: '8px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.1)' }}>Qué hace</th>
-                                        <th style={{ padding: '8px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.1)' }}>Ejemplo</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.1)' }}>Qué buscar</th>
+                                        <th style={{ padding: '8px', textAlign: 'left', border: '1px solid rgba(255,255,255,0.1)' }}>Nombres aceptados en Excel</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>documento</strong> o <strong>dni</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>DNI del jugador — búsqueda 1° prioridad</td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>12345678</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Identidad (DNI)</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>documento, dni, documento_nro, dni_nro</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>nrosocio</strong> o <strong>socio</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Nº de socio — búsqueda 2° prioridad</td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>4521</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Nº de Socio</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>nrosocio, socio, nro socio, nro. socio</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>apellido</strong> Y <strong>nombre</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>En columnas SEPARADAS — búsqueda 3° prioridad</td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>GARCIA y JUAN</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Nombre Completo</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>nombre, apellido, nombre y apellido, cliente, apellido / nombre</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Ultima cuota social abonada</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Última cuota social pagada (o "cuota social")</td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>202601</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Cuota Social</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Ultima cuota social abonada, cuota social, social</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Ultima cuota Actividad abonada</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Última cuota de actividad pagada (o "cuota actividad")</td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>202601</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Cuota Actividad</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Ultima cuota actividad abonada, cuota actividad, actividad</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -130,7 +127,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                 </div>
             </PageGuide>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', marginTop: '1rem' }}>
                 <h2 className="ui-mayusculas" style={{ margin: 0 }}>{tab === 'social' ? '💳 Carga de Cuota Social' : '🏅 Carga de Seguro/Federación'}</h2>
                 <Link href="/dashboard/payments" className="btn btn-secondary ui-mayusculas">← Volver al selector</Link>
             </div>
