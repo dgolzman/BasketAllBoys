@@ -119,18 +119,18 @@ if [ -f .env ]; then
 fi
 
 # 0.7 Detectar comando de docker-compose
+# Priorizamos 'docker compose' (V2) según indicación del usuario
 if docker compose version >/dev/null 2>&1; then
     DOCKER_CMD="docker compose"
 elif docker-compose version >/dev/null 2>&1; then
     DOCKER_CMD="docker-compose"
 else
-    # Fallback desesperado: intentar ver si docker existe pero no compose
+    # Fallback desesperado
     if command -v docker >/dev/null 2>&1; then
-        echo "⚠️  Docker detectado pero no el plugin 'compose'."
-        echo "Intentando usar 'docker-compose' como binario..."
-        DOCKER_CMD="docker-compose"
+        echo "⚠️  Detectado docker pero no el plugin compose."
+        DOCKER_CMD="docker compose" # Intentamos el que dice el usuario igual
     else
-        echo "❌ Error: No se encontró 'docker'. Asegurate de tenerlo instalado."
+        echo "❌ Error: No se encontró 'docker'."
         exit 1
     fi
 fi
