@@ -19,12 +19,27 @@ export async function getAvailableVersions() {
 
     try {
         const response = await fetch("https://api.github.com/repos/dgolzman/BasketAllBoys/tags", {
+            headers: {
+                'User-Agent': 'BasketAllBoys-Admin-Panel'
+            },
             next: { revalidate: 3600 } // Cache results for 1 hour
         });
+
+        if (!response.ok) {
+            console.error(`[UPDATE] GitHub API error: ${response.status} ${response.statusText}`);
+            return [];
+        }
+
         const tags = await response.json();
+
+        if (!Array.isArray(tags)) {
+            console.error("[UPDATE] GitHub response is not an array:", tags);
+            return [];
+        }
+
         return tags.map((tag: any) => tag.name) || [];
     } catch (error) {
-        console.error("Error fetching versions:", error);
+        console.error("[UPDATE] Exception fetching versions:", error);
         return [];
     }
 }
