@@ -61,7 +61,7 @@ export default function DashboardLayoutClient({
                             />
                         </div>
                     </div>
-                    <SidebarNav role={role} permissions={permissions} onLinkClick={() => setSidebarOpen(false)} />
+                    <SidebarNav role={role} permissions={permissions} version={process.env.VERSION || `v${require('../../../package.json').version}`} onLinkClick={() => setSidebarOpen(false)} />
                     <div className={styles.user}>
                         <form action={handleSignOut}>
                             <button className={styles.logoutBtn}>Cerrar Sesión</button>

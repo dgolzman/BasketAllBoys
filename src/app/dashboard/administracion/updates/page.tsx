@@ -15,7 +15,8 @@ export default async function UpdatesPage() {
         redirect('/dashboard/administracion');
     }
 
-    const currentVersion = process.env.VERSION || `v${packageJson.version}`;
+    const rawVersion = process.env.VERSION || packageJson.version;
+    const currentVersion = rawVersion.startsWith('v') ? rawVersion : `v${rawVersion}`;
     let versions: string[] = [];
     let error: string | null = null;
 
@@ -82,9 +83,10 @@ export default async function UpdatesPage() {
                     </div>
                 ) : (
                     <div style={{ display: 'grid', gap: '1rem' }}>
-                        {versions.map((v: string) => (
-                            <UpdateForm key={v} version={v} isCurrent={v === currentVersion} />
-                        ))}
+                        {versions.map((v: string) => {
+                            const normalizedV = v.startsWith('v') ? v : `v${v}`;
+                            return <UpdateForm key={v} version={v} isCurrent={normalizedV === currentVersion} />;
+                        })}
                     </div>
                 )}
 

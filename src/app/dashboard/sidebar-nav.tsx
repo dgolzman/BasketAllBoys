@@ -42,9 +42,11 @@ export default function SidebarNav({
     role,
     permissions,
     onLinkClick,
+    version,
 }: {
     role: string;
     permissions: Permission[];
+    version?: string;
     onLinkClick?: () => void;
 }) {
     const pathname = usePathname();
@@ -100,6 +102,18 @@ export default function SidebarNav({
                     </Link>
                 </div>
             )}
+
+            <div style={{
+                marginTop: 'auto',
+                padding: '1rem',
+                fontSize: '0.7rem',
+                opacity: 0.5,
+                textAlign: 'center',
+                borderTop: '1px solid var(--border)',
+                userSelect: 'none'
+            }}>
+                {version || 'desconocida'}
+            </div>
         </nav>
     );
 }
