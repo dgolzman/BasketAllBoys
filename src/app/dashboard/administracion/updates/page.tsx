@@ -15,7 +15,7 @@ export default async function UpdatesPage() {
         redirect('/dashboard/administracion');
     }
 
-    const currentVersion = `v${packageJson.version}`;
+    const currentVersion = process.env.VERSION || `v${packageJson.version}`;
     let versions: string[] = [];
     let error: string | null = null;
 

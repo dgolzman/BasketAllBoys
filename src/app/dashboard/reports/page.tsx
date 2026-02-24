@@ -291,6 +291,7 @@ async function SalaryView({ year }: { year: number }) {
     const data = coaches.map((c: any) => ({
         id: c.id,
         name: c.name,
+        salary: c.salary,
         registrationDate: c.registrationDate,
         withdrawalDate: c.withdrawalDate,
         salaryHistory: c.SalaryHistory
