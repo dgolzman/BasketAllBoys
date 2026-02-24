@@ -104,6 +104,7 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
         email: formData.get("email"),
         password: formData.get("password"),
         role: formData.get("role"),
+        forcePasswordChange: formData.get("forcePasswordChange") === "on",
     };
 
     const validatedFields = UserSchema.safeParse(rawData);
@@ -115,10 +116,16 @@ export async function updateUser(id: string, prevState: any, formData: FormData)
         };
     }
 
-    const { name, email, password, role } = validatedFields.data;
+    const { name, email, password, role, forcePasswordChange } = validatedFields.data;
 
     try {
-        const updateData: any = { name, email, role };
+        const updateData: any = {
+            name,
+            email,
+            role,
+            forcePasswordChange
+        };
+
         if (password && password.length > 0) {
             updateData.password = await bcrypt.hash(password, 10);
         }
