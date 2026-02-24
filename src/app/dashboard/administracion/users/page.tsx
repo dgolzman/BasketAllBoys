@@ -89,7 +89,7 @@ export default async function UsersPage() {
                                         <Link href={`/dashboard/administracion/users/${user.id}/edit`} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
                                             Editar
                                         </Link>
-                                        {user.id !== currentUserId && (
+                                        {user.id !== currentUserId && user.email !== 'admin@allboys.com' && (
                                             <DeleteUserButton userId={user.id} />
                                         )}
                                     </div>

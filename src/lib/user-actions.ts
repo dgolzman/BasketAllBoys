@@ -146,10 +146,15 @@ export async function deleteUser(id: string) {
     const session = await auth();
     if (session?.user?.role !== 'ADMIN') return { message: "No autorizado" };
 
-    // Prevent self-deletion
-    if (session.user.id === id) return { message: "No puedes eliminar tu propio usuario" };
-
     try {
+        const userToDelete = await prisma.user.findUnique({ where: { id } });
+        if (userToDelete?.email === 'admin@allboys.com') {
+            return { message: "No se puede eliminar el usuario administrador original" };
+        }
+
+        // Prevent self-deletion
+        if (session.user.id === id) return { message: "No puedes eliminar tu propio usuario" };
+
         await prisma.user.delete({ where: { id } });
         revalidatePath("/dashboard/administracion/users");
         return { message: "Usuario eliminado correctamente" };
