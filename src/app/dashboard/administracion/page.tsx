@@ -38,161 +38,196 @@ export default async function AdministrationPage() {
                 </div>
             </PageGuide>
 
-            <h2 className="ui-mayusculas" style={{ marginBottom: '2rem' }}>Panel de Administración</h2>
+            <h2 className="ui-mayusculas" style={{ marginBottom: '2.5rem' }}>Panel de Administración</h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
-                {canManageUsers && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Usuarios</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Gestionar accesos, roles y credenciales del sistema.
-                            </p>
+            {/* SECCIÓN 1: USUARIOS Y ACCESOS */}
+            <div style={{ marginBottom: '3rem' }}>
+                <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', opacity: 0.7, fontSize: '1.1rem', borderLeft: '4px solid var(--accent)', paddingLeft: '1rem' }}>
+                    👥 Usuarios y Accesos
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {canManageUsers && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Usuarios</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Gestionar cuentas, contraseñas y accesos.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/users" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Gestionar
+                            </Link>
                         </div>
-                        <Link href="/dashboard/administracion/users" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Ir a Usuarios
-                        </Link>
-                    </div>
-                )}
+                    )}
 
-                {canManageUsers && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>🎭 Gestión de Roles</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Configurar qué puede hacer cada rol: SUB_COMISION, COORDINADOR, ENTRENADOR.
-                            </p>
+                    {canManageUsers && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>🎭 Gestión de Roles</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Configurar permisos para cada rol del sistema.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/roles" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Configurar Roles
+                            </Link>
                         </div>
-                        <Link href="/dashboard/administracion/roles" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Gestionar Roles
-                        </Link>
-                    </div>
-                )}
-
-                {canMapCategories && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Mapeo de Categorías</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Configurar manualmente los rangos de años de nacimiento para cada categoría.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/categories" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Configurar Rangos
-                        </Link>
-                    </div>
-                )}
-
-                {canImport && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Importar Datos</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Cargar jugadores masivamente desde archivos Excel (.xlsx).
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/import" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Ir a Importar
-                        </Link>
-                    </div>
-                )}
-
-                {canViewAudit && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Auditoría</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Detectar inconsistencias, DNIs duplicados y falencias en los datos.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/audit" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Ir a Auditoría
-                        </Link>
-                    </div>
-                )}
-
-                {canManageDuplicates && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Duplicados</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Buscar y limpiar jugadores repetidos por nombre y apellido.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/duplicates" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Ir a Duplicados
-                        </Link>
-                    </div>
-                )}
-
-                {canManageDuplicates && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Familiares (Hermanos)</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Buscar jugadores con mismo apellido para vincularlos automáticamente.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/siblings" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Revisar Familias
-                        </Link>
-                    </div>
-                )}
-
-                {canManageDuplicates && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Configuración de Cuotas</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Configurar los valores mensuales de las cuotas. La proyección se visualiza desde Informes.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/fees" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Gestionar Valores
-                        </Link>
-                    </div>
-                )}
-
-                {canBackup && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--foreground)' }}>Respaldo (Backup)</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Descargar copias de seguridad de la base de datos
-                                {!isAdmin && ' (solo exportar, la restauración requiere rol ADMIN)'}.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/backup" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Ir a Respaldo
-                        </Link>
-                    </div>
-                )}
-
-                {isAdmin && (
-                    <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--primary)', background: 'rgba(124, 58, 237, 0.05)' }}>
-                        <div>
-                            <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>🚀 Actualizaciones</h3>
-                            <p className="ui-mayusculas" style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                                Actualizar el sistema a la última versión disponible en GitHub sin usar terminal.
-                            </p>
-                        </div>
-                        <Link href="/dashboard/administracion/updates" className="btn btn-primary ui-mayusculas" style={{ textAlign: 'center' }}>
-                            Gestionar Versiones
-                        </Link>
-                    </div>
-                )}
-
-                {isAdmin && <DangerZone />}
+                    )}
+                </div>
             </div>
 
-            {isAdmin && (
-                <div style={{ marginTop: '3rem' }}>
-                    <h2 className="ui-mayusculas" style={{ marginBottom: '1.5rem' }}>Configuración de Servicios</h2>
-                    <div style={{ maxWidth: '800px' }}>
-                        <SmtpConfigPanel initialConfig={smtpConfig} />
-                    </div>
+            {/* SECCIÓN 2: GESTIÓN DE DATOS Y JUGADORES */}
+            <div style={{ marginBottom: '3rem' }}>
+                <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', opacity: 0.7, fontSize: '1.1rem', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem' }}>
+                    🏀 Gestión de Datos y Jugadores
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {canMapCategories && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Mapeo de Categorías</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Ajustar rangos de edades para las categorías.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/categories" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Configurar
+                            </Link>
+                        </div>
+                    )}
+
+                    {canImport && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Importar Datos</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Carga masiva de jugadores desde Excel.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/import" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Importar
+                            </Link>
+                        </div>
+                    )}
+
+                    {canManageDuplicates && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Buscador de Duplicados</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Limpieza de registros repetidos.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/duplicates" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Ver Duplicados
+                            </Link>
+                        </div>
+                    )}
+
+                    {canManageDuplicates && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Vincular Hermanos</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Identificar y conectar grupos familiares.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/siblings" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Revisar Familias
+                            </Link>
+                        </div>
+                    )}
+
+                    {canManageDuplicates && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Cuotas de Actividad</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Configurar valores mensuales de las cuotas.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/fees" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Gestionar
+                            </Link>
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
+
+            {/* SECCIÓN 3: SISTEMA E INFRAESTRUCTURA */}
+            <div style={{ marginBottom: '3rem' }}>
+                <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', opacity: 0.7, fontSize: '1.1rem', borderLeft: '4px solid #10b981', paddingLeft: '1rem' }}>
+                    🛠️ Sistema e Infraestructura
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {canBackup && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Backups</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Exportar/Restaurar copias de seguridad.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/backup" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Ir a Backup
+                            </Link>
+                        </div>
+                    )}
+
+                    {isAdmin && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>📧 Configuración de Email</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Configurar servidor SMTP y pruebas de correo.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/smtp" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Configurar SMTP
+                            </Link>
+                        </div>
+                    )}
+
+                    {isAdmin && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--primary)', background: 'rgba(124, 58, 237, 0.05)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--primary)' }}>🚀 Gestionar Versiones</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Actualizar el sistema a la última versión.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/updates" className="btn btn-primary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Actualizar
+                            </Link>
+                        </div>
+                    )}
+
+                    {canViewAudit && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>Registro de Auditoría</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Ver historial de cambios y acciones críticas.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/audit" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Ver Logs
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* SECCIÓN 4: ZONA RESTRINGIDA */}
+            <div style={{ marginBottom: '1rem' }}>
+                <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', opacity: 0.7, fontSize: '1.1rem', borderLeft: '4px solid #ef4444', paddingLeft: '1rem' }}>
+                    ⚠️ Zona Restringida
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    {isAdmin && <DangerZone />}
+                </div>
+            </div>
         </div>
     );
+}
 }
