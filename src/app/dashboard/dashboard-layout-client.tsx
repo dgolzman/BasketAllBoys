@@ -69,7 +69,7 @@ export default function DashboardLayoutClient({
                     </div>
                 </aside>
             )}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '0', minWidth: '100%' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '0', minWidth: 0 }}>
                 {showNav && <TopNav userName={userName} role={role} />}
                 <main className={styles.main} style={!showNav ? { padding: 0 } : {}}>{children}</main>
             </div>
