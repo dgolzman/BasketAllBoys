@@ -24,7 +24,7 @@ RUN npm run build
 # Stage 3: Runner
 FROM node:20-alpine AS runner
 # Add docker and git for update.sh
-RUN apk add --no-cache openssl docker-cli git
+RUN apk add --no-cache openssl docker-cli docker-cli-compose git
 WORKDIR /app
 
 ENV NODE_ENV=production

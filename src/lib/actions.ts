@@ -17,7 +17,7 @@ const FormSchema = z.object({
             (val) => /^\d{7,12}$/.test(val) || /^TEMP-/.test(val),
             "El DNI debe tener entre 7 y 12 dígitos, o comenzar con TEMP-"
         ),
-    birthDate: z.string().min(1, "Fecha de nacimiento es obligatoria"),
+    birthDate: z.string().optional().or(z.literal("")),
     tira: z.string(), // "Femenino", "Masculino A", "Masculino B"
     scholarship: z.boolean().optional(),
     playsPrimera: z.boolean().optional(),
@@ -160,7 +160,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
         if (shirtNumber < 0 || shirtNumber > 99) {
             return { message: "El número de camiseta debe estar entre 0 y 99.", errors: { shirtNumber: ["Rango inválido"] } };
         }
-        const shirtError = await validateShirtNumber(null, shirtNumber, data.tira, data.birthDate, data.category);
+        const shirtError = await validateShirtNumber(null, shirtNumber, data.tira, data.birthDate || "", data.category);
         if (shirtError) return { message: shirtError, errors: { shirtNumber: [shirtError] } };
     }
 
@@ -172,7 +172,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 firstName: data.firstName.toUpperCase(),
                 lastName: data.lastName.toUpperCase(),
                 dni: data.dni,
-                birthDate: new Date(data.birthDate), // Ensure valid date
+                birthDate: data.birthDate ? new Date(data.birthDate) : null, // Ensure valid date
                 tira: data.tira,
                 scholarship: scholarship,
                 federated: federated,
@@ -186,7 +186,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
                 siblings: data.siblings ? data.siblings.toUpperCase() : null,
                 category: data.category || null,
-                status: evaluatePlayerStatus(data.status, data.dni, data.birthDate),
+                status: evaluatePlayerStatus(data.status, data.dni, data.birthDate || null),
                 federationYear: data.federationYear || null,
                 federationInstallments: data.federationInstallments || null,
                 lastSocialPayment: data.lastSocialPayment || null,
@@ -288,7 +288,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
         if (shirtNumber < 0 || shirtNumber > 99) {
             return { message: "El número de camiseta debe estar entre 0 y 99.", errors: { shirtNumber: ["Rango inválido"] } };
         }
-        const shirtError = await validateShirtNumber(id, shirtNumber, rawData.tira as string, rawData.birthDate as string, rawData.category as string);
+        const shirtError = await validateShirtNumber(id, shirtNumber, rawData.tira as string, (rawData.birthDate as string) || "", rawData.category as string);
         if (shirtError) return { message: shirtError, errors: { shirtNumber: [shirtError] }, data: rawData };
     }
 
@@ -302,7 +302,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 firstName: (rawData.firstName as string).toUpperCase(),
                 lastName: (rawData.lastName as string).toUpperCase(),
                 dni: rawData.dni as string,
-                birthDate: new Date(rawData.birthDate as string),
+                birthDate: rawData.birthDate ? new Date(rawData.birthDate as string) : null,
                 tira: rawData.tira as string,
                 scholarship: scholarship,
                 federated: federated,
@@ -317,7 +317,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 withdrawalDate: parseDate(rawData.withdrawalDate),
                 siblings: rawData.siblings ? (rawData.siblings as string).toUpperCase() : null,
                 category: (rawData.category as string) || null,
-                status: evaluatePlayerStatus(rawData.status as string, rawData.dni as string, rawData.birthDate as string),
+                status: evaluatePlayerStatus(rawData.status as string, rawData.dni as string, (rawData.birthDate as string) || null),
                 federationYear: rawData.federationYear ? parseInt(rawData.federationYear as string) : null,
                 federationInstallments: (rawData.federationInstallments as string) || null,
                 lastSocialPayment: (rawData.lastSocialPayment as string) || null,

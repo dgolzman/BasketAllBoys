@@ -109,8 +109,37 @@ export default function CreatePlayerForm({
                         </div>
 
                         <div>
-                            <label className="label">Fecha de Nacimiento <span style={{ color: 'red' }}>*</span></label>
-                            <input name="birthDate" type="date" className="input" required defaultValue={state.data?.birthDate || birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                            <label className="label">Fecha de Nacimiento</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                <input
+                                    name="birthDate"
+                                    type="date"
+                                    className="input"
+                                    id="create-birthDate"
+                                    defaultValue={state.data?.birthDate || birthDate}
+                                    onChange={(e) => setBirthDate(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    title="Marcar como sin fecha (requerirá revisión)"
+                                    onClick={() => {
+                                        const dateInput = document.getElementById('create-birthDate') as HTMLInputElement;
+                                        const statusSelect = document.querySelector('select[name="status"]') as HTMLSelectElement;
+                                        if (dateInput) {
+                                            dateInput.value = '';
+                                            setBirthDate('');
+                                        }
+                                        if (statusSelect) {
+                                            statusSelect.value = 'REVISAR';
+                                            statusSelect.style.background = '#78350f';
+                                        }
+                                    }}
+                                    className="btn btn-secondary"
+                                    style={{ whiteSpace: 'nowrap', fontSize: '0.75rem', padding: '0.5rem 0.75rem', flexShrink: 0 }}
+                                >
+                                    Sin Fecha
+                                </button>
+                            </div>
                             {categoryWarning && <p style={{ color: '#fbbf24', fontSize: '0.75rem', marginTop: '0.25rem', fontWeight: 'bold' }}>{categoryWarning}</p>}
                             {state.errors?.birthDate && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.birthDate.join(', ')}</p>}
                         </div>

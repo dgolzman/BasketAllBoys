@@ -93,9 +93,14 @@ export default async function UpdatesPage() {
                             })}
                         </div>
                     )}
+                </div>
+
+                <div style={{ display: 'grid', gap: '2rem' }}>
+                    <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)' }}>
+                        <UpdateLogger />
+                    </div>
 
                     <div style={{
-                        marginTop: '2rem',
                         padding: '1.25rem',
                         background: 'rgba(251,191,36,0.1)',
                         border: '1px solid rgba(251,191,36,0.2)',
@@ -103,13 +108,9 @@ export default async function UpdatesPage() {
                         fontSize: '0.85rem'
                     }}>
                         <p style={{ color: '#fbbf24', fontWeight: '600', marginBottom: '0.5rem' }}>⚠️ Nota técnica:</p>
-                        <p style={{ color: 'var(--foreground)', opacity: 0.9 }}>Al presionar "Instalar", el servidor ejecutará <code>docker-compose pull</code> y <code>up -d</code>.</p>
+                        <p style={{ color: 'var(--foreground)', opacity: 0.9 }}>Al presionar "Instalar", el servidor ejecutará <code>docker compose pull</code> y <code>up -d</code>.</p>
                         <p style={{ marginTop: '0.5rem', opacity: 0.7 }}>El proceso es asíncrono; la web dejará de responder durante el reinicio (aprox. 30-60 seg). Verifica los logs en el host si el sistema no vuelve a subir.</p>
                     </div>
-                </div>
-
-                <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)' }}>
-                    <UpdateLogger />
                 </div>
             </div>
         </div>

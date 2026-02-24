@@ -109,7 +109,7 @@ model Player {
   firstName           String
   lastName            String
   dni                 String       @unique
-  birthDate           DateTime
+  birthDate           DateTime?
   tira                String
   status              String       @default("ACTIVO")
   scholarship         Boolean      @default(false)

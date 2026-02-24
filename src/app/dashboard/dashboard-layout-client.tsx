@@ -13,12 +13,14 @@ export default function DashboardLayoutClient({
     userName,
     permissions,
     showNav = true,
+    version,
 }: {
     children: React.ReactNode;
     role: string;
     userName?: string | null;
     permissions: Permission[];
     showNav?: boolean;
+    version?: string;
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -61,7 +63,7 @@ export default function DashboardLayoutClient({
                             />
                         </div>
                     </div>
-                    <SidebarNav role={role} permissions={permissions} version={process.env.VERSION || `v${require('../../../package.json').version}`} onLinkClick={() => setSidebarOpen(false)} />
+                    <SidebarNav role={role} permissions={permissions} version={version || 'v4.0.0'} onLinkClick={() => setSidebarOpen(false)} />
                     <div className={styles.user}>
                         <form action={handleSignOut}>
                             <button className={styles.logoutBtn}>Cerrar Sesión</button>
