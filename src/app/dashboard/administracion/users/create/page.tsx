@@ -39,6 +39,19 @@ export default function CreateUserPage() {
                         {state.errors?.password && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.password.join(', ')}</p>}
                     </div>
 
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                            id="forcePasswordChange"
+                            name="forcePasswordChange"
+                            type="checkbox"
+                            defaultChecked
+                            style={{ width: 'auto', margin: 0 }}
+                        />
+                        <label htmlFor="forcePasswordChange" className="label" style={{ margin: 0, cursor: 'pointer' }}>
+                            Forzar cambio de contraseña en el primer inicio de sesión
+                        </label>
+                    </div>
+
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label className="label">Rol <span style={{ color: 'red' }}>*</span></label>
                         <select name="role" className="input" required defaultValue="ENTRENADOR">

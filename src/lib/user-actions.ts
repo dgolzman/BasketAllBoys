@@ -23,6 +23,7 @@ const UserSchema = z.object({
         }
     }),
     role: z.enum(["ADMIN", "SUB_COMISION", "COORDINADOR", "ENTRENADOR"]),
+    forcePasswordChange: z.boolean().default(true),
 });
 
 const ChangePasswordSchema = z.object({
@@ -55,6 +56,7 @@ export async function createUser(prevState: any, formData: FormData) {
         email: formData.get("email"),
         password: formData.get("password"),
         role: formData.get("role"),
+        forcePasswordChange: formData.get("forcePasswordChange") === "on",
     };
 
     const validatedFields = UserSchema.safeParse(rawData);
@@ -66,7 +68,7 @@ export async function createUser(prevState: any, formData: FormData) {
         };
     }
 
-    const { name, email, password, role } = validatedFields.data;
+    const { name, email, password, role, forcePasswordChange } = validatedFields.data;
 
     try {
         if (!password) return { message: "La contraseña es obligatoria para nuevos usuarios" };
@@ -80,7 +82,7 @@ export async function createUser(prevState: any, formData: FormData) {
                 email,
                 password: hashedPassword,
                 role,
-                forcePasswordChange: true, // Requerimiento: Cambio en el 1er login
+                forcePasswordChange, // Usar valor dinámico del formulario
                 updatedAt: new Date(),
             },
         });
