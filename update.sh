@@ -138,6 +138,26 @@ if [ -f .env ]; then
     [ -n "$GHCR_TOKEN_ENV" ] && export GHCR_TOKEN="$GHCR_TOKEN_ENV"
 fi
 
+# Si falta el token y estamos en una terminal interactiva, lo pedimos
+if [ -z "$GHCR_TOKEN" ] && [ -t 0 ]; then
+    echo "🔑 GitHub Token no detectado. Es necesario para descargar imágenes privadas."
+    printf "👉 Ingresá tu Token de GitHub: " > /dev/tty
+    read -r GH_TOKEN_INPUT < /dev/tty
+    if [ -n "$GH_TOKEN_INPUT" ]; then
+        export GHCR_TOKEN="$GH_TOKEN_INPUT"
+        # Preguntar si desea guardarlo
+        printf "¿Desea guardar este token en .env para futuras actualizaciones (incluyendo desde la web)? (s/N): " > /dev/tty
+        read -r SAVE_CONFIRM < /dev/tty
+        if [ "$SAVE_CONFIRM" = "s" ] || [ "$SAVE_CONFIRM" = "S" ]; then
+            if [ -f .env ]; then
+                sed -i '/GHCR_TOKEN=/d' .env
+                echo "GHCR_TOKEN=$GHCR_TOKEN" >> .env
+                echo "✅ Token guardado en .env"
+            fi
+        fi
+    fi
+fi
+
 if [ -n "$GHCR_TOKEN" ]; then
     echo "🔑 Autenticando con GitHub Container Registry..."
     echo "$GHCR_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin > /dev/null 2>&1 || echo "⚠️ Error de login, intentando pull sin auth..."
