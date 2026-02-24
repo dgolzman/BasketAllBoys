@@ -64,6 +64,21 @@ if ! echo "$GH_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin; then
 fi
 ok "Login exitoso"
 
+# Guardar token para actualizaciones desde la web
+echo "   ¿Querés guardar este token en el .env para permitir actualizaciones desde el panel web?"
+SAVE_TOKEN=$(ask "Guardar token (s/N):")
+if [ "$SAVE_TOKEN" = "s" ] || [ "$SAVE_TOKEN" = "S" ]; then
+    if [ -f .env ]; then
+        sed -i '/GHCR_TOKEN=/d' .env
+        echo "GHCR_TOKEN=$GH_TOKEN" >> .env
+        ok "Token guardado en .env (GHCR_TOKEN)"
+    else
+        # Si no existe .env todavía (se crea en el paso 6), lo creamos con el token
+        echo "GHCR_TOKEN=$GH_TOKEN" > .env
+        ok "Token guardado en .env inicial"
+    fi
+fi
+
 # ── Paso 2: Dependencias ─────────────────────────────────────
 step "Verificando dependencias del sistema"
 if [ -f /etc/alpine-release ] && ! command -v openssl >/dev/null; then

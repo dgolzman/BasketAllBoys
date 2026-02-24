@@ -130,7 +130,19 @@ fi
 
 echo "📥 Usando versión: $VERSION (Comando: $DOCKER_CMD)"
 
-# 1. Bajar la versión seleccionada
+# 1. Autenticación y Descarga
+# Si existe GHCR_TOKEN en el ambiente o en .env, nos logueamos
+if [ -f .env ]; then
+    # Cargamos variables de .env sin exportar todo para evitar colisiones
+    GHCR_TOKEN_ENV=$(grep "^GHCR_TOKEN=" .env | cut -d= -f2-)
+    [ -n "$GHCR_TOKEN_ENV" ] && export GHCR_TOKEN="$GHCR_TOKEN_ENV"
+fi
+
+if [ -n "$GHCR_TOKEN" ]; then
+    echo "🔑 Autenticando con GitHub Container Registry..."
+    echo "$GHCR_TOKEN" | docker login ghcr.io -u dgolzman --password-stdin > /dev/null 2>&1 || echo "⚠️ Error de login, intentando pull sin auth..."
+fi
+
 echo "📦 Descargando imagen desde GitHub (Tag: $VERSION)..."
 $DOCKER_CMD pull
 
