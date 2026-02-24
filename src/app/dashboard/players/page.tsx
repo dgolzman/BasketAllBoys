@@ -21,6 +21,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
     const statusFilter = typeof params?.status === 'string' ? params.status : 'DEFAULT';
     const scholarshipFilter = typeof params?.scholarship === 'string' ? params.scholarship : '';
     const primeraFilter = typeof params?.primera === 'string' ? params.primera : '';
+    const federatedFilter = typeof params?.federated === 'string' ? params.federated : '';
 
     const sort = typeof params?.sort === 'string' ? params.sort : 'lastName';
     const sortOrder = typeof params?.sortOrder === 'string' ? params.sortOrder : 'asc';
@@ -44,6 +45,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
 
     if (scholarshipFilter) where.scholarship = scholarshipFilter === 'true';
     if (primeraFilter) where.playsPrimera = primeraFilter === 'true';
+    if (federatedFilter) where.federated = federatedFilter === 'true';
 
     const mappings = await (prisma as any).categoryMapping.findMany({ orderBy: { minYear: 'desc' } }) as any[];
 
@@ -113,6 +115,14 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                         <div>
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Primera</label>
                             <select name="primera" className="input" defaultValue={primeraFilter} style={{ padding: '0.45rem' }}>
+                                <option value="">Todos</option>
+                                <option value="true">Sí</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="label" style={{ marginBottom: '0.25rem' }}>Federado</label>
+                            <select name="federated" className="input" defaultValue={federatedFilter} style={{ padding: '0.45rem' }}>
                                 <option value="">Todos</option>
                                 <option value="true">Sí</option>
                                 <option value="false">No</option>

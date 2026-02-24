@@ -11,6 +11,7 @@ export async function bulkUpdatePlayers(
         tira?: string,
         status?: string,
         scholarship?: boolean,
+        federated?: boolean,
         playsPrimera?: boolean,
         observations?: string | null
     }

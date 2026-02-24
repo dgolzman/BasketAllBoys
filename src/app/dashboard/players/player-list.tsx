@@ -161,6 +161,54 @@ export default function PlayerList({
                             📝 Obs
                         </button>
 
+                        <select
+                            className="input"
+                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: 'var(--input)', border: '1px solid var(--border)', height: '36px' }}
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    handleBulkUpdate({ federated: e.target.value === "on" });
+                                    e.target.value = "";
+                                }
+                            }}
+                            disabled={isUpdating}
+                        >
+                            <option value="">Federado...</option>
+                            <option value="on">SI</option>
+                            <option value="off">NO</option>
+                        </select>
+
+                        <select
+                            className="input"
+                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: 'var(--input)', border: '1px solid var(--border)', height: '36px' }}
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    handleBulkUpdate({ scholarship: e.target.value === "on" });
+                                    e.target.value = "";
+                                }
+                            }}
+                            disabled={isUpdating}
+                        >
+                            <option value="">Beca...</option>
+                            <option value="on">SI</option>
+                            <option value="off">NO</option>
+                        </select>
+
+                        <select
+                            className="input"
+                            style={{ padding: '0.4rem', fontSize: '0.85rem', width: 'auto', background: 'var(--input)', border: '1px solid var(--border)', height: '36px' }}
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    handleBulkUpdate({ playsPrimera: e.target.value === "on" });
+                                    e.target.value = "";
+                                }
+                            }}
+                            disabled={isUpdating}
+                        >
+                            <option value="">Primera...</option>
+                            <option value="on">SI</option>
+                            <option value="off">NO</option>
+                        </select>
+
                         <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 0.5rem' }} />
 
                         <button
