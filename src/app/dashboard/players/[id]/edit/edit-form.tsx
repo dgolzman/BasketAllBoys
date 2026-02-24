@@ -93,8 +93,14 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                     {state.errors?.dni && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.dni.join(', ')}</p>}
                 </div>
                 <div>
-                    <label className="label">Fecha de Nacimiento <span style={{ color: 'red' }}>*</span></label>
-                    <input name="birthDate" type="date" className="input" required defaultValue={player.birthDate ? new Date(player.birthDate).toISOString().split('T')[0] : ''} disabled={!canEdit} />
+                    <label className="label">Fecha de Nacimiento</label>
+                    <input
+                        name="birthDate"
+                        type="date"
+                        className="input"
+                        defaultValue={player.birthDate ? (typeof player.birthDate === 'string' ? player.birthDate : new Date(player.birthDate).toISOString().split('T')[0]) : ''}
+                        disabled={!canEdit}
+                    />
                     {state.errors?.birthDate && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.birthDate.join(', ')}</p>}
                 </div>
             </div>

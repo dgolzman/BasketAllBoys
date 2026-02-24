@@ -22,7 +22,7 @@ export default async function EditPlayerPage({ params, searchParams }: { params:
     // Serializable dates
     const playerSerialized = {
         ...player,
-        birthDate: player.birthDate.toISOString().split('T')[0],
+        birthDate: player.birthDate ? player.birthDate.toISOString().split('T')[0] : '',
         registrationDate: player.registrationDate ? player.registrationDate.toISOString().split('T')[0] : '',
         withdrawalDate: player.withdrawalDate ? player.withdrawalDate.toISOString().split('T')[0] : '',
         createdAt: player.createdAt.toISOString(),

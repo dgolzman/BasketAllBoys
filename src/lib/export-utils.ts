@@ -43,8 +43,9 @@ export function exportPlayersToExcel(players: any[], mappings: any[]) {
         const calculatedCategory = getCategory(player, mappings);
 
         // Audit logic for Excel
-        const year = player.birthDate instanceof Date ? player.birthDate.getFullYear() : new Date(player.birthDate).getFullYear();
-        const isInvalidDate = year <= 1970 || year === 1900;
+        const birthDate = player.birthDate ? (player.birthDate instanceof Date ? player.birthDate : new Date(player.birthDate)) : null;
+        const year = birthDate ? birthDate.getFullYear() : 0;
+        const isInvalidDate = !birthDate || year <= 1970 || year === 1900;
         const isTempDni = player.dni.startsWith('TEMP-');
 
         const auditNotes = [];
@@ -56,7 +57,7 @@ export function exportPlayersToExcel(players: any[], mappings: any[]) {
             'Apellido': player.lastName,
             'Nombre': player.firstName,
             'DNI': isTempDni ? 'SIN DNI' : player.dni,
-            'Fecha Nacimiento': isInvalidDate ? 'SIN FECHA' : (player.birthDate instanceof Date ? player.birthDate.toLocaleDateString('es-AR') : new Date(player.birthDate).toLocaleDateString('es-AR')),
+            'Fecha Nacimiento': isInvalidDate ? 'SIN FECHA' : (birthDate as Date).toLocaleDateString('es-AR'),
             'Categoría': calculatedCategory,
             'Tira': player.tira,
             'Auditoría': auditNotes.join(' | ') || 'OK',

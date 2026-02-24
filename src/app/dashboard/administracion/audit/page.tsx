@@ -59,7 +59,20 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
 
     // Rule: Missing BirthDate (Detect 1900-01-01 or 1970-01-01/1969-12-31)
     players.forEach(p => {
-        const year = p.birthDate.getFullYear();
+        if (!p.birthDate) {
+            issues.push({
+                ruleId: 'warning:missing-birthdate',
+                label: getFriendlyLabel('warning:missing-birthdate'),
+                identifier: p.id,
+                description: `Sin Fecha de Nacimiento: ${p.lastName}, ${p.firstName}`,
+                details: `El jugador no tiene fecha de nacimiento registrada. Se requiere para categorización automática.`,
+                affectedPlayers: [{ id: p.id, name: `${p.lastName}, ${p.firstName}` }],
+                isDismissed: dismissed.some(d => d.ruleId === 'warning:missing-birthdate' && d.identifier === p.id)
+            });
+            return;
+        }
+
+        const year = (p.birthDate as Date).getFullYear();
         const isInvalidDate = year <= 1970 || year === 1900;
 
         if (isInvalidDate) {
@@ -68,7 +81,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 label: getFriendlyLabel('warning:missing-birthdate'),
                 identifier: p.id,
                 description: `Fecha de Nacimiento inválida: ${p.lastName}, ${p.firstName}`,
-                details: `La fecha registrada (${format(p.birthDate, 'dd/MM/yyyy')}) indica que falta el dato real. Sin esto, la categoría se calcula mal.`,
+                details: `La fecha registrada (${format(p.birthDate as Date, 'dd/MM/yyyy')}) indica que falta el dato real. Sin esto, la categoría se calcula mal.`,
                 affectedPlayers: [{ id: p.id, name: `${p.lastName}, ${p.firstName}` }],
                 isDismissed: dismissed.some(d => d.ruleId === 'warning:missing-birthdate' && d.identifier === p.id)
             });
