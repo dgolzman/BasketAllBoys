@@ -316,12 +316,6 @@ input[type="date"] {
 }
 
 @media (max-width: 1024px) {
-  .card {
-    padding: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
   .sidebar {
     z-index: 1000 !important;
     width: 280px !important;
@@ -389,12 +383,6 @@ input[type="date"] {
 }
 
 @media (max-width: 1024px) {
-  .players-table {
-    min-width: 700px;
-  }
-}
-
-@media (max-width: 768px) {
   .players-table {
     min-width: 520px;
   }

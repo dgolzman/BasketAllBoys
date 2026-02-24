@@ -16,7 +16,16 @@ export default async function DashboardLayout({
 
     // Get version for sidebar - Server Side
     const packageJson = require('../../../package.json');
-    const rawVersion = process.env.VERSION || packageJson.version;
+
+    // Validate and sanitize process.env.VERSION
+    let rawVersion = packageJson.version; // Default to package.json version
+    if (process.env.VERSION && typeof process.env.VERSION === 'string') {
+        // Simple check to see if it looks like a version string and not an email
+        if (/^\s*v?\d+(\.\d+){0,2}(-[a-zA-Z0-9.]+)?\s*$/.test(process.env.VERSION)) {
+            rawVersion = process.env.VERSION;
+        }
+    }
+
     const version = rawVersion.startsWith('v') ? rawVersion : `v${rawVersion}`;
 
     return (

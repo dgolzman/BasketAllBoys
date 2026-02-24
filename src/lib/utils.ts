@@ -40,8 +40,7 @@ export function formatCurrency(amount: number) {
  * it returns ACTIVO. Otherwise returns the existing status.
  */
 export function evaluatePlayerStatus(currentStatus: string, dni: string, birthDate: Date | null | string): string {
-    if (currentStatus !== 'REVISAR') return currentStatus;
-
+    // 1. Critical data check: Missing real DNI or Missing BirthDate ALWAYS means REVISAR
     if (!dni || dni.startsWith('TEMP-')) return 'REVISAR';
 
     if (!birthDate) return 'REVISAR';
@@ -52,6 +51,9 @@ export function evaluatePlayerStatus(currentStatus: string, dni: string, birthDa
     // Default/Legacy invalid years
     if (year <= 1970 || year === 1900) return 'REVISAR';
 
-    // If we are here, data is real and complete. Auto-promote to ACTIVO.
-    return 'ACTIVO';
+    // 2. If it was marked for review but now has all data, promote to ACTIVO
+    if (currentStatus === 'REVISAR') return 'ACTIVO';
+
+    // 3. Otherwise maintain requested status (ACTIVO or INACTIVO)
+    return currentStatus;
 }
