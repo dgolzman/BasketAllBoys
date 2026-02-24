@@ -118,15 +118,32 @@ if [ -f .env ]; then
     echo "VERSION=$VERSION" >> .env
 fi
 
-echo "📥 Usando versión: $VERSION"
+# 0.7 Detectar comando de docker-compose
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_CMD="docker compose"
+elif docker-compose version >/dev/null 2>&1; then
+    DOCKER_CMD="docker-compose"
+else
+    # Fallback desesperado: intentar ver si docker existe pero no compose
+    if command -v docker >/dev/null 2>&1; then
+        echo "⚠️  Docker detectado pero no el plugin 'compose'."
+        echo "Intentando usar 'docker-compose' como binario..."
+        DOCKER_CMD="docker-compose"
+    else
+        echo "❌ Error: No se encontró 'docker'. Asegurate de tenerlo instalado."
+        exit 1
+    fi
+fi
+
+echo "📥 Usando versión: $VERSION (Comando: $DOCKER_CMD)"
 
 # 1. Bajar la versión seleccionada
 echo "📦 Descargando imagen desde GitHub (Tag: $VERSION)..."
-docker-compose pull
+$DOCKER_CMD pull
 
 # 2. Reiniciar el contenedor
 echo "🔄 Reiniciando servicios con versión $VERSION..."
-docker-compose up -d --remove-orphans
+$DOCKER_CMD up -d --remove-orphans
 
 # 3. Aplicar migraciones con espera proactiva
 echo "🚀 Preparando base de datos..."
@@ -143,7 +160,7 @@ while [ $RETRIES -gt 0 ]; do
 done
 
 # Fijamos la versión de prisma a la del proyecto (5.22.0) para evitar que npx baje la v7 (breaking change)
-docker-compose exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
+$DOCKER_CMD exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
 
 # 4. Limpiar imágenes viejas
 echo "🧹 Limpiando imágenes antiguas..."
