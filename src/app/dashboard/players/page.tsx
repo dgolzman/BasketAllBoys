@@ -35,7 +35,13 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
             { dni: { contains: query } }
         ];
     }
-    if (tira) where.tira = tira;
+    if (tira) {
+        if (tira === 'NONE') {
+            where.tira = '';
+        } else {
+            where.tira = tira;
+        }
+    }
 
     if (statusFilter === 'DEFAULT') {
         where.status = { in: ['ACTIVO', 'REVISAR'] };
@@ -56,7 +62,12 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
 
     // Apply category filter in memory
     if (categoryFilter) {
-        players = players.filter(p => getCategory(p, mappings) === categoryFilter);
+        if (categoryFilter === 'NONE') {
+            // "NO ASIGNADA" means no manual override AND birthDate logic returned "REVISAR"
+            players = players.filter(p => !p.category && getCategory(p, mappings) === 'REVISAR');
+        } else {
+            players = players.filter(p => getCategory(p, mappings) === categoryFilter);
+        }
     }
 
     const availableCategories = mappings.map(m => m.category);
@@ -107,6 +118,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Categoría</label>
                             <select name="category" className="input" defaultValue={categoryFilter} style={{ padding: '0.45rem' }}>
                                 <option value="">Todas</option>
+                                <option value="NONE">NO ASIGNADA</option>
                                 {availableCategories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
@@ -140,6 +152,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                             <label className="label" style={{ marginBottom: '0.25rem' }}>Tira</label>
                             <select name="tira" className="input" defaultValue={tira} style={{ padding: '0.45rem' }}>
                                 <option value="">Todas</option>
+                                <option value="NONE">NO ASIGNADA</option>
                                 <option value="Masculino A">Masc A</option>
                                 <option value="Masculino B">Masc B</option>
                                 <option value="Femenino">Fem</option>

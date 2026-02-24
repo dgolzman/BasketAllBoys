@@ -60,6 +60,16 @@ export async function findDuplicates() {
 
                 if (sharesFirst && sharesLast) {
                     reason = "Coincidencia de Nombre y Apellido (parcial)";
+                } else {
+                    // C. Inverted Name Match
+                    const p1Full = `${p1.firstName} ${p1.lastName}`.trim().toUpperCase();
+                    const p1FullInv = `${p1.lastName} ${p1.firstName}`.trim().toUpperCase();
+                    const p2Full = `${p2.firstName} ${p2.lastName}`.trim().toUpperCase();
+                    const p2FullInv = `${p2.lastName} ${p2.firstName}`.trim().toUpperCase();
+
+                    if (p1Full === p2FullInv || p1FullInv === p2Full) {
+                        reason = "Nombres invertidos (Ej: Juan Perez vs Perez Juan)";
+                    }
                 }
             }
 
@@ -166,10 +176,15 @@ export async function deleteDuplicatesByDate(fromStr: string, toStr: string) {
 
         const pFirst = p.firstName.trim().toUpperCase();
         const pLast = p.lastName.trim().toUpperCase();
-        const original = candidates.find(
-            c => c.firstName.trim().toUpperCase() === pFirst &&
-                c.lastName.trim().toUpperCase() === pLast
-        );
+        const pFull = `${pFirst} ${pLast}`;
+        const pInv = `${pLast} ${pFirst}`;
+
+        const original = candidates.find(c => {
+            const cFirst = c.firstName.trim().toUpperCase();
+            const cLast = c.lastName.trim().toUpperCase();
+            const cFull = `${cFirst} ${cLast}`;
+            return cFull === pFull || cFull === pInv;
+        });
 
         if (original) {
             console.log(`[deleteDuplicatesByDate] Eliminando duplicado: ${p.firstName} ${p.lastName} (${p.id}) - original: ${original.id}`);
