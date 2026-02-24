@@ -8,6 +8,7 @@ import { getCategory } from "@/lib/utils";
 const initialState = {
     message: '',
     errors: undefined,
+    data: undefined
 };
 
 export default function CreatePlayerForm({
@@ -70,12 +71,12 @@ export default function CreatePlayerForm({
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                         <div>
                             <label className="label">Nombre <span style={{ color: 'red' }}>*</span></label>
-                            <input name="firstName" type="text" className="input" required placeholder="JUAN" defaultValue={initialData?.firstName} />
+                            <input name="firstName" type="text" className="input" required placeholder="JUAN" defaultValue={state.data?.firstName || initialData?.firstName} />
                             {state.errors?.firstName && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.firstName.join(', ')}</p>}
                         </div>
                         <div>
                             <label className="label">Apellido <span style={{ color: 'red' }}>*</span></label>
-                            <input name="lastName" type="text" className="input" required placeholder="PEREZ" defaultValue={initialData?.lastName} />
+                            <input name="lastName" type="text" className="input" required placeholder="PEREZ" defaultValue={state.data?.lastName || initialData?.lastName} />
                             {state.errors?.lastName && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.lastName.join(', ')}</p>}
                         </div>
                     </div>
@@ -84,7 +85,7 @@ export default function CreatePlayerForm({
                         <div>
                             <label className="label">DNI <span style={{ color: 'red' }}>*</span></label>
                             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                                <input name="dni" type="text" className="input" required placeholder="Ej: 40123456 ó TEMP-xxxxx" id="create-dni" />
+                                <input name="dni" type="text" className="input" required placeholder="Ej: 40123456 ó TEMP-xxxxx" id="create-dni" defaultValue={state.data?.dni} />
                                 <button
                                     type="button"
                                     title="Asignar DNI provisional cuando no se conoce el DNI real"
@@ -109,7 +110,7 @@ export default function CreatePlayerForm({
 
                         <div>
                             <label className="label">Fecha de Nacimiento <span style={{ color: 'red' }}>*</span></label>
-                            <input name="birthDate" type="date" className="input" required value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                            <input name="birthDate" type="date" className="input" required defaultValue={state.data?.birthDate || birthDate} onChange={(e) => setBirthDate(e.target.value)} />
                             {categoryWarning && <p style={{ color: '#fbbf24', fontSize: '0.75rem', marginTop: '0.25rem', fontWeight: 'bold' }}>{categoryWarning}</p>}
                             {state.errors?.birthDate && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.birthDate.join(', ')}</p>}
                         </div>

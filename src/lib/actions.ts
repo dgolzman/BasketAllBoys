@@ -29,16 +29,17 @@ const FormSchema = z.object({
     partnerNumber: z.string().optional(),
     contactName: z.string().optional(),
     shirtNumber: z.coerce.number().optional(),
+    federated: z.boolean().optional(),
     observations: z.string().optional(),
     registrationDate: z.string().optional(),
     withdrawalDate: z.string().optional(),
     status: z.enum(["ACTIVO", "INACTIVO", "REVISAR"]).default("ACTIVO"),
     siblings: z.string().optional(),
     category: z.string().optional(),
-    federationYear: z.coerce.number().optional(),
-    federationInstallments: z.string().optional(),
-    lastSocialPayment: z.string().optional(),
-    lastActivityPayment: z.string().optional(),
+    federationYear: z.coerce.number().optional().nullable(),
+    federationInstallments: z.string().optional().nullable(),
+    lastSocialPayment: z.string().optional().nullable(),
+    lastActivityPayment: z.string().optional().nullable(),
 });
 
 function sanitizeDNI(dni: any): string {
@@ -135,10 +136,10 @@ export async function createPlayer(prevState: any, formData: FormData) {
         status: formData.get("status") || "ACTIVO",
         siblings: formData.get("siblings"),
         category: formData.get("category"),
-        federationYear: formData.get("federationYear"),
-        federationInstallments: formData.get("federationInstallments"),
-        lastSocialPayment: formData.get("lastSocialPayment"),
-        lastActivityPayment: formData.get("lastActivityPayment"),
+        federationYear: formData.get("federationYear") || null,
+        federationInstallments: formData.get("federationInstallments") || null,
+        lastSocialPayment: formData.get("lastSocialPayment") || null,
+        lastActivityPayment: formData.get("lastActivityPayment") || null,
     };
 
     const validatedFields = FormSchema.safeParse(rawData);
@@ -146,8 +147,9 @@ export async function createPlayer(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
         console.log(validatedFields.error.flatten());
         return {
-            errors: validatedFields.error.flatten().fieldErrors,
+            errors: validatedFields.error.flatten().fieldErrors as any,
             message: "Faltan campos obligatorios.",
+            data: rawData as any
         };
     }
 
@@ -232,6 +234,7 @@ export async function createPlayer(prevState: any, formData: FormData) {
 export type ActionState = {
     message: string;
     errors?: Record<string, string[]>;
+    data?: any;
 };
 
 export async function updatePlayer(id: string, prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -286,7 +289,7 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
             return { message: "El número de camiseta debe estar entre 0 y 99.", errors: { shirtNumber: ["Rango inválido"] } };
         }
         const shirtError = await validateShirtNumber(id, shirtNumber, rawData.tira as string, rawData.birthDate as string, rawData.category as string);
-        if (shirtError) return { message: shirtError, errors: { shirtNumber: [shirtError] } };
+        if (shirtError) return { message: shirtError, errors: { shirtNumber: [shirtError] }, data: rawData };
     }
 
     try {
