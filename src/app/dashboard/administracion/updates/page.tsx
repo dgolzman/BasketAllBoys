@@ -4,6 +4,7 @@ import { getAvailableVersions, revalidateVersions } from "@/lib/update-actions";
 import PageGuide from "@/components/ui/page-guide";
 import Link from "next/link";
 import UpdateForm from "./update-form";
+import UpdateLogger from "./update-logger";
 import packageJson from "../../../../../package.json";
 
 export default async function UpdatesPage() {
@@ -89,6 +90,8 @@ export default async function UpdatesPage() {
                         })}
                     </div>
                 )}
+
+                <UpdateLogger />
 
                 <div style={{ marginTop: '2rem', padding: '1rem', borderTop: '1px solid var(--border)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
                     <p><strong>Nota técnica:</strong> Al presionar "Instalar", el servidor ejecutará `docker compose pull` y `docker compose up -d`. El proceso es asíncrono; la web dejará de responder durante el reinicio del contenedor (aprox. 30-60 segundos).</p>

@@ -87,3 +87,24 @@ export async function revalidateVersions() {
         return { success: false, message: "Error al refrescar." };
     }
 }
+
+export async function getUpdateLogContent() {
+    const session = await auth();
+    if (!session) return "";
+
+    const role = (session.user as any)?.role || 'ENTRENADOR';
+    if (role !== 'ADMIN') return "";
+
+    const projectRoot = process.env.PROJECT_ROOT || '/app/project-root';
+    const logPath = path.join(projectRoot, 'update-web.log');
+
+    try {
+        const fs = await import('fs/promises');
+        const content = await fs.readFile(logPath, 'utf-8');
+        // Return only last 100 lines to avoid overhead
+        const lines = content.split('\n');
+        return lines.slice(-100).join('\n');
+    } catch (error) {
+        return "";
+    }
+}
