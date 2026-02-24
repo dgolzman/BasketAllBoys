@@ -238,10 +238,10 @@
 }
 
 /* ═══════════════════════════════════════
-   RESPONSIVE MOBILE — Dashboard
+   RESPONSIVE MOBILE & TABLET — Dashboard
    ═══════════════════════════════════════ */
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .layout {
         flex-direction: column;
     }

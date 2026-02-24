@@ -18,7 +18,7 @@ export default function TopNav({ userName, role }: { userName?: string | null, r
             zIndex: 90,
             minHeight: '56px',
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: '2.5rem' }}>
                 <h1 style={{ margin: 0, fontSize: 'clamp(0.9rem, 3vw, 1.25rem)', fontFamily: 'var(--font-display)', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                     Gestión Basket
                 </h1>

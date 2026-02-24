@@ -267,8 +267,8 @@ input[type='date'] {
   }
 }
 
-/* ── Mobile (< 768px) ── */
-@media (max-width: 768px) {
+/* ── Mobile & Tablet (< 1024px) ── */
+@media (max-width: 1024px) {
 
   /* Sidebar: fixed, fuera de pantalla por defecto */
   .sidebar {
@@ -357,8 +357,8 @@ input[type='date'] {
   }
 }
 
-/* Mobile grande (< 768px): ocultar también DNI y Contacto */
-@media (max-width: 768px) {
+/* Mobile grande & Tablet (< 1024px): ocultar también DNI y Contacto */
+@media (max-width: 1024px) {
   .players-table {
     min-width: 520px;
   }
