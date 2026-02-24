@@ -1,9 +1,10 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { getAvailableVersions } from "@/lib/update-actions";
+import { getAvailableVersions, revalidateVersions } from "@/lib/update-actions";
 import PageGuide from "@/components/ui/page-guide";
 import Link from "next/link";
 import UpdateForm from "./update-form";
+import packageJson from "../../../../../package.json";
 
 export default async function UpdatesPage() {
     const session = await auth();
@@ -14,6 +15,7 @@ export default async function UpdatesPage() {
         redirect('/dashboard/administracion');
     }
 
+    const currentVersion = `v${packageJson.version}`;
     let versions: string[] = [];
     let error: string | null = null;
 
@@ -24,22 +26,44 @@ export default async function UpdatesPage() {
         error = "No se pudo conectar con el servicio de actualizaciones.";
     }
 
+    const handleRefresh = async () => {
+        "use server";
+        await revalidateVersions();
+        redirect('/dashboard/administracion/updates');
+    };
+
     return (
         <div>
             <PageGuide guideId="updates-management">
-                <div>
-                    <strong>🚀 Gestión de Actualizaciones</strong>
-                    <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
-                        Selecciona una versión para actualizar el sistema automáticamente.
-                    </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                    <div>
+                        <strong>🚀 Gestión de Actualizaciones</strong>
+                        <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                            Versión actual: <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{currentVersion}</span>
+                        </p>
+                    </div>
+                    <div>
+                        <strong>💡 Notas</strong>
+                        <p style={{ margin: '0.2rem 0 0 0', opacity: 0.8 }}>
+                            Si no ves una versión recién publicada, usa el botón de "Buscar" para actualizar la caché.
+                        </p>
+                    </div>
                 </div>
             </PageGuide>
 
-            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <Link href="/dashboard/administracion" className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
-                    Ir Atrás
-                </Link>
-                <h2 className="ui-mayusculas" style={{ margin: 0 }}>Actualización de Sistema</h2>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <Link href="/dashboard/administracion" className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                        Ir Atrás
+                    </Link>
+                    <h2 className="ui-mayusculas" style={{ margin: 0 }}>Actualización de Sistema</h2>
+                </div>
+
+                <form action={handleRefresh}>
+                    <button type="submit" className="btn btn-secondary" style={{ gap: '0.5rem', border: '1px dashed var(--primary)' }}>
+                        🔄 Buscar Versiones Nuevas
+                    </button>
+                </form>
             </div>
 
             <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)', maxWidth: '800px' }}>
@@ -59,7 +83,7 @@ export default async function UpdatesPage() {
                 ) : (
                     <div style={{ display: 'grid', gap: '1rem' }}>
                         {versions.map((v: string) => (
-                            <UpdateForm key={v} version={v} isCurrent={v === "v4.3.10"} />
+                            <UpdateForm key={v} version={v} isCurrent={v === currentVersion} />
                         ))}
                     </div>
                 )}

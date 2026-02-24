@@ -22,7 +22,10 @@ export async function getAvailableVersions() {
             headers: {
                 'User-Agent': 'BasketAllBoys-Admin-Panel'
             },
-            next: { revalidate: 3600 } // Cache results for 1 hour
+            next: {
+                revalidate: 3600,
+                tags: ['github-tags']
+            }
         });
 
         if (!response.ok) {
@@ -69,8 +72,18 @@ export async function triggerSystemUpdate(version: string) {
     return { success: true, message: "Actualización iniciada. El sistema se reiniciará en breve." };
 }
 
-export async function getUpdateStatus() {
-    // This could read the log file, but since the container restarts,
-    // it's tricky. For now, just returning a static message.
-    return { status: "IDLE" };
+export async function revalidateVersions() {
+    const session = await auth();
+    if (!session) return { success: false, message: "No autorizado" };
+
+    const role = (session.user as any)?.role || 'ENTRENADOR';
+    if (role !== 'ADMIN') return { success: false, message: "Permiso denegado" };
+
+    try {
+        const { revalidatePath } = await import('next/cache');
+        revalidatePath('/dashboard/administracion/updates');
+        return { success: true, message: "Caché de versiones actualizada." };
+    } catch (e) {
+        return { success: false, message: "Error al refrescar." };
+    }
 }
