@@ -1,3 +1,4 @@
+name: basket-allboys
 services:
   app:
     image: ghcr.io/dgolzman/basketallboys:${VERSION:-main}

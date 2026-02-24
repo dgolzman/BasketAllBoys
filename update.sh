@@ -168,6 +168,18 @@ $DOCKER_CMD pull
 
 # 2. Reiniciar el contenedor
 echo "🔄 Reiniciando servicios con versión $VERSION..."
+# Fix para conflictos de nombre entre proyectos (Web vs Consola)
+# Si existe un contenedor 'basket-app' pero no pertenece a esta composición, hay que volarlo.
+RUNNING_CID=$(docker ps -aq --filter name=^basket-app$)
+if [ -n "$RUNNING_CID" ]; then
+    # Verificamos si pertenece a este proyecto actual
+    IN_PROJECT=$($DOCKER_CMD ps -aq --filter name=^basket-app$)
+    if [ -z "$IN_PROJECT" ]; then
+        echo "⚠️  Detectado contenedor 'basket-app' de otro proyecto. Limpiando para evitar conflictos..."
+        docker stop "$RUNNING_CID" >/dev/null 2>&1 || true
+        docker rm "$RUNNING_CID" >/dev/null 2>&1 || true
+    fi
+fi
 $DOCKER_CMD up -d --remove-orphans
 
 # 3. Aplicar migraciones con espera proactiva
