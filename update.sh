@@ -122,11 +122,11 @@ echo "📥 Usando versión: $VERSION"
 
 # 1. Bajar la versión seleccionada
 echo "📦 Descargando imagen desde GitHub (Tag: $VERSION)..."
-docker compose pull
+docker-compose pull
 
 # 2. Reiniciar el contenedor
 echo "🔄 Reiniciando servicios con versión $VERSION..."
-docker compose up -d --remove-orphans
+docker-compose up -d --remove-orphans
 
 # 3. Aplicar migraciones con espera proactiva
 echo "🚀 Preparando base de datos..."
@@ -143,7 +143,7 @@ while [ $RETRIES -gt 0 ]; do
 done
 
 # Fijamos la versión de prisma a la del proyecto (5.22.0) para evitar que npx baje la v7 (breaking change)
-docker compose exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
+docker-compose exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
 
 # 4. Limpiar imágenes viejas
 echo "🧹 Limpiando imágenes antiguas..."

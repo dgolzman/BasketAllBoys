@@ -42,32 +42,42 @@ export default function UpdateLogger() {
     if (!log) return null;
 
     return (
-        <div style={{ marginTop: '2rem' }}>
-            <h4 className="ui-mayusculas" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ marginTop: '0' }}>
+            <h4 className="ui-mayusculas" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
                 <span style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', display: 'inline-block', boxShadow: '0 0 8px #22c55e' }}></span>
-                Logs de Actualización en Vivo
+                Progreso de Instalación
             </h4>
             <pre
                 ref={preRef}
                 style={{
-                    background: '#000',
-                    color: '#0f0',
+                    background: '#0a0a0a',
+                    color: '#4ade80',
                     padding: '1rem',
                     borderRadius: '8px',
-                    fontSize: '0.8rem',
-                    maxHeight: '300px',
+                    fontSize: '0.75rem',
+                    height: '400px',
+                    maxHeight: '400px',
                     overflowY: 'auto',
                     fontFamily: 'monospace',
                     border: '1px solid #333',
                     whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-all'
+                    wordBreak: 'break-all',
+                    boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)'
                 }}
             >
                 {log}
             </pre>
-            <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '0.5rem' }}>
-                El log se actualiza automáticamente cada 3 segundos. Si el sistema se reinicia, la conexión se perderá temporalmente.
-            </p>
+            <div style={{
+                marginTop: '0.75rem',
+                padding: '0.75rem',
+                background: 'rgba(56,189,248,0.1)',
+                borderLeft: '3px solid #0ea5e9',
+                borderRadius: '0 4px 4px 0',
+                fontSize: '0.8rem',
+                color: '#bae6fd'
+            }}>
+                <strong>ℹ️ Info:</strong> El log se actualiza automáticamente cada 3 segundos. Si el sistema se reinicia, la conexión se perderá temporalmente (30-60 seg).
+            </div>
         </div>
     );
 }

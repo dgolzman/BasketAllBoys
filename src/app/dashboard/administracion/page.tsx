@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/lib/role-permission-actions";
 import { PERMISSIONS } from "@/lib/roles";
+import SmtpConfigPanel from "./smtp-config-panel";
+import { getSmtpConfig } from "@/lib/smtp-actions";
 
 export default async function AdministrationPage() {
     const session = await auth();
@@ -17,6 +19,7 @@ export default async function AdministrationPage() {
     }
 
     const isAdmin = role === 'ADMIN';
+    const smtpConfig = isAdmin ? await getSmtpConfig() : {};
     const canManageUsers = isAdmin;
     const canImport = await hasPermission(role, PERMISSIONS.IMPORT_DATA);
     const canViewAudit = await hasPermission(role, PERMISSIONS.VIEW_AUDIT);
@@ -181,6 +184,15 @@ export default async function AdministrationPage() {
 
                 {isAdmin && <DangerZone />}
             </div>
+
+            {isAdmin && (
+                <div style={{ marginTop: '3rem' }}>
+                    <h2 className="ui-mayusculas" style={{ marginBottom: '1.5rem' }}>Configuración de Servicios</h2>
+                    <div style={{ maxWidth: '800px' }}>
+                        <SmtpConfigPanel initialConfig={smtpConfig} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

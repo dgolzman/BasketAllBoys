@@ -68,34 +68,48 @@ export default async function UpdatesPage() {
                 </form>
             </div>
 
-            <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)', maxWidth: '800px' }}>
-                <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', color: 'var(--accent)' }}>Versiones Disponibles (GitHub)</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '2rem', alignItems: 'start' }}>
+                <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)' }}>
+                    <h3 className="ui-mayusculas" style={{ marginBottom: '1.5rem', color: 'var(--accent)' }}>
+                        Versiones Disponibles
+                    </h3>
 
-                {error ? (
-                    <div style={{ padding: '1rem', background: 'rgba(220,38,38,0.1)', border: '1px solid #dc2626', color: '#dc2626', borderRadius: '8px', textAlign: 'center' }}>
-                        {error}
-                        <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
-                            Por favor, intenta recargar la página en unos momentos.
+                    {error ? (
+                        <div style={{ padding: '1rem', background: 'rgba(220,38,38,0.1)', border: '1px solid #dc2626', color: '#dc2626', borderRadius: '8px', textAlign: 'center' }}>
+                            {error}
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                                Por favor, intenta recargar la página en unos momentos.
+                            </div>
                         </div>
-                    </div>
-                ) : !Array.isArray(versions) || versions.length === 0 ? (
-                    <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
-                        No se pudieron obtener etiquetas de GitHub o no hay versiones disponibles actualmente.
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gap: '1rem' }}>
-                        {versions.map((v: string) => {
-                            const normalizedV = v.startsWith('v') ? v : `v${v}`;
-                            return <UpdateForm key={v} version={v} isCurrent={normalizedV === currentVersion} />;
-                        })}
-                    </div>
-                )}
+                    ) : !Array.isArray(versions) || versions.length === 0 ? (
+                        <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', textAlign: 'center' }}>
+                            No se pudieron obtener etiquetas de GitHub o no hay versiones disponibles actualmente.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            {versions.map((v: string) => {
+                                const normalizedV = v.startsWith('v') ? v : `v${v}`;
+                                return <UpdateForm key={v} version={v} isCurrent={normalizedV === currentVersion} />;
+                            })}
+                        </div>
+                    )}
 
-                <UpdateLogger />
+                    <div style={{
+                        marginTop: '2rem',
+                        padding: '1.25rem',
+                        background: 'rgba(251,191,36,0.1)',
+                        border: '1px solid rgba(251,191,36,0.2)',
+                        borderRadius: '8px',
+                        fontSize: '0.85rem'
+                    }}>
+                        <p style={{ color: '#fbbf24', fontWeight: '600', marginBottom: '0.5rem' }}>⚠️ Nota técnica:</p>
+                        <p style={{ color: 'var(--foreground)', opacity: 0.9 }}>Al presionar "Instalar", el servidor ejecutará <code>docker-compose pull</code> y <code>up -d</code>.</p>
+                        <p style={{ marginTop: '0.5rem', opacity: 0.7 }}>El proceso es asíncrono; la web dejará de responder durante el reinicio (aprox. 30-60 seg). Verifica los logs en el host si el sistema no vuelve a subir.</p>
+                    </div>
+                </div>
 
-                <div style={{ marginTop: '2rem', padding: '1rem', borderTop: '1px solid var(--border)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
-                    <p><strong>Nota técnica:</strong> Al presionar "Instalar", el servidor ejecutará `docker compose pull` y `docker compose up -d`. El proceso es asíncrono; la web dejará de responder durante el reinicio del contenedor (aprox. 30-60 segundos).</p>
-                    <p style={{ marginTop: '0.5rem' }}>Verifica los logs en el host si el sistema no vuelve a subir.</p>
+                <div className="card" style={{ padding: '2rem', border: '1px solid var(--border)' }}>
+                    <UpdateLogger />
                 </div>
             </div>
         </div>
