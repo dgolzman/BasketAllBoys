@@ -89,28 +89,28 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>documento</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>DNI del socio — búsqueda 1° prioridad</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>documento</strong> o <strong>dni</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>DNI del jugador — búsqueda 1° prioridad</td>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>12345678</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>nrosocio</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>nrosocio</strong> o <strong>socio</strong></td>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Nº de socio — búsqueda 2° prioridad</td>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>4521</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>apellido / nombre</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Nombre completo — búsqueda 3° prioridad (si no hay DNI ni socio)</td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>GARCIA / JUAN</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>apellido</strong> Y <strong>nombre</strong></td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>En columnas SEPARADAS — búsqueda 3° prioridad</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>GARCIA y JUAN</td>
                                     </tr>
                                     <tr>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Ultima cuota social abonada</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Última cuota social pagada</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Última cuota social pagada (o "cuota social")</td>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>202601</td>
                                     </tr>
                                     <tr>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}><strong>Ultima cuota Actividad abonada</strong></td>
-                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Última cuota de actividad pagada</td>
+                                        <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>Última cuota de actividad pagada (o "cuota actividad")</td>
                                         <td style={{ padding: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>202601</td>
                                     </tr>
                                 </tbody>
