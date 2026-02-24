@@ -9,13 +9,13 @@ export default function TopNav({ userName, role }: { userName?: string | null, r
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '0.75rem 1rem 0.75rem 4.5rem',
+            padding: '0.75rem 1.5rem',
             background: 'var(--card-bg)',
             borderBottom: '1px solid var(--border)',
             backdropFilter: 'blur(10px)',
             position: 'sticky',
             top: 0,
-            zIndex: 10,
+            zIndex: 90,
             minHeight: '56px',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
