@@ -329,7 +329,7 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
 
         const players = await prisma.player.findMany({
             where: { status: 'ACTIVO', scholarship: false },
-            select: { id: true, firstName: true, lastName: true, category: true, birthDate: true, dni: true, tira: true }
+            select: { id: true, firstName: true, lastName: true, category: true, birthDate: true, dni: true, tira: true, lastActivityPayment: true }
         });
 
         const payments = await (prisma as any).payment.findMany({
@@ -369,16 +369,14 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
             return { ...p, calculatedCategory: cat, applicableFee };
         });
 
+        const queryMonth = year * 100 + month;
+
         let actualCollected = 0;
-        payments.forEach((pymt: any) => {
-            const p = playerDetails.find(pl => pl.id === pymt.playerId);
-            if (p) {
-                actualCollected += pymt.amount;
-                categoryStats[p.calculatedCategory].actual += pymt.amount;
-            } else {
-                actualCollected += pymt.amount;
-                initCategoryStats("OTROS (Inactivos/Becados)");
-                categoryStats["OTROS (Inactivos/Becados)"].actual += pymt.amount;
+        playerDetails.forEach(p => {
+            const lastPayment = p.lastActivityPayment ? parseInt(p.lastActivityPayment) : 0;
+            if (lastPayment >= queryMonth) {
+                actualCollected += p.applicableFee;
+                categoryStats[p.calculatedCategory].actual += p.applicableFee;
             }
         });
 
