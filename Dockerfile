@@ -35,6 +35,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/scripts ./scripts
 
 # Copy bcryptjs explicitly so it's available for seeding (not bundled by webpack)
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
