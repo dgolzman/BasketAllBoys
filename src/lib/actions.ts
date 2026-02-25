@@ -80,9 +80,22 @@ export async function createAuditLog(action: string, entity: string, entityId: s
             },
         });
 
-        // Send real-time notification to administrator
-        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SMTP_USER;
-        if (adminEmail) {
+        // Send real-time notification to administrators
+        const admins = await prisma.user.findMany({
+            where: { role: 'ADMIN' },
+            select: { email: true }
+        });
+
+        const dbAdminEmails = admins.map(a => a.email).filter(Boolean);
+        const extraAdmin = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SMTP_USER;
+
+        // Combine and unique recipients
+        const recipientsSet = new Set(dbAdminEmails);
+        if (extraAdmin) recipientsSet.add(extraAdmin);
+
+        const recipients = Array.from(recipientsSet).join(', ');
+
+        if (recipients) {
             const subject = `[AUDIT] ${action} en ${entity} - Basket AllBoys`;
             const html = `
                 <h2>Notificación de Cambio Administrativo</h2>
@@ -96,7 +109,7 @@ export async function createAuditLog(action: string, entity: string, entityId: s
             `;
 
             // Fire and forget email to not block the UI response
-            sendEmail({ to: adminEmail, subject, html }).catch(err => {
+            sendEmail({ to: recipients, subject, html }).catch(err => {
                 console.error("[AUDIT-EMAIL] Error sending notification:", err);
             });
         }

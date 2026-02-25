@@ -41,18 +41,24 @@ export async function GET(request: Request) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
 
-        // Also we specify the from email, meaning whoever receives it must be the admin
-        // For now, we will send the summary to the user who has the 'ADMIN' role.
+        // Fetch all administrators from DB
         const admins = await (prisma as any).user.findMany({
             where: { role: 'ADMIN' },
             select: { email: true }
         });
 
-        if (admins.length === 0) {
+        const dbAdminEmails = admins.map((a: any) => a.email).filter(Boolean);
+        const extraAdmin = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.SMTP_USER;
+
+        // Combine and unique recipients
+        const recipientsSet = new Set(dbAdminEmails);
+        if (extraAdmin) recipientsSet.add(extraAdmin);
+
+        const adminEmails = Array.from(recipientsSet).join(', ');
+
+        if (!adminEmails) {
             return NextResponse.json({ error: 'No admin found to receive reports.' }, { status: 400 });
         }
-
-        const adminEmails = admins.map((a: any) => a.email).join(', ');
 
         const logs = await (prisma as any).auditLog.findMany({
             where: {
