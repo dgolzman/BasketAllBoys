@@ -65,6 +65,9 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
         if (categoryFilter === 'NONE') {
             // "NO ASIGNADA" means no manual override AND birthDate logic returned "REVISAR"
             players = players.filter(p => !p.category && getCategory(p, mappings) === 'REVISAR');
+        } else if (categoryFilter === 'MANUAL') {
+            // "ASIGNADA MANUALMENTE" means the player has a value in the 'category' field (manual override)
+            players = players.filter(p => !!p.category);
         } else {
             players = players.filter(p => getCategory(p, mappings) === categoryFilter);
         }
@@ -119,6 +122,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
                             <select name="category" className="input" defaultValue={categoryFilter} style={{ padding: '0.45rem' }}>
                                 <option value="">Todas</option>
                                 <option value="NONE">NO ASIGNADA</option>
+                                <option value="MANUAL">ASIGNADA MANUALMENTE</option>
                                 {availableCategories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
