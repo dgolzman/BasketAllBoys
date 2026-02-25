@@ -5,8 +5,14 @@ set -e
 # Script para actualizar la aplicación BasketAllBoys
 echo "🚀 Iniciando actualización manual..."
 
-# --- Autoupdate del propio script ---
-if [ "$1" != "--no-self-update" ]; then
+# --- Parse Arguments ---
+for arg in "$@"; do
+    case $arg in
+        --no-self-update) NO_SELF_UPDATE=true ;;
+    esac
+done
+
+if [ "$NO_SELF_UPDATE" != "true" ]; then
     echo "🔄 Buscando actualizaciones del script de gestión..."
     if wget -q -O update.sh.tmp https://raw.githubusercontent.com/dgolzman/BasketAllBoys/main/update.sh; then
         if ! cmp -s update.sh update.sh.tmp; then
@@ -46,16 +52,21 @@ if [ -z "$VERSION" ]; then
     fi
 fi
 
-# --- Sidecar Updater logic for Web-Trigger ---
-# If we are running inside the main app container and triggered from the web,
-# we launch a temporary sidecar container to perform the update.
-# This ensures the update script survives the 'basket-app' container restart.
-if [ "$1" = "--web-sidecar-trigger" ]; then
-    echo "🏗️  Iniciando actualizador en modo sidecar..."
+# Detect special flags anywhere in arguments
+IS_WEB_TRIGGER=false
+IS_DETACHED=false
+for arg in "$@"; do
+    [ "$arg" = "--web-sidecar-trigger" ] && IS_WEB_TRIGGER=true
+    [ "$arg" = "--execute-detached" ] && IS_DETACHED=true
+done
+
+if [ "$IS_WEB_TRIGGER" = "true" ]; then
+    echo "🏗️  MODO SIDECAR ACTIVADO. Lanzando contenedor independiente..."
     UPDATER_NAME="basket-sidecar-$(date +%s)"
     
     # We use the current image to launch the sidecar, but it will pull the NEW image inside.
     # We mount the docker socket and volumes.
+    # CRITICAL: We redirect the internal command's output to the log file so it's visible in the Web UI.
     docker run -d --rm \
         --name "$UPDATER_NAME" \
         -v /var/run/docker.sock:/var/run/docker.sock \
@@ -64,17 +75,15 @@ if [ "$1" = "--web-sidecar-trigger" ]; then
         -e VERSION="$VERSION" \
         --entrypoint /bin/sh \
         ghcr.io/dgolzman/basketallboys:main \
-        -c "./update.sh --execute-detached"
+        -c "./update.sh --execute-detached >> /app/project-root/update-web.log 2>&1"
         
-    echo "✅ Actualizador sidecar lanzado ($UPDATER_NAME). El sistema se reiniciará en breve."
+    echo "✅ Actualizador sidecar lanzado con éxito. Podes seguir el progreso en el log..."
+    echo "🔌 La conexión web se perderá momentáneamente cuando el sistema se reinicie."
     exit 0
 fi
 
-# Flag for the sidecar to actually perform the work
-if [ "$1" = "--execute-detached" ]; then
-    echo "🛠️  Ejecutando actualización en modo desatendido..."
-    # Skip interactive checks
-    shift
+if [ "$IS_DETACHED" = "true" ]; then
+    echo "🛠️  PROCESO DESATENDIDO INICIADO (Container Sidecar)..."
 fi
 
 # Configuración SMTP (Proactiva - Solo en Terminal)
