@@ -95,23 +95,28 @@ export async function createAuditLog(action: string, entity: string, entityId: s
 
         const recipients = Array.from(recipientsSet).join(', ');
 
-        if (recipients) {
-            const subject = `[AUDIT] ${action} en ${entity} - Basket AllBoys`;
+        // Real-time notification criteria: Only for core administrative changes
+        const isCriticalAdminTask = ['User', 'ActivityFee', 'CategoryMapping', 'Admin'].includes(entity);
+
+        if (recipients && isCriticalAdminTask) {
+            const subject = `[AUDIT-REALTIME] ${action} en ${entity} - Basket AllBoys`;
             const html = `
-                <h2>Notificación de Cambio Administrativo</h2>
+                <h2>Notificación de Cambio Administrativo Crítico</h2>
                 <p><strong>Acción:</strong> ${action}</p>
                 <p><strong>Entidad:</strong> ${entity} (ID: ${entityId})</p>
                 <p><strong>Usuario:</strong> ${userEmail} (${userRole})</p>
                 <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-AR')}</p>
                 ${details ? `<pre style="background: #f4f4f4; padding: 10px; border-radius: 5px;">${JSON.stringify(details, null, 2)}</pre>` : ''}
                 <hr />
-                <p style="font-size: 0.8rem; color: #666;">Este es un mensaje automático del sistema de gestión AllBoys Basket.</p>
+                <p style="font-size: 0.8rem; color: #666;">Este es un aviso en tiempo real. Los cambios operativos (Jugadores, etc) se envían en el resumen diario.</p>
             `;
 
             // Fire and forget email to not block the UI response
             sendEmail({ to: recipients, subject, html }).catch(err => {
                 console.error("[AUDIT-EMAIL] Error sending notification:", err);
             });
+        } else {
+            console.log(`[AUDIT] Log created for ${entity} (${action}). Real-time notification skipped per system policy.`);
         }
     }
 }

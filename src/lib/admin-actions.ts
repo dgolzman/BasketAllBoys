@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { createAuditLog } from "./actions";
 
 function generateId(): string {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -25,6 +26,7 @@ export async function updateCategoryMapping(category: string, minYear: number, m
             create: { id: generateId(), category, minYear, maxYear, updatedAt: new Date() }
         });
         console.log(`[AdminAction] Successfully updated ${category}`);
+        await createAuditLog("UPDATE", "CategoryMapping", category, { minYear, maxYear });
     } catch (e) {
         console.error(`[AdminAction] Prisma error updating ${category}:`, e);
         throw e;
@@ -52,6 +54,7 @@ export async function deleteCategoryMapping(category: string) {
     await (prisma as any).categoryMapping.delete({
         where: { category }
     });
+    await createAuditLog("DELETE", "CategoryMapping", category);
 
     revalidatePath("/dashboard/administracion/categories");
 }
@@ -100,6 +103,8 @@ export async function renameCategoryMapping(oldName: string, newName: string) {
         await (tx as any).categoryMapping.delete({
             where: { category: oldName }
         });
+
+        await createAuditLog("RENAME", "CategoryMapping", oldName, { to: newName });
     });
 
     revalidatePath("/dashboard/administracion/categories");

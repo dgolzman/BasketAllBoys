@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { createAuditLog } from "./actions";
 
 const passwordRegex = /^.{6,}$/;
 
@@ -75,7 +76,7 @@ export async function createUser(prevState: any, formData: FormData) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await prisma.user.create({
+        const newUser = await prisma.user.create({
             data: {
                 id: generateId(),
                 name,
@@ -86,6 +87,7 @@ export async function createUser(prevState: any, formData: FormData) {
                 updatedAt: new Date(),
             },
         });
+        await createAuditLog("CREATE", "User", newUser.id, { name, email, role });
     } catch (error: any) {
         if (error.code === 'P2002') return { message: "El email ya está en uso" };
         return { message: "Error al crear usuario: " + error.message };
@@ -156,6 +158,7 @@ export async function deleteUser(id: string) {
         if (session.user.id === id) return { message: "No puedes eliminar tu propio usuario" };
 
         await prisma.user.delete({ where: { id } });
+        await createAuditLog("DELETE", "User", id, { email: userToDelete?.email });
         revalidatePath("/dashboard/administracion/users");
         return { message: "Usuario eliminado correctamente" };
     } catch (error: any) {
