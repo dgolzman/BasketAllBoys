@@ -57,3 +57,12 @@ export function evaluatePlayerStatus(currentStatus: string, dni: string, birthDa
     // 3. Otherwise maintain requested status (ACTIVO or INACTIVO)
     return currentStatus;
 }
+
+export function normalizeString(str: string | null | undefined): string {
+    if (!str) return "";
+    return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim();
+}

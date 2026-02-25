@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { evaluatePlayerStatus } from "./utils";
+import { evaluatePlayerStatus, normalizeString } from "./utils";
 
 
 const FormSchema = z.object({
@@ -183,12 +183,12 @@ export async function createPlayer(prevState: any, formData: FormData) {
     }
 
     try {
-        const playerName = `${data.lastName.toUpperCase()}, ${data.firstName.toUpperCase()}`;
+        const playerName = `${normalizeString(data.lastName)}, ${normalizeString(data.firstName)}`;
         const player = await prisma.player.create({
             data: {
                 id: generateId(),
-                firstName: data.firstName.toUpperCase(),
-                lastName: data.lastName.toUpperCase(),
+                firstName: normalizeString(data.firstName),
+                lastName: normalizeString(data.lastName),
                 dni: data.dni,
                 birthDate: data.birthDate ? new Date(data.birthDate) : null, // Ensure valid date
                 tira: data.tira,
@@ -198,11 +198,11 @@ export async function createPlayer(prevState: any, formData: FormData) {
                 email: data.email || null,
                 phone: data.phone || null,
                 partnerNumber: data.partnerNumber || null,
-                contactName: data.contactName ? data.contactName.toUpperCase() : null,
+                contactName: data.contactName ? normalizeString(data.contactName) : null,
                 shirtNumber: data.shirtNumber || null,
-                observations: data.observations ? data.observations.toUpperCase() : null,
+                observations: data.observations ? normalizeString(data.observations) : null,
                 registrationDate: data.registrationDate ? new Date(data.registrationDate) : null,
-                siblings: data.siblings ? data.siblings.toUpperCase() : null,
+                siblings: data.siblings ? normalizeString(data.siblings) : null,
                 category: data.category || null,
                 status: evaluatePlayerStatus(data.status, data.dni, data.birthDate || null),
                 federationYear: data.federationYear || null,
@@ -311,14 +311,14 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
     }
 
     try {
-        const playerName = `${(rawData.lastName as string).toUpperCase()}, ${(rawData.firstName as string).toUpperCase()}`;
+        const playerName = `${normalizeString(rawData.lastName as string)}, ${normalizeString(rawData.firstName as string)}`;
 
         // 1. Update the Current Player
         const player = await prisma.player.update({
             where: { id },
             data: {
-                firstName: (rawData.firstName as string).toUpperCase(),
-                lastName: (rawData.lastName as string).toUpperCase(),
+                firstName: normalizeString(rawData.firstName as string),
+                lastName: normalizeString(rawData.lastName as string),
                 dni: rawData.dni as string,
                 birthDate: rawData.birthDate ? new Date(rawData.birthDate as string) : null,
                 tira: rawData.tira as string,
@@ -328,12 +328,12 @@ export async function updatePlayer(id: string, prevState: ActionState, formData:
                 email: (rawData.email as string) || null,
                 phone: (rawData.phone as string) || null,
                 partnerNumber: (rawData.partnerNumber as string) || null,
-                contactName: rawData.contactName ? (rawData.contactName as string).toUpperCase() : null,
+                contactName: rawData.contactName ? normalizeString(rawData.contactName as string) : null,
                 shirtNumber: shirtNumber,
-                observations: rawData.observations ? (rawData.observations as string).toUpperCase() : null,
+                observations: rawData.observations ? normalizeString(rawData.observations as string) : null,
                 registrationDate: parseDate(rawData.registrationDate),
                 withdrawalDate: parseDate(rawData.withdrawalDate),
-                siblings: rawData.siblings ? (rawData.siblings as string).toUpperCase() : null,
+                siblings: rawData.siblings ? normalizeString(rawData.siblings as string) : null,
                 category: (rawData.category as string) || null,
                 status: evaluatePlayerStatus(rawData.status as string, rawData.dni as string, (rawData.birthDate as string) || null),
                 federationYear: rawData.federationYear ? parseInt(rawData.federationYear as string) : null,
@@ -388,7 +388,7 @@ export async function searchPlayers(query: string) {
 
     if (!query || query.length < 2) return [];
 
-    const normalizedQuery = query.toUpperCase();
+    const normalizedQuery = normalizeString(query);
 
     return await prisma.player.findMany({
         where: {
@@ -396,6 +396,7 @@ export async function searchPlayers(query: string) {
                 { firstName: { contains: normalizedQuery } },
                 { lastName: { contains: normalizedQuery } },
                 { dni: { contains: normalizedQuery } },
+                { contactName: { contains: normalizedQuery } },
             ],
             status: "ACTIVO"
         },

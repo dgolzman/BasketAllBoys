@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { getCategory } from "@/lib/utils";
+import { getCategory, normalizeString } from "@/lib/utils";
 import PageGuide from "@/components/ui/page-guide";
 import PlayerList from "./player-list";
 import ExportPlayersButton from "./export-button";
@@ -15,7 +15,7 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
     const params = await searchParams;
 
     // Parse filters
-    const query = typeof params?.query === 'string' ? params.query.toUpperCase() : '';
+    const query = typeof params?.query === 'string' ? normalizeString(params.query) : '';
     const tira = typeof params?.tira === 'string' ? params.tira : '';
     const categoryFilter = typeof params?.category === 'string' ? params.category : '';
     const statusFilter = typeof params?.status === 'string' ? params.status : 'DEFAULT';
@@ -32,7 +32,8 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
         where.OR = [
             { lastName: { contains: query } },
             { firstName: { contains: query } },
-            { dni: { contains: query } }
+            { dni: { contains: query } },
+            { contactName: { contains: query } }
         ];
     }
     if (tira) {
