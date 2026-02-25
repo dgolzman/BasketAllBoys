@@ -1,15 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import path from 'path';
 
-// Local development database path
-const dbPath = path.resolve(process.cwd(), 'prisma', 'dev.db');
-const prisma = new PrismaClient({
-    datasources: {
-        db: {
-            url: `file:${dbPath}`
-        }
-    }
-});
+const prisma = new PrismaClient();
 
 function normalizeString(str: string | null | undefined): string {
     if (!str) return "";

@@ -254,7 +254,11 @@ done
 # Fijamos la versión de prisma a la del proyecto (5.22.0) para evitar que npx baje la v7 (breaking change)
 $DOCKER_CMD exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se pudieron aplicar las migraciones automáticamente."
 
-# 4. Limpiar imágenes viejas
+# 4. Normalizar datos (Chau tildes)
+echo "🧹 Normalizando nombres y contactos (quitar tildes)..."
+$DOCKER_CMD exec -T app npx tsx scripts/normalize-existing-players.ts || echo "⚠️  No se pudo completar la normalización de datos."
+
+# 5. Limpiar imágenes viejas
 echo "🧹 Limpiando imágenes antiguas..."
 docker image prune -f
 
