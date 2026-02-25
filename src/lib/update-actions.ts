@@ -60,8 +60,9 @@ export async function triggerSystemUpdate(version: string) {
     console.log(`[UPDATE] Triggering system update to version ${version}...`);
 
     // We execute this in the background as the container will restart
-    // Use nohup and redirect output to a log file inside the mounted volume
-    const command = `VERSION=${version} nohup ${scriptPath} --no-self-update > ${projectRoot}/update-web.log 2>&1 &`;
+    // We now use --web-sidecar-trigger to launch a detached sidecar container
+    // that will survive the restart of the main container.
+    const command = `VERSION=${version} ${scriptPath} --no-self-update --web-sidecar-trigger > ${projectRoot}/update-web.log 2>&1`;
 
     exec(command, { cwd: projectRoot }, (error) => {
         if (error) {

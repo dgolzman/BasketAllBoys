@@ -46,6 +46,37 @@ if [ -z "$VERSION" ]; then
     fi
 fi
 
+# --- Sidecar Updater logic for Web-Trigger ---
+# If we are running inside the main app container and triggered from the web,
+# we launch a temporary sidecar container to perform the update.
+# This ensures the update script survives the 'basket-app' container restart.
+if [ "$1" = "--web-sidecar-trigger" ]; then
+    echo "🏗️  Iniciando actualizador en modo sidecar..."
+    UPDATER_NAME="basket-sidecar-$(date +%s)"
+    
+    # We use the current image to launch the sidecar, but it will pull the NEW image inside.
+    # We mount the docker socket and volumes.
+    docker run -d --rm \
+        --name "$UPDATER_NAME" \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --volumes-from basket-app \
+        -w /app/project-root \
+        -e VERSION="$VERSION" \
+        --entrypoint /bin/sh \
+        ghcr.io/dgolzman/basketallboys:main \
+        -c "./update.sh --execute-detached"
+        
+    echo "✅ Actualizador sidecar lanzado ($UPDATER_NAME). El sistema se reiniciará en breve."
+    exit 0
+fi
+
+# Flag for the sidecar to actually perform the work
+if [ "$1" = "--execute-detached" ]; then
+    echo "🛠️  Ejecutando actualización en modo desatendido..."
+    # Skip interactive checks
+    shift
+fi
+
 # Configuración SMTP (Proactiva - Solo en Terminal)
 if [ -f .env ] && [ -t 0 ]; then
     if ! grep -q "SMTP_HOST" .env || [ "$1" = "--reconfig-smtp" ]; then
