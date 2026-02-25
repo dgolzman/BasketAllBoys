@@ -170,14 +170,13 @@ $DOCKER_CMD pull
 echo "🔄 Reiniciando servicios con versión $VERSION..."
 # Fix para conflictos de nombre entre proyectos (Web vs Consola)
 # Si existe un contenedor 'basket-app' pero no pertenece a esta composición, hay que volarlo.
-RUNNING_CID=$(docker ps -aq --filter name=^basket-app$)
-if [ -n "$RUNNING_CID" ]; then
-    # Verificamos si pertenece a este proyecto actual
-    IN_PROJECT=$($DOCKER_CMD ps -aq --filter name=^basket-app$)
-    if [ -z "$IN_PROJECT" ]; then
-        echo "⚠️  Detectado contenedor 'basket-app' de otro proyecto. Limpiando para evitar conflictos..."
-        docker stop "$RUNNING_CID" >/dev/null 2>&1 || true
-        docker rm "$RUNNING_CID" >/dev/null 2>&1 || true
+CONFLICT_CID=$(docker ps -aq --filter name=^/basket-app$ 2>/dev/null || docker ps -aq --filter name=^basket-app$ | head -n 1)
+if [ -n "$CONFLICT_CID" ]; then
+    # Verificamos si pertenece a este proyecto actual (basket-allboys)
+    IS_OURS=$(docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' "$CONFLICT_CID" 2>/dev/null || echo "unknown")
+    if [ "$IS_OURS" != "basket-allboys" ]; then
+        echo "⚠️  Detectado contenedor 'basket-app' de otro proyecto ($IS_OURS). Limpiando..."
+        docker rm -f "$CONFLICT_CID" >/dev/null 2>&1 || true
     fi
 fi
 $DOCKER_CMD up -d --remove-orphans
