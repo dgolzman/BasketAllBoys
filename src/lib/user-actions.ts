@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 
-const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
+const passwordRegex = /^.{6,}$/;
 
 const UserSchema = z.object({
     name: z.string().min(1, "Nombre es obligatorio"),
@@ -17,7 +17,7 @@ const UserSchema = z.object({
             if (!passwordRegex.test(val)) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: "Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo (@$!%*?&.)",
+                    message: "Mínimo 6 caracteres",
                 });
             }
         }
@@ -32,7 +32,7 @@ const ChangePasswordSchema = z.object({
         if (!passwordRegex.test(val)) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: "Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo (@$!%*?&.)",
+                message: "Mínimo 6 caracteres",
             });
         }
     }),
