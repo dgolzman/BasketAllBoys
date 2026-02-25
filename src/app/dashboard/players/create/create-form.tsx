@@ -231,6 +231,48 @@ export default function CreatePlayerForm({
                         <textarea name="observations" className="input" style={{ resize: 'vertical', minHeight: '80px' }} placeholder="Apto médico, alergias, etc..." />
                     </div>
 
+                    <div style={{ padding: '1rem', background: 'rgba(5, 150, 105, 0.1)', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #059669' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#34d399', marginBottom: '0.5rem' }}>Estado de Pagos (YYYYMM)</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label className="label" style={{ color: '#ecfccb' }}>Última Cuota Social</label>
+                                <input name="lastSocialPayment" type="text" className="input" placeholder="SIN REGISTRAR" />
+                            </div>
+                            <div>
+                                <label className="label" style={{ color: '#ecfccb' }}>Última Actividad</label>
+                                <input name="lastActivityPayment" type="text" className="input" placeholder="SIN REGISTRAR" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '1rem', background: 'rgba(124, 58, 237, 0.1)', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #7c3aed' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#c4b5fd', marginBottom: '0.5rem' }}>🏅 Seguro / Federación</h3>
+                        <p style={{ fontSize: '0.7rem', color: '#a78bfa', marginBottom: '0.75rem' }}>Pago anual de seguro e inscripción a federación.</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label className="label" style={{ color: '#ede9fe' }}>Año del Pago</label>
+                                <input
+                                    name="federationYear"
+                                    type="number"
+                                    className="input"
+                                    placeholder="2026"
+                                    min="2020"
+                                    max="2099"
+                                />
+                            </div>
+                            <div>
+                                <label className="label" style={{ color: '#ede9fe' }}>Cuotas Abonadas</label>
+                                <select name="federationInstallments" className="input" defaultValue="">
+                                    <option value="">— Sin registrar —</option>
+                                    <option value="1">1 cuota</option>
+                                    <option value="2">2 cuotas</option>
+                                    <option value="3">3 cuotas</option>
+                                    <option value="SALDADO">SALDADO ✓</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style={{ padding: '1rem', background: 'rgba(3, 105, 161, 0.1)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid #0369a1' }}>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             <input type="checkbox" name="playsPrimera" id="playsPrimera" style={{ width: '1.5rem', height: '1.5rem', marginRight: '0.75rem' }} />

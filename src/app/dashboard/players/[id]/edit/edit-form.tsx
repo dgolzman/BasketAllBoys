@@ -224,11 +224,11 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
                         <label className="label" style={{ color: '#ecfccb' }}>Última Cuota Social</label>
-                        <input name="lastSocialPayment" type="text" className="input" defaultValue={player.lastSocialPayment || ''} placeholder="202601" disabled={!canEdit} />
+                        <input name="lastSocialPayment" type="text" className="input" defaultValue={player.lastSocialPayment || ''} placeholder="SIN REGISTRAR" disabled={!canEdit} />
                     </div>
                     <div>
                         <label className="label" style={{ color: '#ecfccb' }}>Última Actividad</label>
-                        <input name="lastActivityPayment" type="text" className="input" defaultValue={player.lastActivityPayment || ''} placeholder="202601" disabled={!canEdit} />
+                        <input name="lastActivityPayment" type="text" className="input" defaultValue={player.lastActivityPayment || ''} placeholder="SIN REGISTRAR" disabled={!canEdit} />
                     </div>
                 </div>
             </div>
