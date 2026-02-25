@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -214,5 +214,5 @@ export async function updatePassword(prevState: any, formData: FormData) {
         return { message: "Error al cambiar contraseña: " + error.message };
     }
 
-    redirect("/dashboard");
+    await signOut({ redirectTo: "/login" });
 }
