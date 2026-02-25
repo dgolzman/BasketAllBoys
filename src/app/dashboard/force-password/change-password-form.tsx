@@ -33,7 +33,7 @@ export default function ChangePasswordForm() {
                     className={state?.errors?.newPassword ? styles.errorInput : ''}
                 />
                 <p className={styles.hint}>
-                    Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo (@$!%*?&.).
+                    Mínimo 6 caracteres.
                 </p>
                 {state?.errors?.newPassword && (
                     <p className={styles.errorMessage}>{state.errors.newPassword[0]}</p>
