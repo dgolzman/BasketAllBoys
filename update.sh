@@ -46,30 +46,46 @@ if [ -z "$VERSION" ]; then
     fi
 fi
 
-# Configuración SMTP (Proactiva)
-if [ -f .env ]; then
+# Configuración SMTP (Proactiva - Solo en Terminal)
+if [ -f .env ] && [ -t 0 ]; then
     if ! grep -q "SMTP_HOST" .env || [ "$1" = "--reconfig-smtp" ]; then
         if ! grep -q "SMTP_HOST" .env; then
             echo "⚠️  No se detectó configuración SMTP. Es necesaria para los reportes de auditoría."
             CONFIRM_SMTP="s"
         else
             echo "🔧 Modo RECONFIGURACIÓN SMTP detectado..."
-            CONFIRM_SMTP=$(printf "¿Desea reconfigurar el servidor de Email? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            printf "¿Desea reconfigurar el servidor de Email? (s/N): " > /dev/tty
+            read -r REPLY < /dev/tty
+            CONFIRM_SMTP="$REPLY"
         fi
 
         if [ "$CONFIRM_SMTP" = "s" ] || [ "$CONFIRM_SMTP" = "S" ]; then
-            SMTP_HOST=$(printf "Servidor SMTP (ej: smtp.gmail.com): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+            printf "Servidor SMTP (ej: smtp.gmail.com): " > /dev/tty
+            read -r REPLY < /dev/tty
+            SMTP_HOST="$REPLY"
+            
             if [ -n "$SMTP_HOST" ]; then
-                SMTP_PORT=$(printf "Puerto SMTP (ej: 587): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-                SMTP_SECURE=$(printf "¿Usar TLS/SSL? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-                [ "$SMTP_SECURE" = "s" ] || [ "$SMTP_SECURE" = "S" ] && SMTP_SECURE="true" || SMTP_SECURE="false"
+                printf "Puerto SMTP (ej: 587): " > /dev/tty
+                read -r REPLY < /dev/tty
+                SMTP_PORT="$REPLY"
                 
-                SMTP_AUTH=$(printf "¿Requiere Autenticación? (s/N): " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-                if [ "$SMTP_AUTH" = "s" ] || [ "$SMTP_AUTH" = "S" ]; then
-                    SMTP_USER=$(printf "Usuario SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
-                    SMTP_PASS=$(printf "Contraseña SMTP: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                printf "¿Usar TLS/SSL? (s/N): " > /dev/tty
+                read -r REPLY < /dev/tty
+                [ "$REPLY" = "s" ] || [ "$REPLY" = "S" ] && SMTP_SECURE="true" || SMTP_SECURE="false"
+                
+                printf "¿Requiere Autenticación? (s/N): " > /dev/tty
+                read -r REPLY < /dev/tty
+                if [ "$REPLY" = "s" ] || [ "$REPLY" = "S" ]; then
+                    printf "Usuario SMTP: " > /dev/tty
+                    read -r REPLY < /dev/tty
+                    SMTP_USER="$REPLY"
+                    printf "Contraseña SMTP: " > /dev/tty
+                    read -r REPLY < /dev/tty
+                    SMTP_PASS="$REPLY"
                 fi
-                SMTP_FROM=$(printf "Email de origen: " > /dev/tty; read -r REPLY < /dev/tty; echo "$REPLY")
+                printf "Email de origen: " > /dev/tty
+                read -r REPLY < /dev/tty
+                SMTP_FROM="$REPLY"
 
                 sed -i '/SMTP_/d' .env
                 {

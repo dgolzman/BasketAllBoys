@@ -1,6 +1,6 @@
 {
   "name": "gestion-basket-app",
-  "version": "4.3.56",
+  "version": "4.3.57",
   "private": true,
   "scripts": {
     "dev": "next dev",
