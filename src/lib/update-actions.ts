@@ -62,7 +62,8 @@ export async function triggerSystemUpdate(version: string) {
     // We execute this in the background as the container will restart
     // We now use --web-sidecar-trigger to launch a detached sidecar container
     // that will survive the restart of the main container.
-    const command = `VERSION=${version} ${scriptPath} --no-self-update --web-sidecar-trigger > ${projectRoot}/update-web.log 2>&1`;
+    // IMPROVEMENT: We truncate the log BEFORE starting so we don't see old logs.
+    const command = `> ${projectRoot}/update-web.log && VERSION=${version} ${scriptPath} --no-self-update --web-sidecar-trigger >> ${projectRoot}/update-web.log 2>&1`;
 
     exec(command, { cwd: projectRoot }, (error) => {
         if (error) {
