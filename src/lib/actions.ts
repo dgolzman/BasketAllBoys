@@ -105,7 +105,7 @@ export async function createAuditLog(action: string, entity: string, entityId: s
                 <p><strong>Acción:</strong> ${action}</p>
                 <p><strong>Entidad:</strong> ${entity} (ID: ${entityId})</p>
                 <p><strong>Usuario:</strong> ${userEmail} (${userRole})</p>
-                <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-AR')}</p>
+                <p><strong>Fecha:</strong> ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</p>
                 ${details ? `<pre style="background: #f4f4f4; padding: 10px; border-radius: 5px;">${JSON.stringify(details, null, 2)}</pre>` : ''}
                 <hr />
                 <p style="font-size: 0.8rem; color: #666;">Este es un aviso en tiempo real. Los cambios operativos (Jugadores, etc) se envían en el resumen diario.</p>

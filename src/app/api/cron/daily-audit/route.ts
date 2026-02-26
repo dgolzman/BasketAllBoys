@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
         // 4. Render HTML Report
         const htmlRows = logs.map((log: any) => {
-            const date = new Date(log.timestamp).toLocaleString('es-AR');
+            const date = new Date(log.timestamp).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
             const userName = log.User?.name || log.User?.email || 'Sistema';
             return `
                 <tr>

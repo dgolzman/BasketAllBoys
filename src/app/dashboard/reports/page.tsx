@@ -353,20 +353,22 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
 
         const playerDetails = players.map(p => {
             const cat = getCategory(p, mappings);
-            initCategoryStats(cat);
+            const tira = p.tira || 'S/D';
+            const groupKey = `${tira} - ${cat}`;
+            initCategoryStats(groupKey);
 
             let applicableFee = feeMap.get(cat) ?? feeMap.get(p.category || "") ?? globalFee;
 
-            categoryStats[cat].count++;
+            categoryStats[groupKey].count++;
 
             if (applicableFee === 0 && globalFee === 0) {
                 playersWithMissingFees++;
             } else {
                 projectedTotal += applicableFee;
-                categoryStats[cat].expected += applicableFee;
+                categoryStats[groupKey].expected += applicableFee;
             }
 
-            return { ...p, calculatedCategory: cat, applicableFee };
+            return { ...p, calculatedCategory: cat, tira, groupKey, applicableFee };
         });
 
         const queryMonth = year * 100 + month;
@@ -376,9 +378,16 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
             const lastPayment = p.lastActivityPayment ? parseInt(p.lastActivityPayment) : 0;
             if (lastPayment >= queryMonth) {
                 actualCollected += p.applicableFee;
-                categoryStats[p.calculatedCategory].actual += p.applicableFee;
+                categoryStats[p.groupKey].actual += p.applicableFee;
             }
         });
+
+        const clubFeeRate = 0.10; // 10% for common expenses
+        const projectedClubProvision = projectedTotal * clubFeeRate;
+        const actualClubProvision = actualCollected * clubFeeRate;
+
+        const projectedNet = projectedTotal - projectedClubProvision;
+        const actualNet = actualCollected - actualClubProvision;
 
         const gap = projectedTotal - actualCollected;
         const gapPercentage = projectedTotal > 0 ? (actualCollected / projectedTotal) * 100 : 0;
@@ -410,24 +419,45 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                 </FilterWrapper>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                        {/* Tarjeta Proyección Ideal */}
                         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(3, 105, 161, 0.1)', border: '1px solid #0369a1' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#7dd3fc', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Proyección Ideal</div>
+                            <div style={{ fontSize: '0.8rem', color: '#7dd3fc', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Proyección Ideal (Bruto)</div>
                             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#38bdf8', marginTop: '0.5rem' }}>De {playerDetails.length} jugadores activos s/beca</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(125, 211, 252, 0.2)', paddingTop: '0.5rem' }}>
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '0.65rem', color: '#7dd3fc', opacity: 0.8 }}>CLUB (10%)</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#fca5a5' }}>-${projectedClubProvision.toLocaleString('es-AR')}</div>
+                                </div>
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '0.65rem', color: '#7dd3fc', opacity: 0.8 }}>NETO PROY.</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: 'bold' }}>${projectedNet.toLocaleString('es-AR')}</div>
+                                </div>
+                            </div>
                         </div>
 
+                        {/* Tarjeta Recaudado Real */}
                         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Recaudado Real</div>
+                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Recaudado Real (Bruto)</div>
                             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: '0.5rem' }}>{payments.length} recibos importados</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#f87171' }}>-${actualClubProvision.toLocaleString('es-AR')}</div>
+                                </div>
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>NETO REAL</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 'bold' }}>${actualNet.toLocaleString('es-AR')}</div>
+                                </div>
+                            </div>
                         </div>
 
+                        {/* Tarjeta Brecha / Eficiencia */}
                         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: gap > 0 ? 'rgba(153, 27, 27, 0.2)' : 'rgba(5, 150, 105, 0.1)', border: '1px solid ' + (gap > 0 ? '#b91c1c' : '#059669') }}>
-                            <div style={{ fontSize: '0.8rem', color: gap > 0 ? '#fca5a5' : '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Brecha / Faltante</div>
+                            <div style={{ fontSize: '0.8rem', color: gap > 0 ? '#fca5a5' : '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Brecha / Faltante</div>
                             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${Math.max(0, gap).toLocaleString('es-AR')}</div>
                             <div style={{ fontSize: '0.75rem', color: gap > 0 ? '#f87171' : '#34d399', marginTop: '0.5rem' }}>
-                                {projectedTotal > 0 ? gapPercentage.toFixed(1) : 0}% de efectividad
+                                {projectedTotal > 0 ? gapPercentage.toFixed(1) : 0}% de efectividad cobrada
                             </div>
                         </div>
                     </div>
@@ -439,27 +469,29 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                     )}
 
                     <div className="card" style={{ padding: '1.5rem' }}>
-                        <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--accent)' }}>Desglose por Categoría</h3>
+                        <h3 className="ui-mayusculas" style={{ marginBottom: '1rem', color: 'var(--accent)' }}>Desglose por Tira y Categoría</h3>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--secondary)' }}>
-                                        <th style={{ padding: '0.75rem' }}>Categoría</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Activos (s/beca)</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Proyectado</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Recaudado</th>
+                                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--secondary)', fontSize: '0.85rem' }}>
+                                        <th style={{ padding: '0.75rem' }}>Tira - Categoría</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Activos</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Proyectado (Neto 90%)</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Recaudado (Neto 90%)</th>
                                         <th style={{ padding: '0.75rem', textAlign: 'right' }}>Efectividad</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {Object.entries(categoryStats).sort(([a], [b]) => a.localeCompare(b)).map(([cat, stats]) => {
+                                    {Object.entries(categoryStats).sort(([a], [b]) => a.localeCompare(b)).map(([group, stats]) => {
                                         const p = stats.expected > 0 ? (stats.actual / stats.expected) * 100 : 0;
+                                        const netExpected = stats.expected * 0.9;
+                                        const netActual = stats.actual * 0.9;
                                         return (
-                                            <tr key={cat} style={{ borderBottom: '1px dashed var(--border)' }}>
-                                                <td style={{ padding: '0.75rem' }} className="ui-mayusculas">{cat}</td>
+                                            <tr key={group} style={{ borderBottom: '1px dashed var(--border)' }}>
+                                                <td style={{ padding: '0.75rem' }} className="ui-mayusculas">{group}</td>
                                                 <td style={{ padding: '0.75rem', textAlign: 'right' }}>{stats.count}</td>
-                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#38bdf8' }}>${stats.expected.toLocaleString('es-AR')}</td>
-                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#34d399' }}>${stats.actual.toLocaleString('es-AR')}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#38bdf8' }}>${netExpected.toLocaleString('es-AR')}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: '#34d399' }}>${netActual.toLocaleString('es-AR')}</td>
                                                 <td style={{ padding: '0.75rem', textAlign: 'right', color: p >= 90 ? '#34d399' : p >= 50 ? '#fbbf24' : '#f87171' }}>
                                                     {stats.expected > 0 ? p.toFixed(1) + '%' : '-'}
                                                 </td>
@@ -468,6 +500,9 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                                     })}
                                 </tbody>
                             </table>
+                        </div>
+                        <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', fontSize: '0.8rem', opacity: 0.8 }}>
+                            ℹ️ En la tabla se visualizan los montos <strong>Netos</strong> (después del 10% de provisión del club) para facilitar la planificación operativa de cada tira.
                         </div>
                     </div>
                 </div>

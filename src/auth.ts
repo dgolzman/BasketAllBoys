@@ -97,7 +97,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                                 <p>Se ha detectado un nuevo inicio de sesión en la plataforma <strong>Basket AllBoys</strong>.</p>
                                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                                 <p><strong>Usuario:</strong> ${userEmail}</p>
-                                <p><strong>Fecha/Hora:</strong> ${timestamp.toLocaleString('es-AR')}</p>
+                                <p><strong>Fecha/Hora:</strong> ${timestamp.toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}</p>
                                 <p><strong>ID de Usuario:</strong> ${user.id || 'No disponible'}</p>
                                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                                 <p style="font-size: 0.85rem; color: #666;">Si no reconoces esta actividad, por favor revisa los registros de auditoría inmediatamente.</p>
