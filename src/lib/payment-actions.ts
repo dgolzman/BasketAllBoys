@@ -179,9 +179,14 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
             const apellidoKey = findColumn(r, ['apellido', 'apellidos']);
             const nombreKey = findColumn(r, ['nombre', 'nombres', 'cliente', 'nombre y apellido', 'nombre completo', 'apellido / nombre', 'apellido y nombre']);
 
-            // Columnas de Pago
-            const socialKey = findColumn(r, ['ultima cuota social abonada', 'ultima cuota social', 'cuota social', 'social']);
-            const activityKey = findColumn(r, ['ultima cuota actividad abonada', 'ultima cuota actividad', 'cuota actividad', 'actividad']);
+            // Columnas de Pago (Stricter matching for Pass 2)
+            const matchedSocialKey = findColumn(r, ['ultima cuota social abonada', 'ultima cuota social', 'cuota social']);
+            const socialFallbackKey = !matchedSocialKey ? findColumn(r, ['social']) : undefined;
+            const socialKey = matchedSocialKey || socialFallbackKey;
+
+            const matchedActivityKey = findColumn(r, ['ultima cuota actividad abonada', 'ultima cuota actividad', 'cuota actividad']);
+            const activityFallbackKey = !matchedActivityKey ? findColumn(r, ['actividad']) : undefined;
+            const activityKey = matchedActivityKey || activityFallbackKey;
 
             const dniVal = dniKey ? r[dniKey]?.toString().trim() : undefined;
             const dniClean = (dniVal && /\d+/.test(dniVal)) ? dniVal.replace(/\D/g, '') : undefined;
@@ -237,10 +242,11 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                 if (match) method = 'NAME_FUZZY';
             }
 
-            const isEmptyInput = (v: any) => !v || v === '-' || v === '0' || v === 'S/D' || v.toString().trim() === '';
+            const isEmptyInput = (v: any) => !v || v === '-' || v === '0' || v === 'S/D' || v.toString().trim() === '' || v.toString().trim() === '0';
+            const normalizePayment = (v: any) => v ? v.toString().replace(/\D/g, '') : '';
 
-            const isNewSocial = match && !isEmptyInput(lastSocial) && lastSocial !== match.lastSocialPayment;
-            const isNewActivity = match && !isEmptyInput(lastActivity) && lastActivity !== match.lastActivityPayment;
+            const isNewSocial = match && !isEmptyInput(lastSocial) && normalizePayment(lastSocial) !== normalizePayment(match.lastSocialPayment);
+            const isNewActivity = match && !isEmptyInput(lastActivity) && normalizePayment(lastActivity) !== normalizePayment(match.lastActivityPayment);
 
             const paymentStatus: PaymentStatus = {
                 social: lastSocial || '-',
