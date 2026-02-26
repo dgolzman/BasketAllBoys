@@ -76,7 +76,7 @@ export default function PaymentImporter() {
                 </div>
 
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ui-mayusculas">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 ui-mayusculas">
                     <div className="card p-4 text-center border-l-4 border-blue-500">
                         <div className="text-3xl font-bold">{result.stats.total}</div>
                         <div className="text-sm text-gray-500 font-medium tracking-wide">TOTAL FILAS</div>
@@ -84,6 +84,10 @@ export default function PaymentImporter() {
                     <div className="card p-4 text-center border-l-4 border-green-500 bg-green-50/50">
                         <div className="text-3xl font-bold text-green-700">{result.stats.matched}</div>
                         <div className="text-sm text-green-700 font-medium tracking-wide">COINCIDENCIAS</div>
+                    </div>
+                    <div className="card p-4 text-center border-l-4 border-purple-500 bg-purple-50/50">
+                        <div className="text-3xl font-bold text-purple-700">{result.stats.newPayments}</div>
+                        <div className="text-sm text-purple-700 font-medium tracking-wide">PAGOS NUEVOS ✨</div>
                     </div>
                     <div className={`card p-4 text-center border-l-4 ${result.stats.unmatched > 0 ? 'border-red-500 bg-red-50/50' : 'border-gray-200'}`}>
                         <div className={`text-3xl font-bold ${result.stats.unmatched > 0 ? 'text-red-700' : 'text-gray-400'}`}>{result.stats.unmatched}</div>
@@ -161,10 +165,10 @@ export default function PaymentImporter() {
                                                 </span>
                                             </td>
                                             <td className="p-3 text-center">
-                                                <PaymentBadge value={item.paymentStatus?.social} />
+                                                <PaymentBadge value={item.paymentStatus?.social} isNew={item.paymentStatus?.isNewSocial} currentValue={item.paymentStatus?.currentSocial} />
                                             </td>
                                             <td className="p-3 text-center">
-                                                <PaymentBadge value={item.paymentStatus?.activity} />
+                                                <PaymentBadge value={item.paymentStatus?.activity} isNew={item.paymentStatus?.isNewActivity} currentValue={item.paymentStatus?.currentActivity} />
                                             </td>
                                         </tr>
                                     ))}
@@ -260,21 +264,35 @@ export default function PaymentImporter() {
     );
 }
 
-function PaymentBadge({ value }: { value?: string }) {
+function PaymentBadge({ value, isNew, currentValue }: { value?: string, isNew?: boolean, currentValue?: string }) {
     if (!value || value === '-') return <span className="text-gray-300 text-xs">-</span>;
     // Assuming YYYYMM format like 202601
-    const isCurrent = parseInt(value) >= 202601; // Example logic, logic can be improved
+    const isCurrent = parseInt(value) >= 202601;
 
+    let content = value;
     // Check if it looks like a month/year
     if (value.length === 6 && !isNaN(parseInt(value))) {
         const year = value.substring(0, 4);
         const month = value.substring(4, 6);
-        return (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${isCurrent ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
-                {month}/{year}
-            </span>
-        );
+        content = `${month}/${year}`;
     }
 
-    return <span className="text-sm font-medium">{value}</span>;
+    return (
+        <div className="flex flex-col items-center gap-1">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${isNew
+                    ? 'bg-purple-100 text-purple-700 border-purple-200 ring-2 ring-purple-400/20'
+                    : isCurrent
+                        ? 'bg-green-100 text-green-700 border-green-200'
+                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                }`}>
+                {isNew && <span className="mr-1">✨</span>}
+                {content}
+            </span>
+            {isNew && currentValue && currentValue !== '-' && (
+                <span className="text-[10px] text-gray-400 line-through">
+                    era {currentValue.length === 6 ? `${currentValue.substring(4, 6)}/${currentValue.substring(0, 4)}` : currentValue}
+                </span>
+            )}
+        </div>
+    );
 }

@@ -10,6 +10,10 @@ export type PaymentStatus = {
     activity: string;
     socialDate?: string;
     activityDate?: string;
+    currentSocial?: string;
+    currentActivity?: string;
+    isNewSocial?: boolean;
+    isNewActivity?: boolean;
 };
 
 export type PlayerMatchResult = {
@@ -24,6 +28,7 @@ export type PlayerMatchResult = {
         tira: string;
     };
     paymentStatus?: PaymentStatus;
+    hasChanges?: boolean;
     notes?: string[];
 };
 
@@ -34,6 +39,7 @@ export type ImportResult = {
         total: number;
         matched: number;
         unmatched: number;
+        newPayments: number;
     };
     results: PlayerMatchResult[];
     logs: string[];
@@ -151,13 +157,14 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
 
         // Fetch ALL players to check for inactive ones too
         const dbPlayers = await (prisma.player as any).findMany({
-            select: { id: true, firstName: true, lastName: true, dni: true, partnerNumber: true, tira: true, category: true, status: true }
+            select: { id: true, firstName: true, lastName: true, dni: true, partnerNumber: true, tira: true, category: true, status: true, lastSocialPayment: true, lastActivityPayment: true }
         });
         const activePlayers = dbPlayers.filter((p: any) => p.status === 'ACTIVO' || p.status === 'REVISAR');
         logs.push(`Jugadores (ACTIVO + REVISAR) en DB: ${activePlayers.length}`);
 
         const results: PlayerMatchResult[] = [];
         let matchedCount = 0;
+        let newPaymentsCount = 0;
 
         for (const [index, row] of rawData.entries()) {
             const r = row as any;
@@ -230,15 +237,25 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                 if (match) method = 'NAME_FUZZY';
             }
 
+            const isNewSocial = match && lastSocial && lastSocial !== '-' && lastSocial !== match.lastSocialPayment;
+            const isNewActivity = match && lastActivity && lastActivity !== '-' && lastActivity !== match.lastActivityPayment;
+
             const paymentStatus: PaymentStatus = {
                 social: lastSocial || '-',
                 activity: lastActivity || '-',
                 socialDate: lastSocial,
-                activityDate: lastActivity
+                activityDate: lastActivity,
+                currentSocial: match?.lastSocialPayment || '-',
+                currentActivity: match?.lastActivityPayment || '-',
+                isNewSocial,
+                isNewActivity
             };
 
             if (match) {
                 matchedCount++;
+                const hasChanges = isNewSocial || isNewActivity;
+                if (hasChanges) newPaymentsCount++;
+
                 results.push({
                     status: 'MATCHED',
                     matchMethod: method,
@@ -251,6 +268,7 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                         tira: match.tira
                     },
                     paymentStatus,
+                    hasChanges,
                     notes
                 });
             } else {
@@ -280,7 +298,12 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
 
         return {
             success: true,
-            stats: { total: rawData.length, matched: matchedCount, unmatched: rawData.length - matchedCount },
+            stats: {
+                total: rawData.length,
+                matched: matchedCount,
+                unmatched: rawData.length - matchedCount,
+                newPayments: newPaymentsCount
+            },
             results,
             logs
         };
