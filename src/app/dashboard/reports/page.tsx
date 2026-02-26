@@ -329,7 +329,7 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
 
         const players = await prisma.player.findMany({
             where: { status: 'ACTIVO', scholarship: false },
-            select: { id: true, firstName: true, lastName: true, category: true, birthDate: true, dni: true, tira: true, lastActivityPayment: true }
+            select: { id: true, firstName: true, lastName: true, category: true, birthDate: true, dni: true, tira: true, lastActivityPayment: true, siblings: true }
         });
 
         const payments = await (prisma as any).payment.findMany({
@@ -343,12 +343,43 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
             else feeMap.set(f.category, f.amount);
         });
 
+        // --- LÓGICA DE HERMANOS ---
+        const familyGroups = new Map<string, string[]>(); // Key -> Array of Player IDs
+        players.forEach(p => {
+            const selfName = `${p.lastName}, ${p.firstName}`;
+            const siblingsList = p.siblings ? p.siblings.split(';').map(s => s.trim()).filter(Boolean) : [];
+            const familyMembers = [selfName, ...siblingsList].sort();
+            const familyKey = familyMembers.join('|');
+
+            if (!familyGroups.has(familyKey)) {
+                familyGroups.set(familyKey, []);
+            }
+            familyGroups.get(familyKey)!.push(p.id);
+        });
+
+        const playerDiscountMap = new Map<string, { isSiblingWithDiscount: boolean, discountAmount: number }>();
+        let totalSiblingsCount = 0;
+        let totalDiscountApplied = 0;
+
+        familyGroups.forEach((memberIds) => {
+            if (memberIds.length > 1) {
+                // Sort by ID to have a stable "first" sibling
+                memberIds.sort();
+                // The first one pays 100%, the rest 50%
+                for (let i = 1; i < memberIds.length; i++) {
+                    const id = memberIds[i];
+                    playerDiscountMap.set(id, { isSiblingWithDiscount: true, discountAmount: 0 });
+                    totalSiblingsCount++;
+                }
+            }
+        });
+
         let projectedTotal = 0;
         let playersWithMissingFees = 0;
 
-        const categoryStats: Record<string, { expected: number, actual: number, count: number }> = {};
+        const categoryStats: Record<string, { expected: number, actual: number, count: number, siblingCount: number }> = {};
         const initCategoryStats = (cat: string) => {
-            if (!categoryStats[cat]) categoryStats[cat] = { expected: 0, actual: 0, count: 0 };
+            if (!categoryStats[cat]) categoryStats[cat] = { expected: 0, actual: 0, count: 0, siblingCount: 0 };
         };
 
         const playerDetails = players.map(p => {
@@ -357,11 +388,20 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
             const groupKey = `${tira} - ${cat}`;
             initCategoryStats(groupKey);
 
-            let applicableFee = feeMap.get(cat) ?? feeMap.get(p.category || "") ?? globalFee;
+            let baseFee = feeMap.get(cat) ?? feeMap.get(p.category || "") ?? globalFee;
+            let applicableFee = baseFee;
+
+            const discountInfo = playerDiscountMap.get(p.id);
+            if (discountInfo?.isSiblingWithDiscount) {
+                applicableFee = baseFee * 0.5;
+                discountInfo.discountAmount = baseFee * 0.5;
+                totalDiscountApplied += discountInfo.discountAmount;
+                categoryStats[groupKey].siblingCount++;
+            }
 
             categoryStats[groupKey].count++;
 
-            if (applicableFee === 0 && globalFee === 0) {
+            if (baseFee === 0 && globalFee === 0) {
                 playersWithMissingFees++;
             } else {
                 projectedTotal += applicableFee;
@@ -419,44 +459,54 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                 </FilterWrapper>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                         {/* Tarjeta Proyección Ideal */}
-                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Proyección NETA (Lo que queda)</div>
-                            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff' }}>${projectedNet.toLocaleString('es-AR')}</div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
+                        <div className="card" style={{ padding: '1.25rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Proyección NETA (Lo que queda)</div>
+                            <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#fff' }}>${projectedNet.toLocaleString('es-AR')}</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>BRUTO</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
+                                    <div style={{ fontSize: '0.6rem', color: '#6ee7b7', opacity: 0.8 }}>BRUTO</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
                                 </div>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#fca5a5' }}>-${projectedClubProvision.toLocaleString('es-AR')}</div>
+                                    <div style={{ fontSize: '0.6rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#fca5a5' }}>-${projectedClubProvision.toLocaleString('es-AR')}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Tarjeta Recaudado Real */}
-                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Recaudado NETO (Disponible)</div>
-                            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff' }}>${actualNet.toLocaleString('es-AR')}</div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
+                        <div className="card" style={{ padding: '1.25rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Recaudado NETO (Disponible)</div>
+                            <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#fff' }}>${actualNet.toLocaleString('es-AR')}</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>BRUTO</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
+                                    <div style={{ fontSize: '0.6rem', color: '#6ee7b7', opacity: 0.8 }}>BRUTO</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
                                 </div>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#f87171' }}>-${actualClubProvision.toLocaleString('es-AR')}</div>
+                                    <div style={{ fontSize: '0.6rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
+                                    <div style={{ fontSize: '0.8rem', color: '#f87171' }}>-${actualClubProvision.toLocaleString('es-AR')}</div>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Tarjeta Hermanos (NUEVA) */}
+                        <div className="card" style={{ padding: '1.25rem', textAlign: 'center', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid #8b5cf6' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#c4b5fd', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Hermanos (Dto. 50%)</div>
+                            <div style={{ fontSize: '2.2rem', fontWeight: 'bold', color: '#fff' }}>{totalSiblingsCount} <span style={{ fontSize: '1rem', fontWeight: 'normal', color: '#c4b5fd' }}>jugadores</span></div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.5rem', borderTop: '1px solid rgba(196, 181, 253, 0.2)', paddingTop: '0.5rem' }}>
+                                <div style={{ fontSize: '0.65rem', color: '#c4b5fd', opacity: 0.8 }}>AHORRO FAMILIAR TOTAL</div>
+                                <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 'bold' }}>${totalDiscountApplied.toLocaleString('es-AR')}</div>
+                            </div>
+                        </div>
+
                         {/* Tarjeta Brecha / Eficiencia */}
-                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: gap > 0 ? 'rgba(153, 27, 27, 0.2)' : 'rgba(5, 150, 105, 0.1)', border: '1px solid ' + (gap > 0 ? '#b91c1c' : '#059669') }}>
-                            <div style={{ fontSize: '0.8rem', color: gap > 0 ? '#fca5a5' : '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Brecha / Faltante</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${Math.max(0, gap).toLocaleString('es-AR')}</div>
-                            <div style={{ fontSize: '0.75rem', color: gap > 0 ? '#f87171' : '#34d399', marginTop: '0.5rem' }}>
+                        <div className="card" style={{ padding: '1.25rem', textAlign: 'center', background: gap > 0 ? 'rgba(153, 27, 27, 0.2)' : 'rgba(5, 150, 105, 0.1)', border: '1px solid ' + (gap > 0 ? '#b91c1c' : '#059669') }}>
+                            <div style={{ fontSize: '0.75rem', color: gap > 0 ? '#fca5a5' : '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Brecha / Faltante</div>
+                            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#fff' }}>${Math.max(0, gap).toLocaleString('es-AR')}</div>
+                            <div style={{ fontSize: '0.7rem', color: gap > 0 ? '#f87171' : '#34d399', marginTop: '0.5rem' }}>
                                 {projectedTotal > 0 ? gapPercentage.toFixed(1) : 0}% de efectividad cobrada
                             </div>
                         </div>
@@ -475,7 +525,8 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--secondary)', fontSize: '0.85rem' }}>
                                         <th style={{ padding: '0.75rem' }}>Tira - Categoría</th>
-                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Activos</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Total</th>
+                                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Hermanos (50%)</th>
                                         <th style={{ padding: '0.75rem', textAlign: 'right' }}>Proyectado (Neto 90%)</th>
                                         <th style={{ padding: '0.75rem', textAlign: 'right' }}>Recaudado (Neto 90%)</th>
                                         <th style={{ padding: '0.75rem', textAlign: 'right' }}>Efectividad</th>
@@ -490,6 +541,9 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                                             <tr key={group} style={{ borderBottom: '1px dashed var(--border)' }}>
                                                 <td style={{ padding: '0.75rem' }} className="ui-mayusculas">{group}</td>
                                                 <td style={{ padding: '0.75rem', textAlign: 'right' }}>{stats.count}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', color: stats.siblingCount > 0 ? '#c4b5fd' : 'inherit' }}>
+                                                    {stats.siblingCount > 0 ? stats.siblingCount : '-'}
+                                                </td>
                                                 <td style={{ padding: '0.75rem', textAlign: 'right', color: '#38bdf8' }}>${netExpected.toLocaleString('es-AR')}</td>
                                                 <td style={{ padding: '0.75rem', textAlign: 'right', color: '#34d399' }}>${netActual.toLocaleString('es-AR')}</td>
                                                 <td style={{ padding: '0.75rem', textAlign: 'right', color: p >= 90 ? '#34d399' : p >= 50 ? '#fbbf24' : '#f87171' }}>
