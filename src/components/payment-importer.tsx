@@ -64,7 +64,9 @@ export default function PaymentImporter() {
 
     if (result) {
         const unmatched = result.results.filter(r => r.status === 'UNMATCHED');
-        const matched = result.results.filter(r => r.status === 'MATCHED');
+        const matched = result.results
+            .filter(r => r.status === 'MATCHED')
+            .sort((a, b) => (b.hasChanges ? 1 : 0) - (a.hasChanges ? 1 : 0));
 
         return (
             <div className="space-y-8 pb-20"> {/* pb-20 for sticky footer space */}
@@ -280,10 +282,10 @@ function PaymentBadge({ value, isNew, currentValue }: { value?: string, isNew?: 
     return (
         <div className="flex flex-col items-center gap-1">
             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${isNew
-                    ? 'bg-purple-100 text-purple-700 border-purple-200 ring-2 ring-purple-400/20'
-                    : isCurrent
-                        ? 'bg-green-100 text-green-700 border-green-200'
-                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                ? 'bg-purple-100 text-purple-700 border-purple-200 ring-2 ring-purple-400/20'
+                : isCurrent
+                    ? 'bg-green-100 text-green-700 border-green-200'
+                    : 'bg-yellow-50 text-yellow-700 border-yellow-200'
                 }`}>
                 {isNew && <span className="mr-1">✨</span>}
                 {content}

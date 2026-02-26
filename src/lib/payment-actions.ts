@@ -237,8 +237,10 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                 if (match) method = 'NAME_FUZZY';
             }
 
-            const isNewSocial = match && lastSocial && lastSocial !== '-' && lastSocial !== match.lastSocialPayment;
-            const isNewActivity = match && lastActivity && lastActivity !== '-' && lastActivity !== match.lastActivityPayment;
+            const isEmptyInput = (v: any) => !v || v === '-' || v === '0' || v === 'S/D' || v.toString().trim() === '';
+
+            const isNewSocial = match && !isEmptyInput(lastSocial) && lastSocial !== match.lastSocialPayment;
+            const isNewActivity = match && !isEmptyInput(lastActivity) && lastActivity !== match.lastActivityPayment;
 
             const paymentStatus: PaymentStatus = {
                 social: lastSocial || '-',
