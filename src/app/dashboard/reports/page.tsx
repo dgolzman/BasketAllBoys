@@ -421,33 +421,33 @@ async function ActivityFeesView({ year, month }: { year: number, month: number }
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1.5rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                         {/* Tarjeta Proyección Ideal */}
-                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(3, 105, 161, 0.1)', border: '1px solid #0369a1' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#7dd3fc', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Proyección Ideal (Bruto)</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(125, 211, 252, 0.2)', paddingTop: '0.5rem' }}>
+                        <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Proyección NETA (Lo que queda)</div>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff' }}>${projectedNet.toLocaleString('es-AR')}</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#7dd3fc', opacity: 0.8 }}>CLUB (10%)</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#fca5a5' }}>-${projectedClubProvision.toLocaleString('es-AR')}</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>BRUTO</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#fff' }}>${projectedTotal.toLocaleString('es-AR')}</div>
                                 </div>
                                 <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#7dd3fc', opacity: 0.8 }}>NETO PROY.</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: 'bold' }}>${projectedNet.toLocaleString('es-AR')}</div>
+                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#fca5a5' }}>-${projectedClubProvision.toLocaleString('es-AR')}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Tarjeta Recaudado Real */}
                         <div className="card" style={{ padding: '1.5rem', textAlign: 'center', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid #059669' }}>
-                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Recaudado Real (Bruto)</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#6ee7b7', marginBottom: '0.5rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Recaudado NETO (Disponible)</div>
+                            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fff' }}>${actualNet.toLocaleString('es-AR')}</div>
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid rgba(110, 231, 183, 0.2)', paddingTop: '0.5rem' }}>
+                                <div style={{ textAlign: 'left' }}>
+                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>BRUTO</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#fff' }}>${actualCollected.toLocaleString('es-AR')}</div>
+                                </div>
                                 <div style={{ textAlign: 'left' }}>
                                     <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>CLUB (10%)</div>
                                     <div style={{ fontSize: '0.85rem', color: '#f87171' }}>-${actualClubProvision.toLocaleString('es-AR')}</div>
-                                </div>
-                                <div style={{ textAlign: 'left' }}>
-                                    <div style={{ fontSize: '0.65rem', color: '#6ee7b7', opacity: 0.8 }}>NETO REAL</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 'bold' }}>${actualNet.toLocaleString('es-AR')}</div>
                                 </div>
                             </div>
                         </div>
