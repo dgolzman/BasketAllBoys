@@ -109,12 +109,12 @@ function findColumn(row: any, candidates: string[]): string | undefined {
 export async function processPaymentExcel(prevState: any, formData: FormData): Promise<ImportResult> {
     const session = await auth();
     if (!session) {
-        return { success: false, message: "No autorizado", stats: { total: 0, matched: 0, unmatched: 0 }, results: [], logs: ["Error: Usuario no autenticado"] };
+        return { success: false, message: "No autorizado", stats: { total: 0, matched: 0, unmatched: 0, newPayments: 0 }, results: [], logs: ["Error: Usuario no autenticado"] };
     }
 
     const file = formData.get('file') as File;
     if (!file) {
-        return { success: false, message: "No se seleccionó archivo", stats: { total: 0, matched: 0, unmatched: 0 }, results: [], logs: ["Error: Sin archivo"] };
+        return { success: false, message: "No se seleccionó archivo", stats: { total: 0, matched: 0, unmatched: 0, newPayments: 0 }, results: [], logs: ["Error: Sin archivo"] };
     }
 
     const logs: string[] = [];
@@ -310,7 +310,7 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
 
     } catch (e: any) {
         logs.push(`ERROR CRÍTICO: ${e.message}`);
-        return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0 }, results: [], logs };
+        return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0, newPayments: 0 }, results: [], logs };
     }
 }
 
