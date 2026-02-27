@@ -257,6 +257,8 @@ $DOCKER_CMD exec -T app npx prisma@5.22.0 migrate deploy || echo "⚠️  No se 
 # 4. Normalizar datos (Chau tildes)
 echo "🧹 Normalizando nombres y contactos (quitar tildes)..."
 $DOCKER_CMD exec -T app npx tsx scripts/normalize-existing-players.ts || echo "⚠️  No se pudo completar la normalización de datos."
+echo "🧹 Ejecutando migración de estados SALDADO..."
+$DOCKER_CMD exec -T app npx tsx scripts/migrate-saldado-status.ts || echo "⚠️  No se pudo completar la migración de estados SALDADO."
 
 # 5. Limpiar imágenes viejas
 echo "🧹 Limpiando imágenes antiguas..."
