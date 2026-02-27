@@ -113,30 +113,28 @@ export async function getMessageCategories(): Promise<string[]> {
     }
 }
 
-// ─── AI: Generate template content via Gemini ────────────────────────────────
-
+// ─── AI: Generate template content via multiple providers ─────────────────────
 export async function askAIForTemplate(
     prompt: string,
     variables: string
 ): Promise<{ success: boolean; content?: string; error?: string }> {
     await checkPermission('manage_messages');
 
-    let apiKey: string | undefined;
+    let settings: Record<string, string> = {};
     try {
-        const setting = await (prisma as any).systemSetting.findUnique({
-            where: { key: 'GEMINI_API_KEY' },
+        const dbSettings = await (prisma as any).systemSetting.findMany({
+            where: { key: { in: ['GEMINI_API_KEY', 'GROQ_API_KEY', 'AI_PROVIDER'] } },
         });
-        apiKey = setting?.value || process.env.GEMINI_API_KEY;
+        dbSettings.forEach((s: any) => {
+            settings[s.key] = s.value;
+        });
     } catch {
-        apiKey = process.env.GEMINI_API_KEY;
+        // Fallback to env
     }
 
-    if (!apiKey) {
-        return {
-            success: false,
-            error: 'No se configuró una API Key de Gemini. Configurala en Administración → Integraciones.',
-        };
-    }
+    const provider = settings['AI_PROVIDER'] || 'gemini';
+    const geminiKey = settings['GEMINI_API_KEY'] || process.env.GEMINI_API_KEY;
+    const groqKey = settings['GROQ_API_KEY'] || process.env.GROQ_API_KEY;
 
     const parsedVars = parseVariables(variables);
     const varList = parsedVars.map(v => v.name).filter(Boolean);
@@ -151,15 +149,53 @@ Cada placeholder DEBE aparecer al menos una vez en el mensaje.`
 
     const userMessage = `Genera un mensaje de WhatsApp con las siguientes instrucciones: "${prompt}"`;
 
+    // ─── GROQ PROVIDER (OpenAI Compatible) ───────────────────────────────────
+    if (provider === 'groq') {
+        if (!groqKey) return { success: false, error: 'No se configuró una API Key de Groq.' };
+        try {
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${groqKey}`,
+                },
+                body: JSON.stringify({
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
+                        { role: 'system', content: systemInstructions },
+                        { role: 'user', content: userMessage },
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 512,
+                }),
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                return { success: false, error: err?.error?.message || 'Error en la API de Groq' };
+            }
+
+            const data = await response.json();
+            const content = data?.choices?.[0]?.message?.content?.trim();
+            return content ? { success: true, content } : { success: false, error: 'Groq no devolvió contenido.' };
+        } catch (e: any) {
+            return { success: false, error: 'Error de red con Groq: ' + e.message };
+        }
+    }
+
+    // ─── GEMINI PROVIDER (Standard) ──────────────────────────────────────────
+    if (!geminiKey) return { success: false, error: 'No se configuró una API Key de Gemini.' };
     try {
+        // Use a more compatible structure (Instructions in prompt) to avoid field mismatches
+        const fullPrompt = `INSTRUCCIONES DEL SISTEMA:\n${systemInstructions}\n\nSOLICITUD DEL USUARIO:\n${userMessage}`;
+
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemInstructions }] },
-                    contents: [{ parts: [{ text: userMessage }] }],
+                    contents: [{ parts: [{ text: fullPrompt }] }],
                     generationConfig: { temperature: 0.7, maxOutputTokens: 512 },
                 }),
             }
@@ -173,13 +209,10 @@ Cada placeholder DEBE aparecer al menos una vez en el mensaje.`
         const data = await response.json();
         const content = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-        if (!content) {
-            return { success: false, error: 'La IA no devolvió contenido. Intenta reformular el prompt.' };
-        }
-
+        if (!content) return { success: false, error: 'La IA no devolvió contenido.' };
         return { success: true, content };
     } catch (e: any) {
-        console.error('[Gemini] Error:', e);
-        return { success: false, error: e.message || 'Error de red al contactar la API de Gemini' };
+        console.error('[AI] Error:', e);
+        return { success: false, error: e.message || 'Error de red al contactar la IA' };
     }
 }
