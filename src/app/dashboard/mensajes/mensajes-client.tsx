@@ -9,10 +9,13 @@ import {
     createClub,
     updateClub,
     deleteClub,
+} from '@/lib/messages-actions';
+import {
     parseVariables,
     serializeVariables,
-} from '@/lib/messages-actions';
-import type { TemplateVariable, VariableType } from '@/lib/messages-actions';
+    type TemplateVariable,
+    type VariableType,
+} from '@/lib/messages-utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
