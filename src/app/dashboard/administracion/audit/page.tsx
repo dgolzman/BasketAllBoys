@@ -3,11 +3,16 @@ import { format } from "date-fns";
 import ConsistencyAudit from "./consistency-audit";
 import Link from "next/link";
 import PageGuide from "@/components/ui/page-guide";
+import { getSystemSettings } from "@/lib/admin-actions";
+import ReportConfigPanel from "./report-config-panel";
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
     const params = await searchParams;
     const page = parseInt(params.page || '1');
     const pageSize = 50;
+
+    // Fetch system settings for the report config panel
+    const systemSettings = await getSystemSettings();
 
     // 1. Fetch data for consistency audit
     const players = await prisma.player.findMany({ where: { status: 'ACTIVO' } });
@@ -144,6 +149,8 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
                 <h2 style={{ margin: 0 }}>Centro de Auditoría</h2>
                 <Link href="/dashboard/administracion" className="btn btn-secondary">← Volver</Link>
             </div>
+
+            <ReportConfigPanel settings={systemSettings} />
 
             <ConsistencyAudit initialIssues={issues} />
 

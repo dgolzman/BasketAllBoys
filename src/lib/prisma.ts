@@ -8,4 +8,11 @@ export const prisma =
         log: ['query'],
     });
 
+import { startScheduler } from './scheduler';
+
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Start background cron jobs exactly once in the DB client instantiation
+if (typeof window === 'undefined') {
+    startScheduler();
+}

@@ -148,3 +148,37 @@ export async function cleanupAllDNIs() {
     revalidatePath("/dashboard/administracion/audit");
     return { success: true, message: `Proceso finalizado. Se verificaron ${checked} jugadores. Se corrigieron ${count} DNIs.` };
 }
+
+// System Settings Actions
+export async function getSystemSettings() {
+    try {
+        const settings = await (prisma as any).systemSetting.findMany();
+        const settingsMap: Record<string, string> = {};
+        settings.forEach((s: any) => {
+            settingsMap[s.key] = s.value;
+        });
+        return settingsMap;
+    } catch (e) {
+        console.error("Error fetching system settings:", e);
+        return {};
+    }
+}
+
+export async function updateSystemSetting(key: string, value: string) {
+    const session = await auth();
+    if (session?.user?.role !== 'ADMIN') throw new Error("Unauthorized");
+
+    try {
+        await (prisma as any).systemSetting.upsert({
+            where: { key },
+            update: { value },
+            create: { key, value }
+        });
+        await createAuditLog("UPDATE", "SystemSetting", key, { value });
+        revalidatePath("/dashboard/administracion/audit");
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error updating system setting:", e);
+        return { success: false, message: e.message };
+    }
+}

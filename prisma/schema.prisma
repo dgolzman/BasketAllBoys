@@ -173,3 +173,9 @@ model ActivityFee {
   category String   // "GLOBAL" or a specific category name
   @@unique([year, month, category])
 }
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
