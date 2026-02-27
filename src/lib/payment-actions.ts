@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "./actions";
 import * as XLSX from 'xlsx';
+import { revalidatePath } from "next/cache";
 
 export type PaymentStatus = {
     social: string;
@@ -82,20 +83,13 @@ function normalizeString(str: string): string {
     return str ? str.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 }
 
-/**
- * Finds a column key in a row using flexible matching:
- * - Exact match (case-insensitive, normalized whitespace)
- * - Partial match (key contains the candidate)
- */
 function findColumn(row: any, candidates: string[]): string | undefined {
     const rowKeys = Object.keys(row);
-    // Pass 1: exact match after normalizing whitespace
     for (const candidate of candidates) {
         const nc = candidate.trim().toLowerCase().replace(/\s+/g, ' ');
         const found = rowKeys.find(k => k.trim().toLowerCase().replace(/[\r\n\s]+/g, ' ') === nc);
         if (found) return found;
     }
-    // Pass 2: partial includes
     for (const candidate of candidates) {
         const nc = candidate.trim().toLowerCase();
         const found = rowKeys.find(k => k.toLowerCase().replace(/[\r\n]+/g, ' ').trim().includes(nc));
@@ -103,8 +97,6 @@ function findColumn(row: any, candidates: string[]): string | undefined {
     }
     return undefined;
 }
-
-// ─── CUOTA SOCIAL / ACTIVIDAD ────────────────────────────────────────────────
 
 export async function processPaymentExcel(prevState: any, formData: FormData): Promise<ImportResult> {
     const session = await auth();
@@ -130,8 +122,6 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
 
         const sheet = workbook.Sheets[sheetName];
 
-        // --- DETECCIÓN INTELIGENTE DE CABECERAS ---
-        // Convertimos a matriz de arrays para encontrar la fila real de cabeceras
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
         const headerRowIndex = rows.findIndex(row =>
             row.some(cell => {
@@ -140,27 +130,16 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
             })
         );
 
-        if (headerRowIndex !== -1) {
-            logs.push(`Cabeceras detectadas en la fila ${headerRowIndex + 1}`);
-        }
-
         const rawData = headerRowIndex !== -1
             ? XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex })
             : XLSX.utils.sheet_to_json(sheet);
 
         logs.push(`Filas de datos encontradas: ${rawData.length}`);
 
-        if (rawData.length > 0) {
-            const detectedColumns = Object.keys(rawData[0] as any);
-            logs.push(`Columnas mapeadas: ${detectedColumns.join(' | ')}`);
-        }
-
-        // Fetch ALL players to check for inactive ones too
         const dbPlayers = await (prisma.player as any).findMany({
             select: { id: true, firstName: true, lastName: true, dni: true, partnerNumber: true, tira: true, category: true, status: true, lastSocialPayment: true, lastActivityPayment: true }
         });
         const activePlayers = dbPlayers.filter((p: any) => p.status === 'ACTIVO' || p.status === 'REVISAR');
-        logs.push(`Jugadores (ACTIVO + REVISAR) en DB: ${activePlayers.length}`);
 
         const results: PlayerMatchResult[] = [];
         let matchedCount = 0;
@@ -168,25 +147,17 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
 
         for (const [index, row] of rawData.entries()) {
             const r = row as any;
-            const rowNum = (headerRowIndex !== -1 ? headerRowIndex + index + 2 : index + 2);
             const notes: string[] = [];
 
-            // --- MAPEADO FLEXIBLE DE COLUMNAS ---
             const dniKey = findColumn(r, ['documento', 'dni', 'dni_nro', 'documento_nro', 'numero documento']);
             const socioKey = findColumn(r, ['nrosocio', 'nro. socio', 'nro socio', 'socio', 'nro_socio']);
-
-            // Columnas de Nombre/Apellido (pueden ser separadas o juntas)
             const apellidoKey = findColumn(r, ['apellido', 'apellidos']);
             const nombreKey = findColumn(r, ['nombre', 'nombres', 'cliente', 'nombre y apellido', 'nombre completo', 'apellido / nombre', 'apellido y nombre']);
 
-            // Columnas de Pago (Stricter matching for Pass 2)
             const matchedSocialKey = findColumn(r, ['ultima cuota social abonada', 'ultima cuota social', 'cuota social']);
-            const socialFallbackKey = !matchedSocialKey ? findColumn(r, ['social']) : undefined;
-            const socialKey = matchedSocialKey || socialFallbackKey;
-
+            const socialKey = matchedSocialKey || findColumn(r, ['social']);
             const matchedActivityKey = findColumn(r, ['ultima cuota actividad abonada', 'ultima cuota actividad', 'cuota actividad']);
-            const activityFallbackKey = !matchedActivityKey ? findColumn(r, ['actividad']) : undefined;
-            const activityKey = matchedActivityKey || activityFallbackKey;
+            const activityKey = matchedActivityKey || findColumn(r, ['actividad']);
 
             const dniVal = dniKey ? r[dniKey]?.toString().trim() : undefined;
             const dniClean = (dniVal && /\d+/.test(dniVal)) ? dniVal.replace(/\D/g, '') : undefined;
@@ -195,7 +166,6 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
             let apellido = apellidoKey ? normalizeString(r[apellidoKey]?.toString()) : '';
             let nombre = nombreKey ? normalizeString(r[nombreKey]?.toString()) : '';
 
-            // Lógica de separación de nombre/apellido si vienen pegados
             if (nombre && !apellido) {
                 if (nombre.includes('/') || nombre.includes(',') || nombre.includes('-')) {
                     const separator = nombre.includes('/') ? '/' : (nombre.includes(',') ? ',' : '-');
@@ -208,35 +178,25 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
             const lastSocial = socialKey ? r[socialKey]?.toString().trim() : undefined;
             const lastActivity = activityKey ? r[activityKey]?.toString().trim() : undefined;
 
-            let match: typeof dbPlayers[0] | undefined;
+            let match: any;
             let method: 'DNI' | 'PARTNER_NUMBER' | 'NAME_FUZZY' | undefined;
 
-            // 1. Prioridad: DNI
             if (dniClean && dniClean.length > 4) {
                 match = activePlayers.find((p: any) => p.dni === dniClean);
                 if (match) method = 'DNI';
             }
-
-            // 2. Prioridad: Nro. Socio
             if (!match && socio) {
                 match = activePlayers.find((p: any) => p.partnerNumber === socio);
                 if (match) method = 'PARTNER_NUMBER';
             }
-
-            // 3. Prioridad: Nombre Combinado (Fuzzy)
             if (!match && nombre) {
                 const fullSearch = normalizeString(nombre + (apellido ? ' ' + apellido : ''));
                 const searchParts = fullSearch.split(' ').filter(p => p.length > 2);
-
                 match = activePlayers.find((p: any) => {
                     const dbFull = normalizeString(`${p.firstName} ${p.lastName}`);
                     const dbFullRev = normalizeString(`${p.lastName} ${p.firstName}`);
-
                     if (dbFull === fullSearch || dbFullRev === fullSearch) return true;
-                    if (searchParts.length >= 2) {
-                        return searchParts.every(part => dbFull.includes(part));
-                    }
-                    if (apellido && normalizeString(p.firstName) === nombre && normalizeString(p.lastName) === apellido) return true;
+                    if (searchParts.length >= 2) return searchParts.every(part => dbFull.includes(part));
                     return false;
                 });
                 if (match) method = 'NAME_FUZZY';
@@ -263,7 +223,6 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                 matchedCount++;
                 const hasChanges = isNewSocial || isNewActivity;
                 if (hasChanges) newPaymentsCount++;
-
                 results.push({
                     status: 'MATCHED',
                     matchMethod: method,
@@ -280,45 +239,18 @@ export async function processPaymentExcel(prevState: any, formData: FormData): P
                     notes
                 });
             } else {
-                // Verificación de inactivos para dar aviso
-                let inactiveMatch: any = null;
-                if (dniClean && dniClean.length > 4) inactiveMatch = dbPlayers.find((p: any) => p.dni === dniClean && p.status === 'INACTIVO');
-                if (!inactiveMatch && socio) inactiveMatch = dbPlayers.find((p: any) => p.partnerNumber === socio && p.status === 'INACTIVO');
-
-                if (inactiveMatch) {
-                    notes.push(`⚠️ Jugador encontrado pero está INACTIVO: ${inactiveMatch.lastName}, ${inactiveMatch.firstName}`);
-                } else {
-                    const displayLabel = nombre ? `${apellido}, ${nombre}` : (dniClean || socio || 'S/D');
-                    notes.push(`No se pudo encontrar jugador: ${displayLabel}`);
-                }
-
-                results.push({
-                    status: 'UNMATCHED',
-                    originalData: row,
-                    paymentStatus,
-                    notes
-                });
+                results.push({ status: 'UNMATCHED', originalData: row, paymentStatus, notes: ["No se pudo encontrar jugador"] });
             }
         }
 
-        logs.push(`Proceso de ANÁLISIS finalizado. Coincidencias: ${matchedCount}/${rawData.length}`);
-        logs.push(`NOTA: No se han guardado cambios. Revise los resultados y confirme.`);
-
         return {
             success: true,
-            stats: {
-                total: rawData.length,
-                matched: matchedCount,
-                unmatched: rawData.length - matchedCount,
-                newPayments: newPaymentsCount
-            },
+            stats: { total: rawData.length, matched: matchedCount, unmatched: rawData.length - matchedCount, newPayments: newPaymentsCount },
             results,
             logs
         };
-
     } catch (e: any) {
-        logs.push(`ERROR CRÍTICO: ${e.message}`);
-        return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0, newPayments: 0 }, results: [], logs };
+        return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0, newPayments: 0 }, results: [], logs: [e.message] };
     }
 }
 
@@ -327,22 +259,28 @@ export async function savePaymentUpdates(prevState: any, dataset: PlayerMatchRes
     if (!session) return { success: false, message: "No autorizado" };
 
     const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id);
-    let count = 0;
+    let updatedCount = 0;
+    let errorCount = 0;
 
     try {
         for (const item of updates) {
             if (!item.player?.id) continue;
-            await (prisma.player as any).update({
-                where: { id: item.player.id },
-                data: {
-                    lastSocialPayment: item.paymentStatus?.social,
-                    lastActivityPayment: item.paymentStatus?.activity
-                }
-            });
-            count++;
+            try {
+                await (prisma.player as any).update({
+                    where: { id: item.player.id },
+                    data: {
+                        lastSocialPayment: item.paymentStatus?.social,
+                        lastActivityPayment: item.paymentStatus?.activity
+                    }
+                });
+                updatedCount++;
+            } catch (err) {
+                errorCount++;
+            }
         }
-        await createAuditLog('IMPORT_PAYMENTS', 'Player', 'BATCH', { count, total: updates.length });
-        return { success: true, message: `Se actualizaron los pagos de ${count} jugadores correctamente.` };
+        await createAuditLog('IMPORT_PAYMENTS', 'Player', 'BATCH', { count: updatedCount, total: updates.length });
+        revalidatePath('/dashboard/payments');
+        return { success: true, message: `Se actualizaron ${updatedCount} registros correctamente.`, stats: { updated: updatedCount, errors: errorCount } };
     } catch (error: any) {
         return { success: false, message: "Error al guardar: " + error.message };
     }
@@ -362,174 +300,92 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
     }
 
     const logs: string[] = [];
-    logs.push(`Inicio de procesamiento: ${new Date().toLocaleString()}`);
-
     try {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const workbook = XLSX.read(buffer, { type: 'buffer' });
-
-        const sheetName = workbook.SheetNames[0];
-        logs.push(`Leyendo hoja: ${sheetName}`);
-
-        const sheet = workbook.Sheets[sheetName];
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rawData = XLSX.utils.sheet_to_json(sheet);
 
-        logs.push(`Filas encontradas: ${rawData.length}`);
-
-        if (rawData.length > 0) {
-            logs.push(`Columnas detectadas: ${Object.keys(rawData[0] as any).join(' | ')}`);
-        }
-
-        // Fetch ALL players
         const dbPlayers = await (prisma.player as any).findMany({
             select: { id: true, firstName: true, lastName: true, dni: true, tira: true, category: true, status: true }
         });
         const activePlayers = dbPlayers.filter((p: any) => p.status === 'ACTIVO' || p.status === 'REVISAR');
-        logs.push(`Jugadores (ACTIVO + REVISAR) en DB: ${activePlayers.length} (Total con inactivos: ${dbPlayers.length})`);
 
         const results: FederationMatchResult[] = [];
         let matchedCount = 0;
 
         for (const [index, row] of rawData.entries()) {
             const r = row as any;
-            const rowNum = index + 2;
-            const notes: string[] = [];
-
-            const dniKey = findColumn(r, ['dni', 'documento', 'documento_nro', 'dni_nro']);
-            const apellidoKey = findColumn(r, ['apellido', 'apellidos']);
-            const nombreKey = findColumn(r, ['nombre', 'nombres', 'cliente', 'nombre y apellido', 'nombre completo']);
-            const yearKey = findColumn(r, ['año', 'anio', 'year', 'año pago', 'año del pago', 'periodo', 'año_inscripcion']);
-            const cuotasKey = findColumn(r, ['cuotas', 'cuota', 'nro cuota', 'pago', 'cuotas abonadas', 'cuotas pagadas', 'installments', 'estado', 'cuotas pagas', 'cuota social']);
-            const productosKey = findColumn(r, ['productos', 'item', 'descripcion']);
-
-            if (index === 0) {
-                logs.push(`Mapeo de columnas: DNI -> ${dniKey || 'no encontrado'}, Nombre -> ${nombreKey || 'no encontrado'}, Apellido -> ${apellidoKey || 'no encontrado'}, Año -> ${yearKey || 'no encontrado'}, Cuotas -> ${cuotasKey || 'no encontrado'}, Productos -> ${productosKey || 'no encontrado'}`);
-            }
+            const dniKey = findColumn(r, ['dni', 'documento', 'documento_nro']);
+            const nombreKey = findColumn(r, ['nombre', 'cliente', 'nombre y apellido']);
+            const yearKey = findColumn(r, ['año', 'anio', 'year']);
+            const cuotasKey = findColumn(r, ['cuotas', 'cuota', 'nro cuota']);
+            const productosKey = findColumn(r, ['productos', 'item']);
 
             const dniVal = dniKey ? r[dniKey]?.toString().trim() : undefined;
-            // Filter out junk DNI values like literal "DNI"
             const dniClean = (dniVal && /\d+/.test(dniVal)) ? dniVal.replace(/\D/g, '') : undefined;
-
-            // Ensure originalData has 'dni' for UI display
-            if (dniVal) r['dni'] = dniVal;
-
-            const dni = dniClean;
-            let apellido = apellidoKey ? normalizeString(r[apellidoKey]?.toString()) : '';
             let nombre = nombreKey ? normalizeString(r[nombreKey]?.toString()) : '';
+            let apellido = '';
 
-            // If we have a name column but no separated apellido, try to split if it looks like "LastName, FirstName" or just multi-word
-            if (nombre && !apellido) {
-                if (nombre.includes(',')) {
-                    const parts = nombre.split(',');
-                    apellido = normalizeString(parts[0]);
-                    nombre = normalizeString(parts[1]);
-                }
+            if (nombre.includes(',')) {
+                const parts = nombre.split(',');
+                apellido = normalizeString(parts[0]);
+                nombre = normalizeString(parts[1]);
             }
 
             let year = yearKey ? parseInt(r[yearKey]?.toString()) : NaN;
             let installments = cuotasKey ? r[cuotasKey]?.toString().trim() : '';
-            let categoryFromExcel = '';
 
-            // Logic for "Productos" column (Exportacion-ventas-20-02-26.xlsx format)
             if (productosKey && r[productosKey]) {
                 const prodStr = r[productosKey].toString();
-                // Extract Year: "Inscripción 2026"
                 if (isNaN(year)) {
                     const yearMatch = prodStr.match(/20\d{2}/);
                     if (yearMatch) year = parseInt(yearMatch[0]);
                 }
-                // Extract Category: "(Categoría: Mosquitos/U9/U11)"
-                const catMatch = prodStr.match(/Categoría:\s*([^,)]+)/i);
-                if (catMatch) categoryFromExcel = catMatch[1].trim();
+                const instMatch = prodStr.match(/Cuota:\s*([^,)]+)/i);
+                if (instMatch && (!installments || installments.toLowerCase().includes('finalizado'))) {
+                    installments = instMatch[1].trim();
+                }
 
-                // Extract Installments: Find ALL occurrences of "Cuota: Cuota X"
-                const allInstallments = Array.from(prodStr.matchAll(/Cuota:\s*Cuota\s*(\d+)/gi))
-                    .map((m: any) => parseInt(m[1]));
-
-                if (allInstallments.length > 0) {
-                    const maxInst = Math.max(...allInstallments);
-                    const extractedInst = `Cuota ${maxInst}`;
-                    // If the found column was a generic "Estado" (like "Finalizado"), 
-                    // we prioritize the specific "Cuota X" found in the products text.
+                // Advanced installment extraction
+                const allInsts = Array.from(prodStr.matchAll(/Cuota:\s*Cuota\s*(\d+)/gi)).map((m: any) => parseInt(m[1]));
+                if (allInsts.length > 0) {
+                    const maxInst = Math.max(...allInsts);
                     if (!installments || installments.toLowerCase().includes('finalizado')) {
-                        installments = extractedInst;
-                    }
-                } else {
-                    // Fallback for single match or different format
-                    const installmentMatch = prodStr.match(/Cuota:\s*([^,)]+)/i);
-                    if (installmentMatch) {
-                        const extractedInst = installmentMatch[1].trim();
-                        if (!installments || installments.toLowerCase().includes('finalizado')) {
-                            installments = extractedInst;
-                        }
+                        installments = `Cuota ${maxInst}`;
                     }
                 }
             }
 
-            // Normalization of "SALDADO" logic
-            if (installments) {
-                const normalizedInst = installments.toLowerCase();
-                const isMosquitos = categoryFromExcel.toLowerCase().includes('mosquitos') ||
-                    categoryFromExcel.toLowerCase().includes('u9') ||
-                    categoryFromExcel.toLowerCase().includes('u11');
-
-                const instNumMatch = installments.match(/\d+/);
-                const instNum = instNumMatch ? parseInt(instNumMatch[0]) : 0;
-
-                if (normalizedInst.includes('saldado')) {
-                    installments = 'SALDADO';
-                } else if (isMosquitos && instNum >= 1) {
-                    installments = 'SALDADO';
-                } else if (!isMosquitos && instNum >= 3) {
-                    installments = 'SALDADO';
-                }
+            if (isNaN(year) || year === 0) {
+                year = new Date().getFullYear();
             }
 
-            let match: typeof dbPlayers[0] | undefined;
+            let match: any;
             let method: 'DNI' | 'NAME_FUZZY' | undefined;
 
-            if (dni && dni.length > 4) {
-                match = activePlayers.find((p: any) => p.dni === dni);
+            if (dniClean && dniClean.length > 4) {
+                match = activePlayers.find((p: any) => p.dni === dniClean);
                 if (match) method = 'DNI';
             }
-
             if (!match && nombre) {
-                // Secondary match: Try to find by full name comparison (flexible)
                 const fullSearch = normalizeString(nombre + (apellido ? ' ' + apellido : ''));
                 const searchParts = fullSearch.split(' ').filter(p => p.length > 2);
-
                 match = activePlayers.find((p: any) => {
                     const dbFull = normalizeString(`${p.firstName} ${p.lastName}`);
                     const dbFullRev = normalizeString(`${p.lastName} ${p.firstName}`);
-
-                    // Direct match of the full string or reversed full string
                     if (dbFull === fullSearch || dbFullRev === fullSearch) return true;
-
-                    // If we have at least 2 significant parts, check if they are contained in the DB name
-                    if (searchParts.length >= 2) {
-                        return searchParts.every(part => dbFull.includes(part));
-                    }
-
-                    // Specific case: if we only have name/apellido but it matches precisely
-                    if (apellido && normalizeString(p.firstName) === nombre && normalizeString(p.lastName) === apellido) return true;
-
+                    if (searchParts.length >= 2) return searchParts.every(part => dbFull.includes(part));
                     return false;
                 });
-
                 if (match) method = 'NAME_FUZZY';
             }
 
-            const federationData: FederationPaymentData | undefined =
-                (year || installments) ? { year: isNaN(year) ? 0 : year, installments: installments || '-' } : undefined;
-
-            if (!federationData) {
-                notes.push(`Fila ${rowNum}: Año o cuotas inválidos o faltantes.`);
-            }
+            const fedData = { year, installments: installments || '-' };
 
             if (match) {
                 matchedCount++;
-                logs.push(`Fila ${rowNum}: Encontrado ${match.firstName} ${match.lastName} (${match.status}) por ${method}`);
                 results.push({
                     status: 'MATCHED',
                     matchMethod: method,
@@ -542,45 +398,17 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
                         tira: match.tira,
                         playerStatus: match.status
                     },
-                    federationData,
-                    notes
+                    federationData: fedData,
+                    notes: []
                 });
             } else {
-                // Secondary check: is it an INACTIVE player?
-                let inactiveMatch: any = null;
-                if (dni && dni.length > 4) inactiveMatch = dbPlayers.find((p: any) => p.dni === dni && p.status === 'INACTIVO');
-                if (!inactiveMatch && nombre && apellido) {
-                    inactiveMatch = dbPlayers.find((p: any) =>
-                        normalizeString(p.firstName) === nombre &&
-                        normalizeString(p.lastName) === apellido &&
-                        p.status === 'INACTIVO'
-                    );
-                }
-
-                if (inactiveMatch) {
-                    notes.push(`⚠️ Jugador encontrado pero está INACTIVO (Dada de baja): ${inactiveMatch.lastName}, ${inactiveMatch.firstName}`);
-                } else {
-                    notes.push(`No se pudo encontrar jugador: ${apellido}, ${nombre} (DNI: ${dni})`);
-                }
-
-                results.push({ status: 'UNMATCHED', originalData: row, federationData, notes });
+                results.push({ status: 'UNMATCHED', originalData: row, federationData: fedData, notes: ["No encontrado"] });
             }
         }
 
-        logs.push(`Proceso de ANÁLISIS finalizado. Coincidencias: ${matchedCount}/${rawData.length}`);
-        logs.push(`NOTA: No se han guardado cambios en la base de datos. Revise y confirme.`);
-
-        return {
-            success: true,
-            stats: { total: rawData.length, matched: matchedCount, unmatched: rawData.length - matchedCount },
-            results,
-            logs
-        };
-
+        return { success: true, stats: { total: rawData.length, matched: matchedCount, unmatched: rawData.length - matchedCount }, results, logs };
     } catch (e: any) {
-        logs.push(`ERROR CRÍTICO: ${e.message}`);
-        console.error("[FEDERATION-IMPORT] Error:", e);
-        return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0 }, results: [], logs };
+        return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0 }, results: [], logs: [e.message] };
     }
 }
 
@@ -588,8 +416,9 @@ export async function saveFederationPaymentUpdates(prevState: any, dataset: Fede
     const session = await auth();
     if (!session) return { success: false, message: "No autorizado" };
 
-    const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id && d.federationData);
-    let count = 0;
+    const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id);
+    let updatedCount = 0;
+    let errorCount = 0;
 
     try {
         for (const item of updates) {
@@ -598,19 +427,20 @@ export async function saveFederationPaymentUpdates(prevState: any, dataset: Fede
                 await (prisma.player as any).update({
                     where: { id: item.player.id },
                     data: {
-                        federationYear: item.federationData.year > 0 ? item.federationData.year : null,
+                        federationYear: item.federationData.year,
                         federationInstallments: item.federationData.installments
                     }
                 });
-                count++;
-            } catch (updateErr: any) {
-                console.error(`[FEDERATION-SAVE] Error updating player ${item.player?.id}:`, updateErr);
+                updatedCount++;
+            } catch (err) {
+                errorCount++;
             }
         }
-        await createAuditLog('IMPORT_FEDERATION_PAYMENTS', 'Player', 'BATCH', { count, total: updates.length });
-        return { success: true, message: `Se actualizó el pago de federación/seguro de ${count} jugadores correctamente.` };
+        await createAuditLog('IMPORT_FEDERATION_PAYMENTS', 'Player', 'BATCH', { count: updatedCount, total: updates.length });
+        revalidatePath('/dashboard/payments');
+        revalidatePath('/dashboard/players');
+        return { success: true, message: `Se actualizaron ${updatedCount} registros de seguro correctamente.` };
     } catch (error: any) {
-        console.error("[FEDERATION-SAVE] Fatal Error:", error);
         return { success: false, message: "Error al guardar: " + error.message };
     }
 }
