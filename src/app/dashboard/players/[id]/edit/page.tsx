@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
 import EditPlayerForm from "./edit-form";
+import { getCategory } from "@/lib/utils";
 
 export default async function EditPlayerPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { id } = await params;
@@ -19,6 +20,12 @@ export default async function EditPlayerPage({ params, searchParams }: { params:
         notFound();
     }
 
+    const mappings = await (prisma as any).categoryMapping.findMany();
+    const categories = mappings.map((m: any) => m.category);
+
+    // Calculate dynamic category (ignoring manual override for the display value)
+    const calculatedCategory = getCategory({ birthDate: player.birthDate, category: null }, mappings);
+
     // Serializable dates
     const playerSerialized = {
         ...player,
@@ -28,11 +35,6 @@ export default async function EditPlayerPage({ params, searchParams }: { params:
         createdAt: player.createdAt.toISOString(),
         updatedAt: player.updatedAt.toISOString(),
     };
-
-
-
-    const mappings = await (prisma as any).categoryMapping.findMany();
-    const categories = mappings.map((m: any) => m.category);
 
     // Get return filters from query params
     const returnFilters = typeof queryParams.returnFilters === 'string' ? queryParams.returnFilters : '';
@@ -57,7 +59,12 @@ export default async function EditPlayerPage({ params, searchParams }: { params:
             <h2 style={{ marginBottom: '1.5rem' }}>Editar Jugador: {player.firstName} {player.lastName}</h2>
             <div className="card">
                 <Suspense fallback={<div>Cargando...</div>}>
-                    <EditPlayerForm player={playerSerialized} categories={categories} role={role} />
+                    <EditPlayerForm
+                        player={playerSerialized}
+                        categories={categories}
+                        role={role}
+                        calculatedCategory={calculatedCategory}
+                    />
                 </Suspense>
             </div>
         </div>

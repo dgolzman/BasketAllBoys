@@ -5,7 +5,7 @@ import { useActionState, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import SiblingSearch from "../../sibling-search";
 
-export default function EditPlayerForm({ player, categories, role }: { player: any, categories: string[], role: string }) {
+export default function EditPlayerForm({ player, categories, role, calculatedCategory }: { player: any, categories: string[], role: string, calculatedCategory?: string }) {
     const canEdit = role === 'ADMIN' || role === 'OPERADOR';
     const updatePlayerWithId = updatePlayer.bind(null, player.id);
     const initialState: ActionState = { message: '', errors: undefined };
@@ -124,7 +124,15 @@ export default function EditPlayerForm({ player, categories, role }: { player: a
                         ))}
                     </select>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', paddingTop: '1.5rem' }}>
+                <div>
+                    <label className="label">Categoría Calculada</label>
+                    <div className="input" style={{ background: 'var(--secondary)', opacity: 0.8, display: 'flex', alignItems: 'center', height: '38px' }}>
+                        {calculatedCategory || 'N/A'}
+                    </div>
+                </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                     <input type="checkbox" name="scholarship" id="scholarship" defaultChecked={player.scholarship} disabled={!canEdit} style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
                     <label htmlFor="scholarship" style={{ cursor: 'pointer' }}>¿Es Becado?</label>
                 </div>
