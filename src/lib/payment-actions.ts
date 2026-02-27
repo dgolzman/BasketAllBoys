@@ -374,6 +374,7 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
 
         const sheet = workbook.Sheets[sheetName];
         const rawData = XLSX.utils.sheet_to_json(sheet);
+
         logs.push(`Filas encontradas: ${rawData.length}`);
 
         if (rawData.length > 0) {
@@ -578,6 +579,7 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
 
     } catch (e: any) {
         logs.push(`ERROR CRÍTICO: ${e.message}`);
+        console.error("[FEDERATION-IMPORT] Error:", e);
         return { success: false, message: e.message, stats: { total: 0, matched: 0, unmatched: 0 }, results: [], logs };
     }
 }
@@ -586,24 +588,29 @@ export async function saveFederationPaymentUpdates(prevState: any, dataset: Fede
     const session = await auth();
     if (!session) return { success: false, message: "No autorizado" };
 
-    const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id && d.federationData && d.federationData.year > 0);
+    const updates = dataset.filter(d => d.status === 'MATCHED' && d.player?.id && d.federationData);
     let count = 0;
 
     try {
         for (const item of updates) {
             if (!item.player?.id || !item.federationData) continue;
-            await (prisma.player as any).update({
-                where: { id: item.player.id },
-                data: {
-                    federationYear: item.federationData.year,
-                    federationInstallments: item.federationData.installments
-                }
-            });
-            count++;
+            try {
+                await (prisma.player as any).update({
+                    where: { id: item.player.id },
+                    data: {
+                        federationYear: item.federationData.year > 0 ? item.federationData.year : null,
+                        federationInstallments: item.federationData.installments
+                    }
+                });
+                count++;
+            } catch (updateErr: any) {
+                console.error(`[FEDERATION-SAVE] Error updating player ${item.player?.id}:`, updateErr);
+            }
         }
         await createAuditLog('IMPORT_FEDERATION_PAYMENTS', 'Player', 'BATCH', { count, total: updates.length });
         return { success: true, message: `Se actualizó el pago de federación/seguro de ${count} jugadores correctamente.` };
     } catch (error: any) {
+        console.error("[FEDERATION-SAVE] Fatal Error:", error);
         return { success: false, message: "Error al guardar: " + error.message };
     }
 }

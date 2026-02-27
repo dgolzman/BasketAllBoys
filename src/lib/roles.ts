@@ -43,6 +43,9 @@ export const PERMISSIONS = {
     MANAGE_DUPLICATES: 'manage_duplicates',
     BACKUP_EXPORT: 'backup_export',
     BACKUP_RESTORE: 'backup_restore',
+    // Mensajes
+    MANAGE_MESSAGES: 'manage_messages',
+    VIEW_MESSAGES: 'view_messages',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -110,6 +113,8 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
     manage_duplicates: 'Gestionar Duplicados',
     backup_export: 'Exportar Backup',
     backup_restore: 'Restaurar Backup',
+    manage_messages: 'Gestionar Templates de Mensajes',
+    view_messages: 'Ver y Usar Mensajes',
 };
 
 export const PERMISSION_GROUPS: { label: string; permissions: Permission[] }[] = [
@@ -149,6 +154,10 @@ export const PERMISSION_GROUPS: { label: string; permissions: Permission[] }[] =
             PERMISSIONS.BACKUP_EXPORT,
             PERMISSIONS.BACKUP_RESTORE,
         ],
+    },
+    {
+        label: '💬 Mensajes',
+        permissions: [PERMISSIONS.VIEW_MESSAGES, PERMISSIONS.MANAGE_MESSAGES],
     },
 ];
 

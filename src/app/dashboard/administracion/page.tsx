@@ -8,6 +8,7 @@ import { hasPermission } from "@/lib/role-permission-actions";
 import { PERMISSIONS } from "@/lib/roles";
 import SmtpConfigPanel from "./smtp-config-panel";
 import { getSmtpConfig } from "@/lib/smtp-actions";
+import { getSystemSettings } from "@/lib/admin-actions";
 
 export default async function AdministrationPage() {
     const session = await auth();
@@ -20,6 +21,7 @@ export default async function AdministrationPage() {
 
     const isAdmin = role === 'ADMIN';
     const smtpConfig = isAdmin ? await getSmtpConfig() : {};
+    const systemSettings = isAdmin ? await getSystemSettings() : {};
     const canManageUsers = isAdmin;
     const canImport = await hasPermission(role, PERMISSIONS.IMPORT_DATA);
     const canViewAudit = await hasPermission(role, PERMISSIONS.VIEW_AUDIT);
@@ -184,6 +186,20 @@ export default async function AdministrationPage() {
                             </div>
                             <Link href="/dashboard/administracion/smtp" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
                                 Configurar SMTP
+                            </Link>
+                        </div>
+                    )}
+
+                    {isAdmin && (
+                        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border)' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ marginBottom: '0.5rem', color: 'var(--foreground)' }}>✨ Integración con IA</h3>
+                                <p style={{ color: 'var(--foreground)', fontSize: '0.9rem', marginBottom: '1.5rem', opacity: 0.8 }}>
+                                    Configurar la API Key de Gemini para el módulo de Mensajes.
+                                </p>
+                            </div>
+                            <Link href="/dashboard/administracion/integraciones" className="btn btn-secondary ui-mayusculas" style={{ textAlign: 'center' }}>
+                                Configurar IA
                             </Link>
                         </div>
                     )}

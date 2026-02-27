@@ -179,3 +179,25 @@ model SystemSetting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model MessageTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  // The instructions for the AI to generate the initial message
+  prompt    String
+  // JSON array of variable objects: [{name, type}]
+  variables String   @default("[]")
+  // The saved message text with {{variable}} placeholders
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Club {
+  id        String   @id @default(cuid())
+  name      String
+  address   String   @default("")
+  mapsUrl   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

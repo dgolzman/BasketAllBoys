@@ -85,6 +85,11 @@ export default function SidebarNav({
                         <span>🧢 Entrenadores</span>
                     </Link>
                 )}
+                {has('view_messages') && (
+                    <Link href="/dashboard/mensajes" onClick={handleClick} className={`${styles.navLink} ${isActive('/dashboard/mensajes') ? styles.activeLink : ''}`}>
+                        <span>💬 Mensajes</span>
+                    </Link>
+                )}
             </NavGroup>
 
             {(has('view_report_attendance') || has('view_report_salaries') || has('view_report_payments')) && (
