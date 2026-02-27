@@ -389,17 +389,25 @@ export async function searchPlayers(query: string) {
     if (!query || query.length < 2) return [];
 
     const normalizedQuery = normalizeString(query);
+    const terms = normalizedQuery.split(' ').filter(t => t.length > 0);
+
+    const whereClause: any = {
+        status: "ACTIVO"
+    };
+
+    if (terms.length > 0) {
+        whereClause.AND = terms.map(term => ({
+            OR: [
+                { firstName: { contains: term } },
+                { lastName: { contains: term } },
+                { dni: { contains: term } },
+                { contactName: { contains: term } },
+            ]
+        }));
+    }
 
     return await prisma.player.findMany({
-        where: {
-            OR: [
-                { firstName: { contains: normalizedQuery } },
-                { lastName: { contains: normalizedQuery } },
-                { dni: { contains: normalizedQuery } },
-                { contactName: { contains: normalizedQuery } },
-            ],
-            status: "ACTIVO"
-        },
+        where: whereClause,
         select: {
             id: true,
             firstName: true,

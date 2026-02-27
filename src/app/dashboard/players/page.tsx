@@ -29,13 +29,20 @@ export default async function PlayersPage({ searchParams }: { searchParams: Prom
     const where: any = {};
 
     if (query) {
-        where.OR = [
-            { lastName: { contains: query } },
-            { firstName: { contains: query } },
-            { dni: { contains: query } },
-            { contactName: { contains: query } }
-        ];
+        // Split query by spaces to allow searching "Nombre Apellido"
+        const terms = query.split(' ').filter(t => t.length > 0);
+        if (terms.length > 0) {
+            where.AND = terms.map(term => ({
+                OR: [
+                    { firstName: { contains: term } },
+                    { lastName: { contains: term } },
+                    { dni: { contains: term } },
+                    { contactName: { contains: term } }
+                ]
+            }));
+        }
     }
+
     if (tira) {
         if (tira === 'NONE') {
             where.tira = '';
