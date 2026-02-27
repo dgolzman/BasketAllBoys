@@ -339,10 +339,17 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
 
             if (productosKey && r[productosKey]) {
                 const prodStr = r[productosKey].toString();
+                let categoryFromExcel = '';
+
                 if (isNaN(year)) {
                     const yearMatch = prodStr.match(/20\d{2}/);
                     if (yearMatch) year = parseInt(yearMatch[0]);
                 }
+
+                // Extract Category: "(Categoría: Mosquitos/U9/U11)"
+                const catMatch = prodStr.match(/Categoría:\s*([^,)]+)/i);
+                if (catMatch) categoryFromExcel = catMatch[1].trim();
+
                 const instMatch = prodStr.match(/Cuota:\s*([^,)]+)/i);
                 if (instMatch && (!installments || installments.toLowerCase().includes('finalizado'))) {
                     installments = instMatch[1].trim();
@@ -354,6 +361,25 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
                     const maxInst = Math.max(...allInsts);
                     if (!installments || installments.toLowerCase().includes('finalizado')) {
                         installments = `Cuota ${maxInst}`;
+                    }
+                }
+
+                // Normalization of "SALDADO" logic
+                if (installments) {
+                    const normalizedInst = installments.toLowerCase();
+                    const isMosquitos = categoryFromExcel.toLowerCase().includes('mosquitos') ||
+                        categoryFromExcel.toLowerCase().includes('u9') ||
+                        categoryFromExcel.toLowerCase().includes('u11');
+
+                    const instNumMatch = installments.match(/\d+/);
+                    const instNum = instNumMatch ? parseInt(instNumMatch[0]) : 0;
+
+                    if (normalizedInst.includes('saldado')) {
+                        installments = 'SALDADO';
+                    } else if (isMosquitos && instNum >= 1) {
+                        installments = 'SALDADO';
+                    } else if (!isMosquitos && instNum >= 3) {
+                        installments = 'SALDADO';
                     }
                 }
             }
