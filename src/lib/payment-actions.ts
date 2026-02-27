@@ -421,9 +421,14 @@ export async function saveFederationPaymentUpdates(prevState: any, dataset: Fede
     let errorCount = 0;
 
     try {
+        console.log(`[FederationImport] Starting update for ${updates.length} players`);
         for (const item of updates) {
-            if (!item.player?.id || !item.federationData) continue;
+            if (!item.player?.id || !item.federationData) {
+                console.log(`[FederationImport] Skipping item: No player id or federation data`, item);
+                continue;
+            }
             try {
+                console.log(`[FederationImport] Updating player ${item.player.id} (${item.player.name}) with year: ${item.federationData.year}, installments: ${item.federationData.installments}`);
                 await (prisma.player as any).update({
                     where: { id: item.player.id },
                     data: {
@@ -432,13 +437,16 @@ export async function saveFederationPaymentUpdates(prevState: any, dataset: Fede
                     }
                 });
                 updatedCount++;
-            } catch (err) {
+            } catch (err: any) {
+                console.error(`[FederationImport] Error updating player ${item.player?.id}:`, err.message);
                 errorCount++;
             }
         }
+        console.log(`[FederationImport] Finished. Updated: ${updatedCount}, Errors: ${errorCount}`);
         await createAuditLog('IMPORT_FEDERATION_PAYMENTS', 'Player', 'BATCH', { count: updatedCount, total: updates.length });
         revalidatePath('/dashboard/payments');
         revalidatePath('/dashboard/players');
+        revalidatePath('/dashboard/reports');
         return { success: true, message: `Se actualizaron ${updatedCount} registros de seguro correctamente.` };
     } catch (error: any) {
         return { success: false, message: "Error al guardar: " + error.message };

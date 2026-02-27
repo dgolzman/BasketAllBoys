@@ -260,7 +260,17 @@ export default function EditPlayerForm({ player, categories, role, calculatedCat
                     </div>
                     <div>
                         <label className="label" style={{ color: '#ede9fe' }}>Cuotas Abonadas</label>
-                        <select name="federationInstallments" className="input" defaultValue={player.federationInstallments || ''} disabled={!canEdit}>
+                        <select
+                            name="federationInstallments"
+                            className="input"
+                            defaultValue={
+                                player.federationInstallments === 'SALDADO' ? 'SALDADO' :
+                                    (player.federationInstallments?.toString().includes('1') ? '1' :
+                                        player.federationInstallments?.toString().includes('2') ? '2' :
+                                            player.federationInstallments?.toString().includes('3') ? '3' : '')
+                            }
+                            disabled={!canEdit}
+                        >
                             <option value="">— Sin registrar —</option>
                             <option value="1">1 cuota</option>
                             <option value="2">2 cuotas</option>
