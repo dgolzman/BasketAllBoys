@@ -6,6 +6,7 @@ import SidebarNav from "./sidebar-nav";
 import TopNav from "./top-nav";
 import { handleSignOut } from "./actions";
 import type { Permission } from '@/lib/roles';
+import SyncManager from '@/components/sync-manager';
 
 export default function DashboardLayoutClient({
     children,
@@ -26,6 +27,7 @@ export default function DashboardLayoutClient({
 
     return (
         <div className={styles.layout}>
+            <SyncManager />
             {/* Mobile menu button */}
             {showNav && (
                 <button

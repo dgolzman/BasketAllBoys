@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { getCategory } from '@/lib/utils';
 import { bulkUpdatePlayers, bulkDeletePlayers } from '@/lib/bulk-actions';
 import SortableHeader from '@/components/ui/sortable-header';
+import { db } from '@/lib/offline-db';
 
 export default function PlayerList({
     initialPlayers,
@@ -27,6 +28,55 @@ export default function PlayerList({
     const [players, setPlayers] = useState(initialPlayers);
     const [isUpdating, setIsUpdating] = useState(false);
     const searchParams = useSearchParams();
+    const [isOffline, setIsOffline] = useState(false);
+
+    useEffect(() => {
+        setIsOffline(!navigator.onLine);
+        const handleOnline = () => setIsOffline(false);
+        const handleOffline = () => setIsOffline(true);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        if (!navigator.onLine) {
+            loadOfflinePlayers();
+        }
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        }
+    }, [searchParams]);
+
+    async function loadOfflinePlayers() {
+        const query = searchParams.get('query')?.toLowerCase() || '';
+        const tira = searchParams.get('tira') || '';
+        const status = searchParams.get('status') || 'DEFAULT';
+
+        let offlinePlayers = await db.players.toArray();
+
+        // Basic offline filtering logic (subset of server logic)
+        if (query) {
+            offlinePlayers = offlinePlayers.filter(p =>
+                p.firstName.toLowerCase().includes(query) ||
+                p.lastName.toLowerCase().includes(query) ||
+                p.dni.includes(query)
+            );
+        }
+
+        if (tira && tira !== 'NONE') {
+            offlinePlayers = offlinePlayers.filter(p => p.tira === tira);
+        } else if (tira === 'NONE') {
+            offlinePlayers = offlinePlayers.filter(p => !p.tira);
+        }
+
+        if (status === 'DEFAULT') {
+            offlinePlayers = offlinePlayers.filter(p => ['ACTIVO', 'REVISAR'].includes(p.status));
+        } else if (status !== 'all') {
+            offlinePlayers = offlinePlayers.filter(p => p.status === status);
+        }
+
+        setPlayers(offlinePlayers);
+    }
 
     const canEdit = role === 'ADMIN' || role === 'OPERADOR';
 
