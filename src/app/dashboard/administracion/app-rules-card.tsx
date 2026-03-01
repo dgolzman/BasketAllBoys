@@ -20,8 +20,8 @@ export default function AppRulesCard() {
         {
             title: "💳 Reglas de Saldado (Federación)",
             items: [
-                "Categorías Infantiles (Mosquitos, Pre-Mini): Se salda con 1 cuota.",
-                "Categorías Competitivas (Mini a Primera): Se salda con 3 cuotas.",
+                "Categorías Infantiles (Mosquitos, U9, U11 / MINI): Se salda con 1 cuota.",
+                "Categorías Competitivas (U13 en adelante): Se salda con 3 cuotas.",
                 "Año de vigencia actual: 2026."
             ]
         },

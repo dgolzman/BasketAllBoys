@@ -369,7 +369,8 @@ export async function processFederationPaymentExcel(prevState: any, formData: Fo
                     const normalizedInst = installments.toLowerCase();
                     const isMosquitos = categoryFromExcel.toLowerCase().includes('mosquitos') ||
                         categoryFromExcel.toLowerCase().includes('u9') ||
-                        categoryFromExcel.toLowerCase().includes('u11');
+                        categoryFromExcel.toLowerCase().includes('u11') ||
+                        categoryFromExcel.toLowerCase().includes('mini');
 
                     const instNumMatch = installments.match(/\d+/);
                     const instNum = instNumMatch ? parseInt(instNumMatch[0]) : 0;
