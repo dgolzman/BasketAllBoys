@@ -634,7 +634,7 @@ export async function deletePlayer(id: string, returnFilters?: string) {
     }
 }
 
-async function validateShirtNumber(playerId: string | null, shirtNumber: number, tira: string, birthDate: string, manualCategory?: string) {
+export async function validateShirtNumber(playerId: string | null, shirtNumber: number, tira: string, birthDate: string, manualCategory?: string) {
     const { getCategory } = await import("@/lib/utils");
 
     // 1. Get all category mappings and sort by minYear (youngest to oldest)
@@ -644,9 +644,6 @@ async function validateShirtNumber(playerId: string | null, shirtNumber: number,
     const currentCategory = getCategory({ birthDate, category: manualCategory }, mappings);
 
     // 3. Find adjacent categories
-    // mappings are already sorted by minYear desc (youngest to oldest)
-    // Actually minYear: desc means 2018, 2016, 2014... (youngest first)
-    // Let's reverse find index
     const sortedCats = mappings.map((m: any) => m.category);
     const currIdx = sortedCats.indexOf(currentCategory);
 
@@ -654,26 +651,31 @@ async function validateShirtNumber(playerId: string | null, shirtNumber: number,
     if (currIdx > 0) targetCategories.push(sortedCats[currIdx - 1]); // younger
     if (currIdx !== -1 && currIdx < sortedCats.length - 1) targetCategories.push(sortedCats[currIdx + 1]); // older
 
-    // 4. Check for conflicts
-    const conflict = await prisma.player.findFirst({
+    // 4. Find ALL potential conflicts in the same tira and shirt number
+    const candidates = await prisma.player.findMany({
         where: {
             id: { not: playerId || undefined },
             tira: tira,
             shirtNumber: shirtNumber,
-            OR: [
-                { category: { in: targetCategories } }, // Manual match
-                { category: null } // Need to check if their dynamic category matches any target
-            ]
+            status: { in: ['ACTIVO', 'REVISAR'] }
+        },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            category: true,
+            birthDate: true,
+            tira: true,
+            status: true
         }
     });
 
-    if (conflict) {
-        // If conflict.category is null, we must calculate its dynamic category
-        if (!conflict.category) {
-            const dynamicCat = getCategory(conflict, mappings);
-            if (!targetCategories.includes(dynamicCat)) return null;
+    // 5. Check each candidate's category (manual or dynamic)
+    for (const cand of candidates) {
+        const candCategory = getCategory(cand, mappings);
+        if (targetCategories.includes(candCategory)) {
+            return `El número #${shirtNumber} ya lo tiene ${cand.lastName}, ${cand.firstName} de la categoría ${candCategory} en la tira ${tira}.`;
         }
-        return `El número #${shirtNumber} ya está en uso en ${tira} para la categoría ${currentCategory} o adyacentes.`;
     }
 
     return null;

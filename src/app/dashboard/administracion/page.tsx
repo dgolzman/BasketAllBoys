@@ -10,6 +10,8 @@ import SmtpConfigPanel from "./smtp-config-panel";
 import { getSmtpConfig } from "@/lib/smtp-actions";
 import { getSystemSettings } from "@/lib/admin-actions";
 
+import AppRulesCard from "./app-rules-card";
+
 export default async function AdministrationPage() {
     const session = await auth();
     const role = (session?.user as any)?.role || 'ENTRENADOR';
@@ -41,6 +43,13 @@ export default async function AdministrationPage() {
             </PageGuide>
 
             <h2 className="ui-mayusculas" style={{ marginBottom: '2.5rem' }}>Panel de Administración</h2>
+
+            {/* SECCIÓN 0: REGLAS DEL SISTEMA */}
+            <div style={{ marginBottom: '3rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                    <AppRulesCard />
+                </div>
+            </div>
 
             {/* SECCIÓN 1: USUARIOS Y ACCESOS */}
             <div style={{ marginBottom: '3rem' }}>

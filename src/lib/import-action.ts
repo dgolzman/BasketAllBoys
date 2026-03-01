@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
-import { createAuditLog } from "./actions";
+import { createAuditLog, validateShirtNumber } from "./actions";
 import { evaluatePlayerStatus } from "./utils";
 import * as XLSX from 'xlsx';
 
@@ -137,7 +137,9 @@ export async function importData(prevState: any, formData: FormData) {
                 if (row['Telefono']?.toString().trim()) excelData.phone = row['Telefono'].toString().trim();
                 if (row['PersonaContacto']?.toString().trim()) excelData.contactName = row['PersonaContacto'].toString().trim().toUpperCase();
                 if (row['NumeroSocio']?.toString().trim()) excelData.partnerNumber = row['NumeroSocio'].toString().trim();
-                if (row['NumeroCamiseta']?.toString().trim()) excelData.shirtNumber = parseInt(row['NumeroCamiseta'].toString());
+                if (row['NumeroCamiseta']?.toString().trim()) {
+                    excelData.shirtNumber = parseInt(row['NumeroCamiseta'].toString());
+                }
                 if (row['Observaciones']?.toString().trim()) excelData.observations = row['Observaciones'].toString().trim().toUpperCase();
 
                 // ─────────────────────────────────────────────────────────────
@@ -198,7 +200,23 @@ export async function importData(prevState: any, formData: FormData) {
                 }
 
                 // ─────────────────────────────────────────────────────────────
-                // STEP 3: UPDATE or CREATE
+                // STEP 3: Shirt Number Validation (Added for Build 4.5.8)
+                // ─────────────────────────────────────────────────────────────
+                if (excelData.shirtNumber !== undefined && excelData.shirtNumber !== null) {
+                    const shirtError = await validateShirtNumber(
+                        existingPlayer?.id || null,
+                        excelData.shirtNumber,
+                        tira,
+                        birthDate?.toISOString() || "",
+                        row['Categoría'] || row['Categoria'] || undefined
+                    );
+                    if (shirtError) {
+                        throw new Error(shirtError);
+                    }
+                }
+
+                // ─────────────────────────────────────────────────────────────
+                // STEP 4: UPDATE or CREATE
                 // ─────────────────────────────────────────────────────────────
                 if (existingPlayer) {
                     // If this player was already processed in a previous row (Excel duplicate), skip
