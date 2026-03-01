@@ -29,6 +29,7 @@ export default function PlayerList({
     const [isUpdating, setIsUpdating] = useState(false);
     const searchParams = useSearchParams();
     const [isOffline, setIsOffline] = useState(false);
+    const [offlineSelectedPlayer, setOfflineSelectedPlayer] = useState<any | null>(null);
 
     useEffect(() => {
         setIsOffline(!navigator.onLine);
@@ -341,6 +342,12 @@ export default function PlayerList({
                                                 display: 'block'
                                             }}
                                             className="player-name-link ui-mayusculas"
+                                            onClick={(e) => {
+                                                if (isOffline) {
+                                                    e.preventDefault();
+                                                    setOfflineSelectedPlayer(player);
+                                                }
+                                            }}
                                         >
                                             {player.lastName}, {player.firstName}
                                         </Link>
@@ -412,6 +419,84 @@ export default function PlayerList({
                     </tbody>
                 </table>
             </div>
+
+            {/* Modal de Detalles Offline */}
+            {offlineSelectedPlayer && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.7)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
+                    backdropFilter: 'blur(4px)'
+                }} onClick={() => setOfflineSelectedPlayer(null)}>
+                    <div className="card" style={{ width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+                            <div>
+                                <h3 className="ui-mayusculas" style={{ margin: 0, color: 'var(--primary)' }}>{offlineSelectedPlayer.lastName}, {offlineSelectedPlayer.firstName}</h3>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '0.2rem' }}>Vista Detallada Offline</div>
+                            </div>
+                            <button onClick={() => setOfflineSelectedPlayer(null)} style={{ background: 'none', border: 'none', fontSize: '1.8rem', cursor: 'pointer', color: 'var(--foreground)', lineHeight: 1 }}>&times;</button>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem', fontSize: '0.9rem' }}>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>DNI</strong>
+                                <div>{offlineSelectedPlayer.dni}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Fecha de Nacimiento</strong>
+                                <div>{offlineSelectedPlayer.birthDate ? format(new Date(offlineSelectedPlayer.birthDate), 'dd/MM/yyyy') : '-'}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Categoría</strong>
+                                <div className="ui-mayusculas" style={{ fontWeight: 600 }}>{getCategory(offlineSelectedPlayer, mappings)}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Tira</strong>
+                                <div className="ui-mayusculas">{offlineSelectedPlayer.tira || '-'}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Teléfono (Contacto)</strong>
+                                <div>{offlineSelectedPlayer.phone || '-'}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Email</strong>
+                                <div style={{ wordBreak: 'break-all' }}>{offlineSelectedPlayer.email || '-'}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Nº Camiseta</strong>
+                                <div>{offlineSelectedPlayer.shirtNumber || '-'}</div>
+                            </div>
+                            <div>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Nº Socio</strong>
+                                <div>{offlineSelectedPlayer.partnerNumber || '-'}</div>
+                            </div>
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <strong style={{ display: 'block', fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.2rem' }}>Estado y Etiquetas</strong>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <span style={{
+                                        fontSize: '0.7rem', fontWeight: 'bold', padding: '0.2rem 0.6rem', borderRadius: '4px',
+                                        background: offlineSelectedPlayer.status === 'ACTIVO' ? '#064e3b' : offlineSelectedPlayer.status === 'INACTIVO' ? '#450a0a' : '#78350f',
+                                        color: offlineSelectedPlayer.status === 'ACTIVO' ? '#6ee7b7' : offlineSelectedPlayer.status === 'INACTIVO' ? '#fca5a5' : '#fcd34d'
+                                    }}>
+                                        {offlineSelectedPlayer.status}
+                                    </span>
+                                    {offlineSelectedPlayer.scholarship && (
+                                        <span style={{ background: '#1e3a8a', color: '#93c5fd', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>BECA</span>
+                                    )}
+                                    {offlineSelectedPlayer.playsPrimera && (
+                                        <span style={{ background: '#172554', color: '#bfdbfe', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>PRIMERA</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: '8px', textAlign: 'center', fontSize: '0.85rem' }}>
+                            <span style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1.2rem' }}>📵</span>
+                            Estás en modo offline. Para editar este jugador debes recuperar la conexión a internet.
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style jsx>{`
                 @keyframes slideUp {
