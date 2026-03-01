@@ -12,6 +12,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string; emoji: string 
     SUB_COMISION: { label: 'Sub Comisión', color: '#f59e0b', emoji: '🏛️' },
     COORDINADOR: { label: 'Coordinador', color: '#3b82f6', emoji: '📋' },
     ENTRENADOR: { label: 'Entrenador', color: '#22c55e', emoji: '🧢' },
+    VIEWER: { label: 'Viewer', color: '#6366f1', emoji: '👁️' },
 };
 
 export default function RolesManager({ permissionsMap }: RolesManagerProps) {

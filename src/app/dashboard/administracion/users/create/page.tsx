@@ -59,6 +59,7 @@ export default function CreateUserPage() {
                             <option value="SUB_COMISION">Sub Comisión - Ver todo, editar jugadores/entrenadores/pagos, panel admin limitado</option>
                             <option value="COORDINADOR">Coordinador - Ver informes, editar jugadores, sin admin ni pagos</option>
                             <option value="ENTRENADOR">Entrenador - Ver jugadores/equipos, tomar asistencia, solo informe asistencia</option>
+                            <option value="VIEWER">Viewer - Solo lectura de informes y datos básicos</option>
                         </select>
                         {state.errors?.role && <p style={{ color: 'red', fontSize: '0.8rem' }}>{state.errors.role.join(', ')}</p>}
                     </div>
