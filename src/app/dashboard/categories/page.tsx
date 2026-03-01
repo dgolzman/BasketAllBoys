@@ -11,7 +11,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
     const filterCat = rawSearchParams.cat || '';
 
     const players = await prisma.player.findMany({
-        where: { status: 'ACTIVO' },
+        where: { status: { in: ['ACTIVO', 'REVISAR'] } },
         orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }]
     });
 
@@ -121,20 +121,20 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                     <div>
                         <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: 'bold' }}>Por Tira</p>
                         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                            <Link href="/dashboard/categories" className={`btn ${!filterTira ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
-                            <Link href="/dashboard/categories?tira=A" className={`btn ${filterTira === 'A' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC A</Link>
-                            <Link href="/dashboard/categories?tira=B" className={`btn ${filterTira === 'B' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC B</Link>
-                            <Link href="/dashboard/categories?tira=Femenino" className={`btn ${filterTira === 'Femenino' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>FEMENINO</Link>
-                            <Link href="/dashboard/categories?tira=Mixed" className={`btn ${filterTira === 'Mixed' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MIXTO</Link>
+                            <Link href={`/dashboard/categories${filterCat ? `?cat=${filterCat}` : ''}`} className={`btn ${!filterTira ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
+                            <Link href={`/dashboard/categories?tira=A${filterCat ? `&cat=${filterCat}` : ''}`} className={`btn ${filterTira === 'A' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC A</Link>
+                            <Link href={`/dashboard/categories?tira=B${filterCat ? `&cat=${filterCat}` : ''}`} className={`btn ${filterTira === 'B' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MASC B</Link>
+                            <Link href={`/dashboard/categories?tira=Femenino${filterCat ? `&cat=${filterCat}` : ''}`} className={`btn ${filterTira === 'Femenino' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>FEMENINO</Link>
+                            <Link href={`/dashboard/categories?tira=Mixed${filterCat ? `&cat=${filterCat}` : ''}`} className={`btn ${filterTira === 'Mixed' ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>MIXTO</Link>
                         </div>
                     </div>
 
                     <div>
                         <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: 'var(--foreground)', fontWeight: 'bold' }}>Por Categoría</p>
                         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                            <Link href="/dashboard/categories" className={`btn ${!filterCat ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
+                            <Link href={`/dashboard/categories${filterTira ? `?tira=${filterTira}` : ''}`} className={`btn ${!filterCat ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>TODAS</Link>
                             {categoriesList.map(c => (
-                                <Link key={c} href={`/dashboard/categories?cat=${c}`} className={`btn ${filterCat === c ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{c}</Link>
+                                <Link key={c} href={`/dashboard/categories?cat=${c}${filterTira ? `&tira=${filterTira}` : ''}`} className={`btn ${filterCat === c ? 'btn-primary' : 'btn-secondary'}`} style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{c}</Link>
                             ))}
                         </div>
                     </div>
@@ -166,8 +166,9 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem' }}>
                                         {grouped[cat].Mixed.map((p: any) => (
-                                            <Link key={p.id} href={`/dashboard/players/${p.id}/edit`} className="card" style={{ padding: '0.5rem', fontSize: '0.9rem', border: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.02)' }}>
-                                                {p.lastName}, {p.firstName}
+                                            <Link key={p.id} href={`/dashboard/players/${p.id}/edit`} className="card" style={{ padding: '0.5rem', fontSize: '0.9rem', border: '1px solid var(--border)', background: 'rgba(255, 255, 255, 0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>{p.lastName}, {p.firstName}</span>
+                                                {p.status === 'REVISAR' && <span style={{ fontSize: '0.65rem', background: 'var(--warning)', color: 'black', padding: '0.1rem 0.3rem', borderRadius: '4px', fontWeight: 'bold', marginLeft: '0.5rem' }}>A REVISAR</span>}
                                             </Link>
                                         ))}
                                     </div>
@@ -195,7 +196,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                         <ul style={{ listStyle: 'none', padding: 0 }}>
                                             {grouped[cat].Fem.map((p: any) => (
                                                 <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
-                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'var(--foreground)' }}>{p.lastName}, {p.firstName}</Link>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--foreground)' }}>
+                                                        <span>{p.lastName}, {p.firstName}</span>
+                                                        {p.status === 'REVISAR' && <span style={{ fontSize: '0.6rem', background: 'var(--warning)', color: 'black', padding: '0 0.2rem', borderRadius: '3px', fontWeight: 'bold' }}>A REVISAR</span>}
+                                                    </Link>
                                                 </li>
                                             ))}
                                             {grouped[cat].Fem.length === 0 && <li style={{ color: 'var(--foreground)', fontSize: '0.8rem' }}>-</li>}
@@ -222,7 +226,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                         <ul style={{ listStyle: 'none', padding: 0 }}>
                                             {grouped[cat].MascA.map((p: any) => (
                                                 <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
-                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'var(--foreground)' }}>{p.lastName}, {p.firstName}</Link>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--foreground)' }}>
+                                                        <span>{p.lastName}, {p.firstName}</span>
+                                                        {p.status === 'REVISAR' && <span style={{ fontSize: '0.6rem', background: 'var(--warning)', color: 'black', padding: '0 0.2rem', borderRadius: '3px', fontWeight: 'bold' }}>A REVISAR</span>}
+                                                    </Link>
                                                 </li>
                                             ))}
                                             {grouped[cat].MascA.length === 0 && <li style={{ color: 'var(--foreground)', fontSize: '0.8rem' }}>-</li>}
@@ -249,7 +256,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                                         <ul style={{ listStyle: 'none', padding: 0 }}>
                                             {grouped[cat].MascB.map((p: any) => (
                                                 <li key={p.id} style={{ padding: '0.25rem 0', borderBottom: '1px solid var(--border)' }}>
-                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'block', fontSize: '0.85rem', color: 'var(--foreground)' }}>{p.lastName}, {p.firstName}</Link>
+                                                    <Link href={`/dashboard/players/${p.id}/edit`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: 'var(--foreground)' }}>
+                                                        <span>{p.lastName}, {p.firstName}</span>
+                                                        {p.status === 'REVISAR' && <span style={{ fontSize: '0.6rem', background: 'var(--warning)', color: 'black', padding: '0 0.2rem', borderRadius: '3px', fontWeight: 'bold' }}>A REVISAR</span>}
+                                                    </Link>
                                                 </li>
                                             ))}
                                             {grouped[cat].MascB.length === 0 && <li style={{ color: 'var(--foreground)', fontSize: '0.8rem' }}>-</li>}
