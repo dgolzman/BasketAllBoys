@@ -11,6 +11,7 @@ export const ROLES = {
     SUB_COMISION: 'SUB_COMISION',
     COORDINADOR: 'COORDINADOR',
     ENTRENADOR: 'ENTRENADOR',
+    VIEWER: 'VIEWER',
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
@@ -90,6 +91,16 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         PERMISSIONS.TAKE_ATTENDANCE,
         PERMISSIONS.VIEW_REPORT_ATTENDANCE,
     ],
+
+    VIEWER: [
+        PERMISSIONS.VIEW_PLAYERS,
+        PERMISSIONS.VIEW_COACHES,
+        PERMISSIONS.VIEW_TEAMS,
+        PERMISSIONS.VIEW_MESSAGES,
+        PERMISSIONS.VIEW_REPORT_ATTENDANCE,
+        PERMISSIONS.VIEW_REPORT_SALARIES,
+        PERMISSIONS.VIEW_REPORT_PAYMENTS,
+    ],
 };
 
 /** Labels legibles para mostrar en el panel de gestión de permisos */
@@ -166,4 +177,4 @@ export function isAdmin(role: string): boolean {
     return role === ROLES.ADMIN;
 }
 
-export const EDITABLE_ROLES: Role[] = [ROLES.SUB_COMISION, ROLES.COORDINADOR, ROLES.ENTRENADOR];
+export const EDITABLE_ROLES: Role[] = [ROLES.SUB_COMISION, ROLES.COORDINADOR, ROLES.ENTRENADOR, ROLES.VIEWER];
